@@ -1,2 +1,1 @@
-# GBankService
-practice spring boot
+대출의 전 과정을 시뮬레이션 합니다. (추후 작성)
