@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>우인은행 - 한도 알아보기</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    /* --- 심플 헤더 스타일 (기존과 동일) --- */
+    .simple-header {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      margin-bottom: 20px;
+      background-color: #f0f2f5;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .back-button {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      text-decoration: none;
+      margin-right: 15px;
+      padding: 0 10px;
+    }
+
+    /* --- 입력 폼 카드 스타일 --- */
+    .form-card {
+      background-color: white;
+      padding: 35px 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      max-width: 700px; /* 폼이 너무 넓어지지 않도록 최대 너비 설정 */
+      margin: 0 auto; /* 중앙 정렬 */
+    }
+
+    .form-header {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .form-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      margin: 0;
+    }
+
+    /* --- 폼 그룹 스타일 --- */
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 16px;
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    .form-group select {
+      width: 100%;
+      padding: 14px 18px;
+      font-size: 16px;
+      color: #333;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+      -webkit-appearance: none; /* 기본 화살표 제거 (웹킷) */
+      -moz-appearance: none;    /* 기본 화살표 제거 (파이어폭스) */
+      appearance: none;         /* 기본 화살표 제거 */
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D'20'%20height%3D'20'%20fill%3D'%23555'%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%3E%3Cpath%20d%3D'M7.41%208.59L12%2013.17l4.59-4.58L18%2010l-6%206-6-6%201.41-1.41z'%2F%3E%3C%2Fsvg%3E");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
+      background-size: 20px;
+      cursor: pointer;
+    }
+
+    /* --- 동의 섹션 --- */
+    .agreement-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 40px;
+      margin-bottom: 25px;
+    }
+
+    .agreement-section input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .agreement-section label {
+      font-size: 15px;
+      color: #666;
+      cursor: pointer;
+    }
+
+    /* --- 하단 버튼 컨테이너 (기존과 동일) --- */
+    .action-button-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .action-button {
+      width: 100%;
+      padding: 18px;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      background-color: #4a90e2;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .action-button:hover:not(:disabled) {
+      background-color: #357ABD;
+    }
+
+    /* 비활성화된 버튼 스타일 */
+    .action-button:disabled {
+      background-color: #b0c4de; /* 흐린 파란색 */
+      cursor: not-allowed;
+    }
+
+  </style>
+</head>
+<body>
+
+<header class="simple-header">
+  <a th:href="@{/loan/credit}" href="product-detail.html" class="back-button">&lt;</a>
+</header>
+
+<main>
+  <section class="form-card">
+    <div class="form-header">
+      <h1 class="form-title" th:text="${LoanProductInfoResponse.loanProductName} + ' 금리/한도 알아보기'"></h1>
+    </div>
+
+    <form id="loan-info-form" th:action="|location.href='@{'/loan/credit/' + ${LoanProductInfoResponse.loanProductSlug} + '/calculate'}'|" method="post">
+
+      <div class="form-group">
+        <label for="total-assets">총 자산규모</label>
+        <select id="total-assets" name="totalAssets" required>
+          <option value="">선택하세요</option>
+          <option value="ASSET_A">1억원 미만</option>
+          <option value="ASSET_B">1억원 이상 5억원 미만</option>
+          <option value="ASSET_C">5억원 이상 10억원 미만</option>
+          <option value="ASSET_D">10억원 이상</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="total-income">총 소득</label>
+        <select id="total-income" name="totalIncome" required>
+          <option value="">선택하세요</option>
+          <option value="INCOME_A">2천5백만원 미만</option>
+          <option value="INCOME_B">2천5백만원 이상 5천만원 미만</option>
+          <option value="INCOME_C">5천만원 이상 1억원 미만</option>
+          <option value="INCOME_D">1억원 이상</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="total-debt">총 부채</label>
+        <select id="total-debt" name="totalDebt" required>
+          <option value="">선택하세요</option>
+          <option value="DEBT_A">5천만원 미만</option>
+          <option value="DEBT_B">5천만원 이상 1억원 미만</option>
+          <option value="DEBT_C">1억원 이상 5억원 미만</option>
+          <option value="DEBT_D">5억원 이상</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="fixed-expenses">고정지출</label>
+        <select id="fixed-expenses" name="fixedExpenses" required>
+          <option value="">선택하세요</option>
+          <option value="EXPENSE_A">연간소득의 30% 미만</option>
+          <option value="EXPENSE_B">연간소득의 30% 이상 50% 미만</option>
+          <option value="EXPENSE_C">연간소득의 50% 이상 70% 미만</option>
+          <option value="EXPENSE_D">연간소득의 70% 이상</option>
+        </select>
+      </div>
+
+      <div class="agreement-section">
+        <input type="checkbox" id="privacy-agree">
+        <label for="privacy-agree">개인 정보 수집/이용/제공에 동의합니다.</label>
+      </div>
+
+      <div class="action-button-container">
+        <button type="submit" id="next-button" class="action-button" disabled>
+          다음으로
+        </button>
+      </div>
+
+    </form>
+  </section>
+</main>
+
+<script>
+  // DOM 요소 가져오기
+  const agreeCheckbox = document.getElementById('privacy-agree');
+  const nextButton = document.getElementById('next-button');
+
+  // 체크박스에 'change' 이벤트 리스너 추가
+  agreeCheckbox.addEventListener('change', function() {
+    // 체크박스가 체크되었는지 확인
+    if (this.checked) {
+      // 체크되었다면, '다음으로' 버튼의 disabled 속성을 제거 (활성화)
+      nextButton.disabled = false;
+    } else {
+      // 체크가 해제되었다면, '다음으로' 버튼에 disabled 속성을 추가 (비활성화)
+      nextButton.disabled = true;
+    }
+  });
+</script>
+
+</body>
+</html>

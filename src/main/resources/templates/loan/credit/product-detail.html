@@ -153,8 +153,9 @@
     </table>
 
     <div class="action-button-container">
-      <button class="action-button" th:onclick="|location.href='@{/loan/credit}'|">
-        한도 및 금리 알아보기
+      <button class="action-button"
+              type="button" th:onclick="|location.href='@{'/loan/credit/' + ${LoanProductInfoResponse.loanProductSlug} + '/inquiry'}'|">
+        금리 및 한도 알아보기
       </button>
     </div>
   </section>

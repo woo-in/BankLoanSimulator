@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.math.BigDecimal;
@@ -47,6 +48,31 @@ public class LoanHomeController {
     }
 
 
+    @RequestMapping("/credit/{type}/inquiry")
+    public String showLoanInquiryForm(@PathVariable("type") String type, Model model){
+        CreditLoanProduct creditLoanProduct = creditLoanService.findCreditLoanProductByLoanProductSlug(type);
+        LoanProductInfoResponse loanProductInfoResponse = LoanProductInfoResponse.from(creditLoanProduct);
+        model.addAttribute("LoanProductInfoResponse" , loanProductInfoResponse);
+
+
+        return "loan/credit/user-input";
+    }
+
+    @PostMapping("/credit/{type}/calculate")
+    public String processLoanInquiry(@PathVariable("type") String type, Model model){
+        // 입력을 바탕으로 신용등급 계산
+        // 대출상품에 따라 신용등급에 따른 , 실제 가산이자 조회
+
+
+
+
+    }
+
+
+
+
+
+
 
     private void prepareCreditLoanListModel(Model model){
 
@@ -59,7 +85,7 @@ public class LoanHomeController {
         model.addAttribute("LoanProductInfoResponses" , loanProductInfoResponses);
     }
 
-    // todo : 임시 함수 삭제
+    // todo : 임시 함수 (신용대출상품저장)
     private void prepareLoanProduct(){
 
         LoanProductDetail loanProductDetail = new LoanProductDetail("온 국민이 즐기는 대출", "국민 누구나");
@@ -78,7 +104,6 @@ public class LoanHomeController {
                         .build();
 
             creditLoanService.saveCreditLoanProduct(creditLoanProduct);
-
     }
 
 

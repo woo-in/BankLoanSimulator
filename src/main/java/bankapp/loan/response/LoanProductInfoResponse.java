@@ -1,6 +1,5 @@
 package bankapp.loan.response;
 
-import bankapp.loan.common.enums.RepaymentMethod;
 import bankapp.loan.model.product.LoanProduct;
 import lombok.Data;
 
