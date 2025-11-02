@@ -1,4 +1,4 @@
-package bankapp.loan.model.product;
+package bankapp.loan.model.common.product;
 
 public enum ProductStatus {
 

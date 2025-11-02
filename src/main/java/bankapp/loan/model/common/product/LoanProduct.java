@@ -1,5 +1,7 @@
-package bankapp.loan.model.product;
+package bankapp.loan.model.common.product;
 
+import bankapp.loan.model.common.rate.LoanProductInterestRateTypeOption;
+import bankapp.loan.model.common.repayment.LoanProductRepaymentOption;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +10,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Data
@@ -58,22 +62,11 @@ public abstract class LoanProduct {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "loanProduct")
+    private List<LoanProductInterestRateTypeOption>  interestRateTypeOptions = new ArrayList<>();
 
-//    /**
-//     * 이 상품이 가질 수 있는 상환 방법 옵션 목록.
-//     * 이 상품(LoanProduct)이 저장될 때(persist),
-//     * 이 리스트에 담긴 LoanProductRepaymentOption 객체들도 함께 저장됩니다. (cascade = CascadeType.ALL)
-//     */
-//    @OneToMany(mappedBy = "loanProduct", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-//    private List<LoanProductRepaymentOption> repaymentOptions = new ArrayList<>();
-//
-//
-//    public void addRepaymentOption(RepaymentMethod method) {
-//        LoanProductRepaymentOption option = new LoanProductRepaymentOption(this, method);
-//        this.repaymentOptions.add(option);
-//    }
-
-
+    @OneToMany(mappedBy = "loanProduct")
+    private List<LoanProductRepaymentOption>  repaymentOptions = new ArrayList<>();
 
 
 }

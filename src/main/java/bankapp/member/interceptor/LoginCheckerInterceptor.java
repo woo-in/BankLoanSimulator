@@ -26,11 +26,12 @@ public class LoginCheckerInterceptor implements HandlerInterceptor {
      * 인증되지 않은 사용자의 요청을 처리합니다.
      * - 로그인/회원가입 페이지는 허용합니다.
      * - 나머지 페이지는 로그인 페이지로 리디렉션합니다.
+     * TODO : // 임시 허용 페이지 배포시 , 삭제
+     * - 임시로 대출관리 페이지는 허용합니다.
      */
     private boolean handleUnauthenticated(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String requestURI = request.getRequestURI();
-
-        if (requestURI.equals("/login") || requestURI.equals("/signup")) {
+        if (requestURI.equals("/login") || requestURI.equals("/signup")){
             return true;
         }
 

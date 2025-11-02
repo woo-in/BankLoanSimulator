@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>임시 관리 홈</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 40px; background-color: #f9f9f9; }
+    h1 { color: #333; text-align: center; }
+    .menu-container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .menu-item {
+      display: block;
+      padding: 18px 25px;
+      margin-bottom: 15px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      text-align: center;
+      transition: background-color 0.2s ease-in-out, transform 0.2s;
+    }
+    .menu-item:hover {
+      background-color: #0056b3;
+      transform: translateY(-2px);
+    }
+    /* 다른 기능 버튼 스타일 */
+    .menu-item.setup {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    .menu-item.setup:hover {
+      background-color: #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+
+<h1>[임시] 은행 시스템 관리 홈</h1>
+
+<div class="menu-container">
+
+  <a th:href="@{/temp-admin/loan-applications}" class="menu-item">
+    1. 대출 신청 승인/검토
+  </a>
+
+  <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+  <a th:href="@{/temp-admin/repayment-methods}" class="menu-item setup">
+    2. 상환 방법(Repayment Method) 관리
+  </a>
+
+  <a th:href="@{/temp-admin/interest-types}" class="menu-item setup">
+    3. 금리 유형(Interest Type) 관리
+  </a>
+
+  <a th:href="@{/temp-admin/loan-products}" class="menu-item setup">
+    4. 대출 상품(Loan Product) 관리
+  </a>
+
+</div>
+
+</body>
+</html>

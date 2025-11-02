@@ -1,5 +1,6 @@
-package bankapp.loan.model.product;
+package bankapp.loan.model.credit;
 
+import bankapp.loan.model.common.product.LoanProduct;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.Data;
@@ -14,4 +15,4 @@ import lombok.experimental.SuperBuilder;
 @DiscriminatorValue("CREDIT")
 @SuperBuilder
 @NoArgsConstructor
-public class CreditLoanProduct extends LoanProduct{ }
+public class CreditLoanProduct extends LoanProduct { }

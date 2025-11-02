@@ -1,4 +1,4 @@
-package bankapp.loan.request;
+package bankapp.loan.web.request;
 
 import bankapp.loan.common.enums.FixedExpenses;
 import bankapp.loan.common.enums.TotalAssets;

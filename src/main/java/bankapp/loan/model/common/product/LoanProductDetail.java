@@ -1,4 +1,4 @@
-package bankapp.loan.model.product;
+package bankapp.loan.model.common.product;
 
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Lob;

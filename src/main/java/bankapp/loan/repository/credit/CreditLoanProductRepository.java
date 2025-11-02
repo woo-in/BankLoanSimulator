@@ -1,6 +1,6 @@
-package bankapp.loan.repository;
+package bankapp.loan.repository.credit;
 
-import bankapp.loan.model.product.CreditLoanProduct;
+import bankapp.loan.model.credit.CreditLoanProduct;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

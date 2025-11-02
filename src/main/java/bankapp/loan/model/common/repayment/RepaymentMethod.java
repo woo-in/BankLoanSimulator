@@ -1,14 +1,20 @@
-package bankapp.loan.model.product.repayment;
+package bankapp.loan.model.common.repayment;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class RepaymentMethod {
-
 
 
     @Id
@@ -22,8 +28,12 @@ public class RepaymentMethod {
     private String methodName;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
+    @OneToMany(mappedBy = "repaymentMethod")
+    @Builder.Default
+    private List<LoanProductRepaymentOption> loanProductRepaymentOptions = new ArrayList<>();
 
 
 }

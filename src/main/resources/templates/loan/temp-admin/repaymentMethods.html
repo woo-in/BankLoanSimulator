@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>상환 방법 관리 (임시)</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 40px; background-color: #f9f9f9; }
+    h1, h2 { color: #333; }
+    .container { display: flex; gap: 40px; }
+    .form-section { flex: 1; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .list-section { flex: 2; }
+
+    /* 폼 스타일 */
+    form div { margin-bottom: 15px; }
+    form label { display: block; margin-bottom: 5px; font-weight: 600; }
+    form input[type="text"] { width: 95%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    form input[type="checkbox"] { margin-right: 5px; }
+    form button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    form button:hover { background-color: #0056b3; }
+
+    /* 테이블 스타일 */
+    table { width: 100%; border-collapse: collapse; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+    th { background-color: #f4f4f4; }
+    tr:nth-child(even) { background-color: #fdfdfd; }
+  </style>
+</head>
+<body>
+
+<h1>[임시] 상환 방법(Repayment Method) 관리</h1>
+
+<div class="container">
+
+  <div class="form-section">
+    <h2>신규 등록</h2>
+    <form th:action="@{/temp-admin/repayment-methods}" th:object="${newRepaymentMethod}" method="POST">
+
+      <div>
+        <label for="methodCode">Method 코드 (영문/숫자):</label>
+        <input type="text" id="methodCode" th:field="*{methodCode}" maxlength="50" required placeholder="예: MANJIGYUNEUNG">
+      </div>
+
+      <div>
+        <label for="methodName">Method 이름 (한글):</label>
+        <input type="text" id="methodName" th:field="*{methodName}" maxlength="100" required placeholder="예: 원금만기일시상환">
+      </div>
+
+      <div>
+        <input type="checkbox" id="isActive" th:field="*{isActive}">
+        <label for="isActive" style="display: inline; font-weight: normal;">활성화 (Active)</label>
+      </div>
+
+      <button type="submit">등록하기</button>
+    </form>
+  </div>
+
+  <div class="list-section">
+    <h2>등록 목록</h2>
+
+    <div th:if="${#lists.isEmpty(repaymentMethodInfoResponses)}">
+      <p>등록된 상환 방법이 없습니다.</p>
+    </div>
+
+    <table th:unless="${#lists.isEmpty(repaymentMethodInfoResponses)}">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Method 코드</th>
+        <th>Method 이름</th>
+        <th>활성화 여부</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="method : ${repaymentMethodInfoResponses}">
+        <td th:text="${method.repaymentMethodId}">1</td>
+        <td th:text="${method.methodCode}">MANJIGYUNEUNG</td>
+        <td th:text="${method.methodName}">원금만기일시상환</td>
+        <td th:text="${method.isActive} ? '활성 (true)' : '비활성 (false)'">활성 (true)</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,14 +1,14 @@
-package bankapp.loan.service;
+package bankapp.loan.service.credit;
 
 import bankapp.loan.exceptions.LoanProductNotFoundException;
-import bankapp.loan.model.product.CreditLoanProduct;
-import bankapp.loan.repository.CreditLoanProductRepository;
+import bankapp.loan.model.credit.CreditLoanProduct;
+import bankapp.loan.repository.credit.CreditLoanProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class DefaultCreditLoanService implements CreditLoanService{
+public class DefaultCreditLoanService implements CreditLoanService {
 
 
     private final CreditLoanProductRepository creditLoanProductRepository;
@@ -27,6 +27,7 @@ public class DefaultCreditLoanService implements CreditLoanService{
     public void saveCreditLoanProduct(CreditLoanProduct creditLoanProduct) {
         creditLoanProductRepository.save(creditLoanProduct);
     }
+
 
     @Override
     public CreditLoanProduct findCreditLoanProductByLoanProductSlug(String loanProductSlug) throws LoanProductNotFoundException {
