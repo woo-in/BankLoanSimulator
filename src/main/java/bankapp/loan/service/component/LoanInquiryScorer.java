@@ -3,7 +3,6 @@ package bankapp.loan.service.component;
 import bankapp.loan.common.enums.*;
 import bankapp.loan.web.request.CreditCheckRequest;
 import org.springframework.stereotype.Component;
-
 import java.util.Map;
 
 @Component

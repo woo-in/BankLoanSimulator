@@ -3,6 +3,7 @@ package bankapp.loan.service.common.rate;
 
 import bankapp.loan.model.common.rate.InterestRateType;
 import bankapp.loan.repository.common.rate.InterestRateTypeRepository;
+import bankapp.loan.web.request.InterestRateTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,15 @@ public class DefaultInterestRateTypeService implements InterestRateTypeService {
         return interestRateTypeRepository.findAll();
     }
 
+    @Override
+    public void saveInterestRateType(InterestRateTypeRequest interestRateTypeRequest){
+        interestRateTypeRepository.save(interestRateTypeRequest.toEntity());
+    }
+
+    @Override
+    public List<InterestRateType> findAllById(List<Long> ids){
+        return interestRateTypeRepository.findAllById(ids);
+    }
 
 
 }

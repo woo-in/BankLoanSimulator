@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>우인은행 - 금리/한도 결과</title>
+  <style>
+    /* ... (기존 product-detail.html 스타일과 동일) ... */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .simple-header {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      margin-bottom: 20px;
+      background-color: #f0f2f5;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .back-button {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      text-decoration: none;
+      margin-right: 15px;
+      padding: 0 10px;
+    }
+
+    .product-detail-card {
+      background-color: white;
+      padding: 35px 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .product-header {
+      margin-bottom: 30px;
+      border-bottom: 2px solid #f0f2f5;
+      padding-bottom: 20px;
+    }
+
+    .product-name {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      margin: 0 0 8px 0;
+    }
+
+    .product-title {
+      font-size: 16px;
+      color: #555;
+      margin: 0;
+    }
+
+    .info-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+
+    .info-table th, .info-table td {
+      padding: 20px 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    .info-table th {
+      width: 30%;
+      font-weight: bold;
+      background-color: #f7f9fc;
+      color: #333;
+    }
+
+    .info-table td {
+      color: #555;
+      font-weight: 500;
+    }
+
+    .info-table tr:last-child th, .info-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* --- [신규] 금리 하이라이트 섹션 스타일 --- */
+    .result-highlight {
+      background-color: #f7f9fc;
+      border-radius: 15px;
+      padding: 25px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .result-highlight-label {
+      font-size: 16px;
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    .result-highlight-rate {
+      font-size: 42px;
+      font-weight: bold;
+      color: #4a90e2; /* 브랜드 컬러 */
+      margin: 0;
+    }
+
+    /* --- [신규] 금리 상세 테이블 (기존 info-table 재활용) --- */
+    .info-table.rate-breakdown th {
+      background-color: #fafafa; /* 약간 다른 배경색 */
+    }
+
+
+    /* --- 하단 버튼 컨테이너 (버튼 색상 수정) --- */
+    .action-button-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .action-button {
+      width: 100%;
+      padding: 18px;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      background-color: #E64A19; /* [수정] 대출 신청하기 (주황색/빨간색 계열 강조) */
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .action-button:hover {
+      background-color: #D84315;
+    }
+  </style>
+</head>
+<body>
+
+<header class="simple-header">
+  <a th:href="@{'/loan/credit/' + ${LoanProductInfoResponse.loanProductSlug}}" class="back-button">&lt;</a>
+</header>
+
+<main>
+  <section class="product-detail-card" th:object="${LoanProductInfoResponse}">
+
+    <div class="product-header">
+      <h1 class="product-name" th:text="*{loanProductName}">상품 이름</h1>
+      <p class="product-title" th:text="*{productDescription}">상품 타이틀(특징)</p>
+    </div>
+
+    <div class="result-highlight">
+      <div class="result-highlight-label">고객님을 위한 최종 금리</div>
+      <h2 class="result-highlight-rate" th:text="${#numbers.formatDecimal(InterestRateInfoResponse.finalInterestRate, 1, 2)} + '%'">
+        5.25%
+      </h2>
+    </div>
+
+    <h3 style="font-weight: bold; margin-bottom: 15px;">금리 상세 내역</h3>
+    <table class="info-table rate-breakdown">
+      <tbody>
+      <tr>
+        <th>기준 금리 (A)</th>
+        <td th:text="${#numbers.formatDecimal(InterestRateInfoResponse.baseRate, 1, 2)} + '%'">3.50%</td>
+      </tr>
+      <tr>
+        <th>상품 가산금리 (B)</th>
+        <td th:text="${#numbers.formatDecimal(InterestRateInfoResponse.productSpread, 1, 2)} + '%'">1.25%</td>
+      </tr>
+      <tr>
+        <th>신용 가산금리 (C)</th>
+        <td th:text="${#numbers.formatDecimal(InterestRateInfoResponse.creditSpread, 1, 2)} + '%'">0.50%</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-weight: bold; margin-bottom: 15px; margin-top: 40px;">상품 기본 정보</h3>
+    <table class="info-table">
+      <tbody>
+      <tr>
+        <th>대출 한도</th>
+        <td th:text="'최대 ' + ${#numbers.formatInteger(LoanProductInfoResponse.maxLoanAmount, 3, 'COMMA')} + '원'">최대 300,000,000원</td>
+      </tr>
+      <tr>
+        <th>대출 기간</th>
+        <td th:text="'최장 ' + *{maxLoanTerm} + '개월'">최장 120개월</td>
+      </tr>
+      <tr>
+        <th>상환 방법</th>
+        <td th:text="*{repaymentOptions}">원리금균등분할상환</td>
+      </tr>
+      <tr>
+        <th>금리 종류</th>
+        <td th:text="*{interestRateTypeOptions}">고정금리</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div class="action-button-container">
+      <button class="action-button"
+              type="button" th:onclick="|location.href='@{'/loan/credit/' + *{loanProductSlug} + '/apply'}'|">
+        대출 신청하기
+      </button>
+    </div>
+  </section>
+</main>
+</body>
+</html>

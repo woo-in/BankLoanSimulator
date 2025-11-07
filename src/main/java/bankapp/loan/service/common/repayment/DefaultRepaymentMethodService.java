@@ -2,6 +2,7 @@ package bankapp.loan.service.common.repayment;
 
 import bankapp.loan.model.common.repayment.RepaymentMethod;
 import bankapp.loan.repository.common.repayment.RepaymentMethodRepository;
+import bankapp.loan.web.request.RepaymentMethodRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,8 +27,18 @@ public class DefaultRepaymentMethodService implements RepaymentMethodService {
     }
 
     @Override
+    public void saveRepayment(RepaymentMethodRequest repaymentMethodRequest){
+        repaymentMethodRepository.save(repaymentMethodRequest.toEntity());
+    }
+
+    @Override
     public List<RepaymentMethod> findAllMethods() {
         return repaymentMethodRepository.findAll();
+    }
+
+    @Override
+    public List<RepaymentMethod> findAllById(List<Long> ids){
+        return repaymentMethodRepository.findAllById(ids);
     }
 
 }

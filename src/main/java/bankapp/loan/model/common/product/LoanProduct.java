@@ -3,8 +3,7 @@ package bankapp.loan.model.common.product;
 import bankapp.loan.model.common.rate.LoanProductInterestRateTypeOption;
 import bankapp.loan.model.common.repayment.LoanProductRepaymentOption;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -14,7 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@Data
+@Getter
+@Setter
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "loan_type")
@@ -32,14 +32,11 @@ public abstract class LoanProduct {
     @Column(nullable = false, unique = true)
     private String loanProductSlug;
 
+    @Column(nullable = false)
+    private String loanProductDescription;
+
     @Column(name = "loan_type", insertable = false, updatable = false)
     private String loanType;
-
-    @Column(precision = 5, scale = 2, nullable = false)
-    private BigDecimal minInterestRate;
-
-    @Column(precision = 5, scale = 2, nullable = false)
-    private BigDecimal maxInterestRate;
 
     @Column(nullable = false)
     private BigDecimal maxLoanAmount;
@@ -47,8 +44,9 @@ public abstract class LoanProduct {
     @Column(nullable = false)
     private Integer maxLoanTerm;
 
-    @Embedded
-    private LoanProductDetail loanProductDetail;
+    // todo : 가산금리 계산로직 수정 필수
+    @Column(nullable = false)
+    private BigDecimal defaultSpread;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -62,12 +60,13 @@ public abstract class LoanProduct {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "loanProduct")
     private List<LoanProductInterestRateTypeOption>  interestRateTypeOptions = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "loanProduct")
     private List<LoanProductRepaymentOption>  repaymentOptions = new ArrayList<>();
-
 
 }
 

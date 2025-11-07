@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>대출 상품 관리 (임시)</title>
+  <style>
+    /* ... (스타일은 기존과 동일) ... */
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 40px; background-color: #f9f9f9; }
+    h1, h2 { color: #333; }
+    .container { display: flex; gap: 40px; }
+    .form-section { flex: 1; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .list-section { flex: 2; }
+
+    /* 폼 스타일 */
+    form div { margin-bottom: 15px; }
+    form label { display: block; margin-bottom: 5px; font-weight: 600; }
+    form input[type="text"],
+    form input[type="number"],
+    form textarea,
+    form select {
+      width: 95%; /* 일관성을 위해 95%로 조정 */
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    form select[multiple] { height: 120px; }
+    form textarea { resize: vertical; min-height: 60px; }
+    form .checkbox-group {
+      border: 1px solid #eee;
+      padding: 10px;
+      border-radius: 4px;
+      max-height: 150px;
+      overflow-y: auto;
+      background-color: #fdfdfd;
+    }
+    form .checkbox-group div { margin-bottom: 5px; }
+    form input[type="checkbox"] { margin-right: 5px; }
+    form label.inline-label { display: inline; font-weight: normal; }
+    form button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+    form button:hover { background-color: #0056b3; }
+
+    /* 테이블 스타일 */
+    table { width: 100%; border-collapse: collapse; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    th, td { padding: 12px; border: 1px solid #ddd; text-align: left; vertical-align: top; }
+    th { background-color: #f4f4f4; }
+    tr:nth-child(even) { background-color: #fdfdfd; }
+    td small { color: #555; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+
+<h1>[임시] 대출 상품(Loan Product) 관리</h1>
+
+<div class="container">
+
+  <div class="form-section">
+    <h2>신규 등록</h2>
+    <form th:action="@{/temp-admin/loan-products}" th:object="${newLoanProduct}" method="POST">
+
+      <div>
+        <label for="loanProductName">대출 상품 이름:</label>
+        <input type="text" id="loanProductName" th:field="*{loanProductName}" maxlength="100" required placeholder="예: 뱅크 앱 든든 신용대출">
+      </div>
+
+      <div>
+        <label for="loanProductSlug">대출 핵심 키워드 (Slug):</label>
+        <input type="text" id="loanProductSlug" th:field="*{loanProductSlug}" maxlength="100" required placeholder="예: bank-denden-credit-loan">
+      </div>
+
+      <div>
+        <label for="loanProductDescription">대출 묘사:</label>
+        <textarea id="loanProductDescription" th:field="*{loanProductDescription}" rows="3" placeholder="예: 바쁜 직장인을 위한 간편한 비대면 신용대출 상품입니다."></textarea>
+      </div>
+
+      <div>
+        <label for="loanType">대출 타입:</label>
+        <select id="loanType" th:field="*{loanType}" required>
+          <option value="">-- 타입을 선택하세요 --</option>
+          <option value="CREDIT">신용대출</option>
+          <option value="MORTGAGE">담보대출</option>
+          <option value="JEONSE">전월세/반환보증</option>
+          <option value="AUTO">자동차대출</option>
+          <option value="GROUP">집단중도금/이주비대출</option>
+          <option value="HOUSING_FUND">주택도시기금대출</option>
+          <option value="BUSINESS">개인사업자대출</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="maxLoanAmount">최대 대출 한도 (원):</label>
+        <input type="number" id="maxLoanAmount" th:field="*{maxLoanAmount}" required placeholder="예: 100000000" min="0">
+      </div>
+
+      <div>
+        <label for="maxLoanTerm">최대 대출 기간 (개월):</label>
+        <input type="number" id="maxLoanTerm" th:field="*{maxLoanTerm}" required placeholder="예: 60" min="1">
+      </div>
+
+      <div>
+        <label for="defaultSpread">기본 가산금리 (%):</label>
+        <input type="number" id="defaultSpread" th:field="*{defaultSpread}" required placeholder="예: 3.25" min="0" step="0.01">
+      </div>
+
+      <div>
+        <label for="status">상태:</label>
+        <select id="status" th:field="*{status}" required>
+          <option value="ACTIVE">활성 (ACTIVE)</option>
+          <option value="INACTIVE">비활성 (INACTIVE)</option>
+        </select>
+      </div>
+
+      <div>
+        <label>선택 가능 금리 유형 (다중 선택 가능):</label>
+        <div class="checkbox-group">
+          <div th:each="type : ${interestTypeInfoResponses}">
+            <input type="checkbox" th:id="'rate-' + ${type.interestRateTypeId}" th:field="*{interestRateTypeIds}" th:value="${type.interestRateTypeId}">
+            <label th:for="'rate-' + ${type.interestRateTypeId}" class="inline-label" th:text="${type.typeName} + ' (' + ${type.typeCode} + ')'">고정금리 (FIXED)</label>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label>선택 가능 상환 방법 (다중 선택 가능):</label>
+        <div class="checkbox-group">
+          <div th:each="method : ${repaymentMethodInfoResponses}">
+            <input type="checkbox" th:id="'repay-' + ${method.repaymentMethodId}" th:field="*{repaymentMethodIds}" th:value="${method.repaymentMethodId}">
+            <label th:for="'repay-' + ${method.repaymentMethodId}" class="inline-label" th:text="${method.methodName} + ' (' + ${method.methodCode} + ')'">원금만기일시상환 (MANJI)</label>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit">상품 등록하기</button>
+    </form>
+  </div>
+
+  <div class="list-section">
+    <h2>등록 목록</h2>
+
+    <div th:if="${#lists.isEmpty(loanProductInfoResponses)}">
+      <p>등록된 대출 상품이 없습니다.</p>
+    </div>
+
+    <table th:unless="${#lists.isEmpty(loanProductInfoResponses)}">
+      <thead>
+      <tr>
+        <th>상품명 (타입)</th>
+        <th>Slug</th>
+        <th>한도 / 기간</th>
+        <th>기본 가산금리</th> <th>상태</th>
+        <th>금리 옵션</th>
+        <th>상환 옵션</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="product : ${loanProductInfoResponses}">
+        <td>
+          <strong th:text="${product.loanProductName}">상품명</strong><br>
+          <small th:text="${product.loanType}">상품타입</small>
+        </td>
+        <td th:text="${product.loanProductSlug}">slug</td>
+        <td>
+          <span th:text="${#numbers.formatCurrency(product.maxLoanAmount)}">100,000,000</span>원<br>
+          <span th:text="${product.maxLoanTerm}">60</span>개월
+        </td>
+        <td>
+          <strong th:text="${product.defaultSpread} + '%'">3.25%</strong>
+        </td>
+        <td th:text="${product.status == 'ACTIVE'} ? '활성' : '비활성'">활성</td>
+        <td th:text="${product.interestRateTypeOptions}">[금리 옵션]</td>
+        <td th:text="${product.repaymentOptions}">[상환 옵션]</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>

@@ -9,7 +9,8 @@ import lombok.Data;
 
 @Data
 public class CreditCheckRequest {
-    @NotNull // '선택하세요'를 선택하지 않았는지 검증
+
+    @NotNull
     private TotalAssets totalAssets;
 
     @NotNull

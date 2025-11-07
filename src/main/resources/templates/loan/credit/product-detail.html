@@ -129,33 +129,36 @@
 
     <table class="info-table">
       <tbody>
-      <tr>
-        <th>최고 금리</th>
-        <td th:text="${#numbers.formatDecimal(LoanProductInfoResponse.maxInterestRate, 1, 2)} + '%'">연 12.00%</td>
-      </tr>
-      <tr>
-        <th>최저 금리</th>
-        <td th:text="${#numbers.formatDecimal(LoanProductInfoResponse.minInterestRate, 1, 2)} + '%'">연 4.50%</td>
-      </tr>
+
       <tr>
         <th>대출 한도</th>
         <td th:text="'최대 ' + ${#numbers.formatInteger(LoanProductInfoResponse.maxLoanAmount, 3, 'COMMA')} + '원'">최대 300,000,000원</td>
       </tr>
+
+
       <tr>
         <th>대출 기간</th>
         <td th:text="'최장 ' + ${LoanProductInfoResponse.maxLoanTerm} + '개월'">최장 120개월</td>
       </tr>
+
+
       <tr>
         <th>상환 방법</th>
-        <td th:text="${LoanProductInfoResponse.repaymentMethods}">원리금균등분할상환</td>
+        <td th:text="${LoanProductInfoResponse.repaymentOptions}">원리금균등분할상환</td>
       </tr>
+
+      <tr>
+        <th>금리 종류</th>
+        <td th:text="${LoanProductInfoResponse.interestRateTypeOptions}">고정금리</td>
+      </tr>
+
       </tbody>
     </table>
 
     <div class="action-button-container">
       <button class="action-button"
               type="button" th:onclick="|location.href='@{'/loan/credit/' + ${LoanProductInfoResponse.loanProductSlug} + '/inquiry'}'|">
-        금리 및 한도 알아보기
+        내 금리 알아보기
       </button>
     </div>
   </section>

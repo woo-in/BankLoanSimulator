@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>우인은행 - 한도 알아보기</title>
   <style>
+    /* ... (스타일은 기존과 동일) ... */
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f0f2f5;
@@ -135,7 +136,6 @@
       background-color: #b0c4de; /* 흐린 파란색 */
       cursor: not-allowed;
     }
-
   </style>
 </head>
 <body>
@@ -150,7 +150,7 @@
       <h1 class="form-title" th:text="${LoanProductInfoResponse.loanProductName} + ' 금리/한도 알아보기'"></h1>
     </div>
 
-    <form id="loan-info-form" th:action="|location.href='@{'/loan/credit/' + ${LoanProductInfoResponse.loanProductSlug} + '/calculate'}'|" method="post">
+    <form id="loan-info-form" th:action="@{'/loan/credit/' + ${LoanProductInfoResponse.loanProductSlug} + '/calculate'}" method="post">
 
       <div class="form-group">
         <label for="total-assets">총 자산규모</label>
