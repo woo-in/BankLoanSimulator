@@ -16,8 +16,14 @@ public class LoanProductInfoResponse {
     private String loanType;
 
     private BigDecimal maxLoanAmount;
-    private BigDecimal defaultSpread;
+    private BigDecimal minLoanAmount;
+    private BigDecimal applicationAmountUnit;
+
     private Integer maxLoanTerm;
+    private Integer minLoanTerm;
+    private Integer applicationTermUnit;
+
+    private BigDecimal defaultSpread;
     private String status;
 
     private String interestRateTypeOptions;
@@ -32,12 +38,17 @@ public class LoanProductInfoResponse {
         loanProductInfoResponse.setLoanProductSlug(loanProduct.getLoanProductSlug());
         loanProductInfoResponse.setProductDescription(loanProduct.getLoanProductDescription());
 
+        loanProductInfoResponse.setLoanType(loanProduct.getLoanType());
 
         loanProductInfoResponse.setMaxLoanAmount(loanProduct.getMaxLoanAmount());
-        loanProductInfoResponse.setDefaultSpread(loanProduct.getDefaultSpread());
-        loanProductInfoResponse.setMaxLoanTerm(loanProduct.getMaxLoanTerm());
+        loanProductInfoResponse.setMinLoanAmount(loanProduct.getMinLoanAmount());
+        loanProductInfoResponse.setApplicationAmountUnit(loanProduct.getApplicationAmountUnit());
 
-        loanProductInfoResponse.setLoanType(loanProduct.getLoanType());
+        loanProductInfoResponse.setMaxLoanTerm(loanProduct.getMaxLoanTerm());
+        loanProductInfoResponse.setMinLoanTerm(loanProduct.getMinLoanTerm());
+        loanProductInfoResponse.setApplicationTermUnit(loanProduct.getApplicationTermUnit());
+
+        loanProductInfoResponse.setDefaultSpread(loanProduct.getDefaultSpread());
         loanProductInfoResponse.setStatus(loanProduct.getStatus().toString());
 
         String interestRates = loanProduct.getInterestRateTypeOptions().stream()

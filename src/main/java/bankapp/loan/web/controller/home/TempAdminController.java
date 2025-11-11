@@ -137,6 +137,7 @@ public class TempAdminController {
         }
         model.addAttribute("loanProductInfoResponses" , loanProductInfoResponses);
         // TODO: 임시로 무조건 신용대출만 가능하게 함.
+        // TODO : 대출 단위 , 최소 최대 입력받을 때 검증해야함 예를들어 , 최저 한도가 500 최고 한도가 50 ?
         model.addAttribute("newLoanProduct" , new LoanProductRequest());
 
         return  "loan/temp-admin/loanProducts";

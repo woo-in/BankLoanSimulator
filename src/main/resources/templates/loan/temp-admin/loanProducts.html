@@ -4,29 +4,48 @@
   <meta charset="UTF-8">
   <title>대출 상품 관리 (임시)</title>
   <style>
-    /* ... (스타일은 기존과 동일) ... */
+    /* ... (기존 스타일 상단) ... */
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 40px; background-color: #f9f9f9; }
     h1, h2 { color: #333; }
     .container { display: flex; gap: 40px; }
     .form-section { flex: 1; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .list-section { flex: 2; }
-
-    /* 폼 스타일 */
     form div { margin-bottom: 15px; }
     form label { display: block; margin-bottom: 5px; font-weight: 600; }
     form input[type="text"],
     form input[type="number"],
     form textarea,
     form select {
-      width: 95%; /* 일관성을 위해 95%로 조정 */
+      width: 95%;
       padding: 8px;
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 14px;
       font-family: inherit;
     }
+
+    /* [신규] 폼 그룹핑을 위한 fieldset 스타일 */
+    .form-group-box {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .form-group-box legend {
+      font-weight: 600;
+      color: #333;
+      padding: 0 5px;
+    }
+    .form-group-box div {
+      margin-bottom: 10px; /* 내부 마진 줄임 */
+    }
+    .form-group-box div:last-child {
+      margin-bottom: 0;
+    }
+
     form select[multiple] { height: 120px; }
     form textarea { resize: vertical; min-height: 60px; }
+    /* ... (기존 스타일 중간) ... */
     form .checkbox-group {
       border: 1px solid #eee;
       padding: 10px;
@@ -40,13 +59,17 @@
     form label.inline-label { display: inline; font-weight: normal; }
     form button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
     form button:hover { background-color: #0056b3; }
-
-    /* 테이블 스타일 */
     table { width: 100%; border-collapse: collapse; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     th, td { padding: 12px; border: 1px solid #ddd; text-align: left; vertical-align: top; }
     th { background-color: #f4f4f4; }
     tr:nth-child(even) { background-color: #fdfdfd; }
     td small { color: #555; font-size: 0.9em; }
+    /* [신규] 테이블 내 구분을 위한 hr */
+    td hr.divider {
+      margin: 5px 0;
+      border: 0;
+      border-top: 1px solid #eee;
+    }
   </style>
 </head>
 <body>
@@ -80,23 +103,40 @@
           <option value="">-- 타입을 선택하세요 --</option>
           <option value="CREDIT">신용대출</option>
           <option value="MORTGAGE">담보대출</option>
-          <option value="JEONSE">전월세/반환보증</option>
-          <option value="AUTO">자동차대출</option>
-          <option value="GROUP">집단중도금/이주비대출</option>
-          <option value="HOUSING_FUND">주택도시기금대출</option>
-          <option value="BUSINESS">개인사업자대출</option>
         </select>
       </div>
 
-      <div>
-        <label for="maxLoanAmount">최대 대출 한도 (원):</label>
-        <input type="number" id="maxLoanAmount" th:field="*{maxLoanAmount}" required placeholder="예: 100000000" min="0">
-      </div>
+      <fieldset class="form-group-box">
+        <legend>대출 한도 설정</legend>
+        <div>
+          <label for="minLoanAmount">최소 한도 (원):</label>
+          <input type="number" id="minLoanAmount" th:field="*{minLoanAmount}" required placeholder="예: 1000000" min="0">
+        </div>
+        <div>
+          <label for="maxLoanAmount">최대 한도 (원):</label>
+          <input type="number" id="maxLoanAmount" th:field="*{maxLoanAmount}" required placeholder="예: 100000000" min="0">
+        </div>
+        <div>
+          <label for="applicationAmountUnit">신청 단위 (원):</label>
+          <input type="number" id="applicationAmountUnit" th:field="*{applicationAmountUnit}" required placeholder="예: 100000" min="1">
+        </div>
+      </fieldset>
 
-      <div>
-        <label for="maxLoanTerm">최대 대출 기간 (개월):</label>
-        <input type="number" id="maxLoanTerm" th:field="*{maxLoanTerm}" required placeholder="예: 60" min="1">
-      </div>
+      <fieldset class="form-group-box">
+        <legend>대출 기간 설정</legend>
+        <div>
+          <label for="minLoanTerm">최소 기간 (개월):</label>
+          <input type="number" id="minLoanTerm" th:field="*{minLoanTerm}" required placeholder="예: 12" min="1">
+        </div>
+        <div>
+          <label for="maxLoanTerm">최대 기간 (개월):</label>
+          <input type="number" id="maxLoanTerm" th:field="*{maxLoanTerm}" required placeholder="예: 60" min="1">
+        </div>
+        <div>
+          <label for="applicationTermUnit">신청 단위 (개월):</label>
+          <input type="number" id="applicationTermUnit" th:field="*{applicationTermUnit}" required placeholder="예: 12" min="1">
+        </div>
+      </fieldset>
 
       <div>
         <label for="defaultSpread">기본 가산금리 (%):</label>
@@ -116,7 +156,7 @@
         <div class="checkbox-group">
           <div th:each="type : ${interestTypeInfoResponses}">
             <input type="checkbox" th:id="'rate-' + ${type.interestRateTypeId}" th:field="*{interestRateTypeIds}" th:value="${type.interestRateTypeId}">
-            <label th:for="'rate-' + ${type.interestRateTypeId}" class="inline-label" th:text="${type.typeName} + ' (' + ${type.typeCode} + ')'">고정금리 (FIXED)</label>
+            <label th:for="'rate-' + ${type.interestRateTypeId}" class="inline-label" th:text="${type.typeName} + ' (' + ${type.typeCode} + ')'"></label>
           </div>
         </div>
       </div>
@@ -126,7 +166,7 @@
         <div class="checkbox-group">
           <div th:each="method : ${repaymentMethodInfoResponses}">
             <input type="checkbox" th:id="'repay-' + ${method.repaymentMethodId}" th:field="*{repaymentMethodIds}" th:value="${method.repaymentMethodId}">
-            <label th:for="'repay-' + ${method.repaymentMethodId}" class="inline-label" th:text="${method.methodName} + ' (' + ${method.methodCode} + ')'">원금만기일시상환 (MANJI)</label>
+            <label th:for="'repay-' + ${method.repaymentMethodId}" class="inline-label" th:text="${method.methodName} + ' (' + ${method.methodCode} + ')'"></label>
           </div>
         </div>
       </div>
@@ -137,18 +177,14 @@
 
   <div class="list-section">
     <h2>등록 목록</h2>
-
-    <div th:if="${#lists.isEmpty(loanProductInfoResponses)}">
-      <p>등록된 대출 상품이 없습니다.</p>
-    </div>
-
     <table th:unless="${#lists.isEmpty(loanProductInfoResponses)}">
       <thead>
       <tr>
         <th>상품명 (타입)</th>
         <th>Slug</th>
-        <th>한도 / 기간</th>
-        <th>기본 가산금리</th> <th>상태</th>
+        <th>한도/기간 (단위)</th>
+        <th>기본 가산금리</th>
+        <th>상태</th>
         <th>금리 옵션</th>
         <th>상환 옵션</th>
       </tr>
@@ -160,10 +196,21 @@
           <small th:text="${product.loanType}">상품타입</small>
         </td>
         <td th:text="${product.loanProductSlug}">slug</td>
+
         <td>
-          <span th:text="${#numbers.formatCurrency(product.maxLoanAmount)}">100,000,000</span>원<br>
-          <span th:text="${product.maxLoanTerm}">60</span>개월
+          <small>한도:</small>
+          <span th:text="${#numbers.formatCurrency(product.minLoanAmount)}">1백만</span> ~
+          <span th:text="${#numbers.formatCurrency(product.maxLoanAmount)}">1억</span>원<br>
+          <small th:text="'(단위: ' + ${#numbers.formatCurrency(product.applicationAmountUnit)} + '원)'">(단위: 10만원)</small><br>
+
+          <hr class="divider">
+
+          <small>기간:</small>
+          <span th:text="${product.minLoanTerm}">12</span> ~
+          <span th:text="${product.maxLoanTerm}">60</span>개월<br>
+          <small th:text="'(단위: ' + ${product.applicationTermUnit} + '개월)'">(단위: 12개월)</small>
         </td>
+
         <td>
           <strong th:text="${product.defaultSpread} + '%'">3.25%</strong>
         </td>

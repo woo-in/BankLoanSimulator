@@ -16,6 +16,7 @@ import bankapp.loan.service.common.rate.InterestRateTypeService;
 import bankapp.loan.service.common.repayment.RepaymentMethodService;
 import bankapp.loan.web.request.LoanProductRequest;
 import bankapp.loan.web.response.InterestRateInfoResponse;
+import bankapp.loan.web.response.LoanApplicationFormResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -140,7 +142,7 @@ public class DefaultCreditLoanService implements CreditLoanService {
         // 3. 기본금리
         BigDecimal baseRate;
         try{
-            LocalDate today = LocalDate.now();
+            LocalDate today = LocalDate.of(2025,11,7);
             final String KORIBOR_12M_CODE = "010152000";
 
             BokInterestRateDto.SearchData responseData = bokApiClient.fetchDayInterestRate(
@@ -167,7 +169,73 @@ public class DefaultCreditLoanService implements CreditLoanService {
         return new InterestRateInfoResponse(baseRate,productSpread,creditSpread,baseRate.add(productSpread).add(creditSpread));
     }
 
+    @Override
+    @Transactional(readOnly = true) // 데이터 조립은 읽기 전용
+    public LoanApplicationFormResponse buildApplicationFormResponse(String type, InterestRateInfoResponse rateInfo) throws LoanProductNotFoundException , InvalidLoanProduct , InvalidInterestRate{
 
+        if(rateInfo == null || rateInfo.getFinalInterestRate() == null){
+            throw new InvalidInterestRate("금리 조회 정보가 잘못되었습니다.");
+        }
+
+        CreditLoanProduct product = findCreditLoanProductByLoanProductSlug(type);
+
+        List<BigDecimal> amounts = generateAvailableAmounts(
+                product.getMinLoanAmount(), product.getMaxLoanAmount(), product.getApplicationAmountUnit()
+        );
+        List<Integer> terms = generateAvailableTerms(
+                product.getMinLoanTerm(), product.getMaxLoanTerm(), product.getApplicationTermUnit()
+        );
+
+        List<LoanApplicationFormResponse.FormOptionDto> repaymentOptions = product.getRepaymentOptions().stream()
+                .map(option -> LoanApplicationFormResponse.FormOptionDto.builder()
+                        .id(option.getRepaymentMethod().getRepaymentMethodId())
+                        .name(option.getRepaymentMethod().getMethodName())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<LoanApplicationFormResponse.FormOptionDto> interestRateOptions = product.getInterestRateTypeOptions().stream()
+                .map(option -> LoanApplicationFormResponse.FormOptionDto.builder()
+                        .id(option.getInterestRateType().getInterestRateTypeId())
+                        .name(option.getInterestRateType().getTypeName())
+                        .build())
+                .collect(Collectors.toList());
+
+        return LoanApplicationFormResponse.builder()
+                .loanProductSlug(product.getLoanProductSlug())
+                .loanProductName(product.getLoanProductName())
+                .productDescription(product.getLoanProductDescription())
+                .finalInterestRate(rateInfo.getFinalInterestRate())
+                .availableAmounts(amounts)
+                .availableTerms(terms)
+                .repaymentOptions(repaymentOptions)
+                .interestRateTypeOptions(interestRateOptions)
+                .build();
+    }
+
+
+
+
+    private List<BigDecimal> generateAvailableAmounts(BigDecimal min, BigDecimal max, BigDecimal unit) {
+        List<BigDecimal> amounts = new ArrayList<>();
+        if (unit.compareTo(BigDecimal.ZERO) <= 0 || max.compareTo(min) < 0) throw new InvalidLoanProduct("대출 상품 설정 오류");
+
+        BigDecimal currentAmount = min;
+        while (currentAmount.compareTo(max) <= 0) {
+            amounts.add(currentAmount);
+            currentAmount = currentAmount.add(unit);
+        }
+        return amounts;
+    }
+
+    private List<Integer> generateAvailableTerms(Integer min, Integer max, Integer unit) {
+        List<Integer> terms = new ArrayList<>();
+        if (unit <= 0 || max < min) throw new InvalidLoanProduct("대출 상품 설정 오류");
+
+        for (int term = min; term <= max; term += unit) {
+            terms.add(term);
+        }
+        return terms;
+    }
 
 
 }

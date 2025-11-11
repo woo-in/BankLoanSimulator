@@ -1,5 +1,6 @@
 package bankapp.loan.web.request;
 
+import bankapp.loan.common.enums.FinancialGrade;
 import bankapp.loan.model.common.product.LoanProduct;
 import bankapp.loan.model.common.product.ProductStatus;
 import bankapp.loan.model.credit.CreditLoanProduct;
@@ -16,10 +17,18 @@ public class LoanProductRequest {
     private String loanProductName;
     private String loanProductSlug;
     private String loanProductDescription;
+
     private String loanType;
+
     private BigDecimal maxLoanAmount;
-    private BigDecimal defaultSpread;
+    private BigDecimal minLoanAmount;
+    private BigDecimal applicationAmountUnit;
+
     private Integer maxLoanTerm;
+    private Integer minLoanTerm;
+    private Integer applicationTermUnit;
+
+    private BigDecimal defaultSpread;
     private ProductStatus status;
 
 
@@ -36,7 +45,11 @@ public class LoanProductRequest {
                 .loanProductDescription(loanProductDescription)
                 .loanType(loanType)
                 .maxLoanAmount(maxLoanAmount)
+                .minLoanAmount(minLoanAmount)
+                .applicationAmountUnit(applicationAmountUnit)
                 .maxLoanTerm(maxLoanTerm)
+                .minLoanTerm(minLoanTerm)
+                .applicationTermUnit(applicationTermUnit)
                 .defaultSpread(defaultSpread)
                 .status(status)
                 .build();

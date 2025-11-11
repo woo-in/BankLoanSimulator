@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>우인은행 - 신청 완료</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- 헤더 스타일 --- */
+        .simple-header {
+            display: flex;
+            align-items: center;
+            justify-content: center; /* 완료 페이지라 중앙 정렬 */
+            padding: 10px 0;
+            margin-bottom: 20px;
+            background-color: #f0f2f5;
+            position: sticky;
+            top: 0;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+
+        /* --- 카드 컨테이너 --- */
+        .form-card {
+            background-color: white;
+            padding: 40px 35px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            max-width: 700px;
+            margin: 0 auto;
+            text-align: center; /* 내용 중앙 정렬 */
+        }
+
+        /* --- 성공 아이콘 및 메시지 --- */
+        .success-icon-box {
+            margin-bottom: 25px;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #4a90e2; /* 브랜드 블루 */
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
+        }
+
+        .success-message-title {
+            font-size: 26px;
+            font-weight: bold;
+            color: #333;
+            margin: 20px 0 10px 0;
+        }
+
+        .success-message-sub {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 40px;
+        }
+
+        /* --- 정보 테이블 (customer-product-detail.html 스타일 재사용) --- */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            text-align: left; /* 테이블 내용은 좌측 정렬 */
+        }
+
+        .info-table th, .info-table td {
+            padding: 18px 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-table th {
+            width: 35%;
+            font-weight: bold;
+            color: #555;
+            background-color: #f9f9f9;
+            padding-left: 15px;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .info-table td {
+            color: #333;
+            font-weight: 600;
+            padding-right: 15px;
+            text-align: right; /* 값은 우측 정렬 */
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* 테이블 테두리 제거하고 배경색으로 구분 */
+        .info-table tr {
+            border-bottom: 5px solid white; /* 행 간격 효과 */
+        }
+
+        /* --- 버튼 스타일 (apply-form.html 스타일 재사용) --- */
+        .action-button-container {
+            margin-top: 30px;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-color: #E64A19; /* 강조 색상 */
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            box-sizing: border-box;
+        }
+
+        .action-button:hover {
+            background-color: #D84315;
+        }
+
+    </style>
+</head>
+<body>
+
+<header class="simple-header">
+    <h1 class="page-title">신청 결과</h1>
+</header>
+
+<main>
+    <section class="form-card">
+
+        <div class="success-icon-box">
+            <div class="success-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <h1 class="success-message-title">대출 신청 완료</h1>
+            <p class="success-message-sub">
+                고객님의 대출 신청이 정상적으로 접수되었습니다.<br>
+                심사 결과는 알림으로 안내해 드리겠습니다.
+            </p>
+        </div>
+
+        <table class="info-table">
+            <tbody>
+            <tr>
+                <th>신청 상품</th>
+                <td th:text="${completedApplication.loanProductName}">직장인 신용대출</td>
+            </tr>
+            <tr>
+                <th>신청 금액</th>
+                <td th:text="${#numbers.formatInteger(completedApplication.loanAmount, 3, 'COMMA')} + '원'">50,000,000원</td>
+            </tr>
+            <tr>
+                <th>대출 기간</th>
+                <td th:text="${completedApplication.loanTerm} + '개월'">36개월</td>
+            </tr>
+            <tr>
+                <th>적용 금리</th>
+                <td th:text="${#numbers.formatDecimal(completedApplication.finalInterestRate, 1, 2)} + '%'" style="color: #4a90e2;">5.25%</td>
+            </tr>
+            <tr>
+                <th>상환 방법</th>
+                <td th:text="${completedApplication.repaymentMethodName}">원리금균등분할상환</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="action-button-container">
+            <a href="/" class="action-button">
+                확인 (홈으로 이동)
+            </a>
+        </div>
+
+    </section>
+</main>
+
+</body>
+</html>

@@ -31,12 +31,9 @@ import static bankapp.account.model.transfer.TransferStatus.*;
 public class DefaultTransferService implements TransferService {
 
     private final PendingTransferRepository pendingTransferRepository;
-
     private final AccountService accountService;
     private final AccountCheckService accountCheckService;
-
     private final PasswordEncoder passwordEncoder;
-
     private final TransferRecipientValidator transferRecipientValidator;
     private final TransferRecipientInfoFinder transferRecipientInfoFinder;
     private final TransferAmountValidator transferAmountValidator;
@@ -141,16 +138,19 @@ public class DefaultTransferService implements TransferService {
 
         return pendingTransferRepository.save(pendingTransfer);
     }
+
     private void applyAmountUpdatePendingTransfer(PendingTransfer pendingTransfer, TransferAmountRequest transferAmountRequest) {
         pendingTransfer.setAmount(transferAmountRequest.getAmount());
         pendingTransfer.setStatus(PENDING_MESSAGE);
         pendingTransfer.setUpdatedAt(LocalDateTime.now());
     }
+
     private void applyMessageUpdatePendingTransfer(PendingTransfer pendingTransfer, TransferMessageRequest transferMessageRequest) {
         pendingTransfer.setMessage(transferMessageRequest.getMessage());
         pendingTransfer.setStatus(PENDING_AUTH);
         pendingTransfer.setUpdatedAt(LocalDateTime.now());
     }
+
     private void verifyMemberPassword(PendingTransfer pendingTransfer, TransferAuthRequest transferAuthRequest) throws IncorrectPasswordException{
         Member senderMember = pendingTransfer.getSenderMember();
         if(!passwordEncoder.matches(transferAuthRequest.getPassword(), senderMember.getPassword())) {
@@ -172,6 +172,7 @@ public class DefaultTransferService implements TransferService {
                 pendingTransfer.getAmount(),
                 "transfer"));
     }
+
     private void creditToReceiver(PendingTransfer pendingTransfer) {
         if(pendingTransfer.getStatus() != PENDING_TRANSFER){
             throw new IllegalTransferStateException("거래 단계가 아닙니다.");
@@ -186,7 +187,6 @@ public class DefaultTransferService implements TransferService {
         ));
     }
 
-    // TODO : JPA 로 간단해진 부분 체크 , 고치기
     private void transferCompletion(PendingTransfer pendingTransfer) {
         pendingTransfer.setStatus(COMPLETED);
         pendingTransfer.setUpdatedAt(LocalDateTime.now());

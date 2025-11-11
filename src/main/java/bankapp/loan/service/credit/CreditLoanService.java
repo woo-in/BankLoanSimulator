@@ -4,8 +4,7 @@ import bankapp.loan.common.enums.FinancialGrade;
 import bankapp.loan.model.credit.CreditLoanProduct;
 import bankapp.loan.web.request.LoanProductRequest;
 import bankapp.loan.web.response.InterestRateInfoResponse;
-
-import java.math.BigDecimal;
+import bankapp.loan.web.response.LoanApplicationFormResponse;
 import java.util.List;
 
 public interface CreditLoanService {
@@ -14,8 +13,7 @@ public interface CreditLoanService {
     void saveCreditLoanProduct(LoanProductRequest loanProductRequest);
     CreditLoanProduct findCreditLoanProductByLoanProductSlug(String loanProductSlug);
     InterestRateInfoResponse calculateInterestRate(FinancialGrade financialGrade , String loanProductSlug) ;
-
-
+    LoanApplicationFormResponse buildApplicationFormResponse(String type, InterestRateInfoResponse rateInfo)  ;
 
 
 }

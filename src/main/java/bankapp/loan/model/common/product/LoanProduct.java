@@ -42,7 +42,20 @@ public abstract class LoanProduct {
     private BigDecimal maxLoanAmount;
 
     @Column(nullable = false)
+    private BigDecimal minLoanAmount;
+
+    @Column(nullable = false)
+    private BigDecimal applicationAmountUnit;
+
+    @Column(nullable = false)
     private Integer maxLoanTerm;
+
+    @Column(nullable = false)
+    private Integer minLoanTerm;
+
+    @Column(nullable = false)
+    private Integer applicationTermUnit;
+
 
     // todo : 가산금리 계산로직 수정 필수
     @Column(nullable = false)

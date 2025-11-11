@@ -1,20 +1,26 @@
 package bankapp.loan.web.controller.home;
 
 import bankapp.loan.common.enums.FinancialGrade;
+import bankapp.loan.model.common.application.LoanApplication;
 import bankapp.loan.model.credit.CreditLoanProduct;
+import bankapp.loan.service.common.application.LoanApplicationService;
 import bankapp.loan.service.component.LoanInquiryScorer;
 import bankapp.loan.service.credit.CreditLoanService;
 import bankapp.loan.web.request.CreditCheckRequest;
+import bankapp.loan.web.request.LoanApplicationRequest;
 import bankapp.loan.web.response.InterestRateInfoResponse;
+import bankapp.loan.web.response.LoanApplicationCompleteResponse;
+import bankapp.loan.web.response.LoanApplicationFormResponse;
 import bankapp.loan.web.response.LoanProductInfoResponse;
+import bankapp.member.model.Member;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,10 +31,14 @@ public class LoanHomeController {
 
     private final CreditLoanService creditLoanService;
     private final LoanInquiryScorer loanInquiryScorer;
+    private final LoanApplicationService loanApplicationService;
 
-    public LoanHomeController(CreditLoanService creditLoanService , LoanInquiryScorer loanInquiryScorer) {
+    public LoanHomeController(CreditLoanService creditLoanService ,
+                              LoanInquiryScorer loanInquiryScorer ,
+                              LoanApplicationService loanApplicationService) {
         this.creditLoanService = creditLoanService;
         this.loanInquiryScorer = loanInquiryScorer;
+        this.loanApplicationService = loanApplicationService;
     }
 
     @RequestMapping("/home")
@@ -64,8 +74,9 @@ public class LoanHomeController {
 
     @PostMapping("/credit/{type}/calculate")
     public String processLoanInquiry(@PathVariable("type") String type,
-                                   @Valid @ModelAttribute CreditCheckRequest creditCheckRequest,
-                                   Model model) {
+                                     @Valid @ModelAttribute CreditCheckRequest creditCheckRequest,
+                                     Model model,
+                                     HttpSession session) {
         // 입력을 바탕으로 신용등급 계산 , 고객 유저 금리 정보 계산
         FinancialGrade financialGrade = loanInquiryScorer.getFinancialGrade(creditCheckRequest);
         InterestRateInfoResponse interestRateInfoResponse= creditLoanService.calculateInterestRate(financialGrade, type);
@@ -73,6 +84,10 @@ public class LoanHomeController {
         // 상품 정보
         CreditLoanProduct creditLoanProduct = creditLoanService.findCreditLoanProductByLoanProductSlug(type);
         LoanProductInfoResponse loanProductInfoResponse = LoanProductInfoResponse.from(creditLoanProduct);
+
+        // 견적정보 세션에 추가
+        session.setAttribute("loanProductInfoResponse" , loanProductInfoResponse);
+        session.setAttribute("interestRateInfoResponse", interestRateInfoResponse);
 
         // 추가
         model.addAttribute("LoanProductInfoResponse" , loanProductInfoResponse);
@@ -82,7 +97,83 @@ public class LoanHomeController {
 
     }
 
+    // 대출 신청
+    @GetMapping("/credit/{type}/apply")
+    public String showLoanApplyForm(@PathVariable("type") String type,
+                                    Model model,
+                                    HttpSession session) {
 
+        LoanProductInfoResponse loanProductInfoResponse = (LoanProductInfoResponse) session.getAttribute("loanProductInfoResponse");
+        InterestRateInfoResponse interestRateInfoResponse = (InterestRateInfoResponse) session.getAttribute("interestRateInfoResponse");
+
+        if (loanProductInfoResponse == null || interestRateInfoResponse == null || !loanProductInfoResponse.getLoanProductSlug().equals(type)) {
+            log.warn("[비정상 접근] /apply 호출. 금리 조회 단계로 리다이렉트. Slug: {}", type);
+            return "redirect:/loan/credit/" + type + "/inquiry";
+        }
+
+        LoanApplicationFormResponse formResponse = creditLoanService.buildApplicationFormResponse(type, interestRateInfoResponse);
+
+        model.addAttribute("formSetup", formResponse);
+        model.addAttribute("newApplicationRequest", new LoanApplicationRequest());
+
+        return "loan/credit/apply-form";
+
+    }
+
+    @PostMapping("/credit/{type}/apply")
+    public String processLoanApplication(@PathVariable("type") String type,
+                                         @Valid @ModelAttribute("newApplicationRequest") LoanApplicationRequest request,
+                                         BindingResult bindingResult,
+                                         Model model,
+                                         HttpSession session) {
+
+        // 1. 세션에서 견적 정보 다시 확인 (위조된 POST 방지)
+        LoanProductInfoResponse productInfo = (LoanProductInfoResponse) session.getAttribute("loanProductInfoResponse");
+        InterestRateInfoResponse rateInfo = (InterestRateInfoResponse) session.getAttribute("interestRateInfoResponse");
+        Member member = (Member) session.getAttribute("loginMember");
+
+        // 2. 비정상 접근 차단 (세션 없거나, URL의 {type}이 세션의 slug와 다르거나)
+        if (productInfo == null || rateInfo == null || !productInfo.getLoanProductSlug().equals(type)) {
+            log.warn("[비정상 접근] /apply(POST) 호출. 금리 조회 단계로 리다이렉트. Slug: {}", type);
+            return "redirect:/loan/credit/" + type + "/inquiry";
+        }
+
+        // 3. 폼 유효성 검사 (예: <select>에서 아무것도 선택하지 않은 경우)
+        if (bindingResult.hasErrors()) {
+            log.warn("대출 신청 폼 유효성 검사 실패: {}", bindingResult.getAllErrors());
+            // [중요] 폼으로 다시 돌려보낼 때, 'formSetup' 객체를 다시 만들어 보내줘야 함
+            LoanApplicationFormResponse formResponse = creditLoanService.buildApplicationFormResponse(type, rateInfo);
+            model.addAttribute("formSetup", formResponse);
+            // newApplicationRequest는 이미 model에 담겨있음
+            return "loan/credit/apply-form"; // 에러와 함께 폼 뷰를 다시 렌더링
+        }
+
+        // 4. (보안 강화) 서버에서 한번 더 금액/기간이 상품의 min/max/unit 정책에 맞는지 검증
+        // TODO: creditLoanService.validateApplicationRequest(request, productInfo);
+
+        // 5. [핵심] 서비스 레이어에 신청 데이터 저장 요청
+        // TODO : 예외처리 try - catch
+        LoanApplication loanApplication = loanApplicationService.saveLoanApplication(request, productInfo, rateInfo, member);
+        log.info("대출 신청 처리 성공: {}", request);
+
+        // 6. 신청 완료 후 세션 비우기 (중복 제출 방지)
+        session.removeAttribute("loanProductInfoResponse");
+        session.removeAttribute("interestRateInfoResponse");
+        session.setAttribute("loanApplication", loanApplication);
+
+        // 7. 신청 완료 페이지로 리다이렉트
+        return "redirect:/loan/complete"; // (예시: 신청 완료 페이지)
+    }
+
+
+    // TODO : 리다이렉트 -> 뒤로가기 문제
+    @GetMapping("/complete")
+    public String showLoanCompleteForm(Model model, HttpSession session){
+            LoanApplication loanApplication = (LoanApplication) session.getAttribute("loanApplication");
+            model.addAttribute("completedApplication" , LoanApplicationCompleteResponse.from(loanApplication));
+            session.removeAttribute("loanApplication");
+            return "loan/credit/apply-complete";
+    }
 
 
 
@@ -105,9 +196,6 @@ public class LoanHomeController {
 
         model.addAttribute("LoanProductInfoResponses" , loanProductInfoResponses);
     }
-
-
-
 
 }
 
