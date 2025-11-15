@@ -23,7 +23,6 @@ public abstract class Account {
     @JoinColumn(name = "member_id" , nullable = false)
     private Member member;
 
-
     @Column(unique = true , nullable = false)
     private String accountNumber;
 

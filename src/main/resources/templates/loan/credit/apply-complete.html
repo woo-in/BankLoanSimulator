@@ -169,10 +169,10 @@
                 <th>대출 기간</th>
                 <td th:text="${completedApplication.loanTerm} + '개월'">36개월</td>
             </tr>
-            <tr>
-                <th>적용 금리</th>
-                <td th:text="${#numbers.formatDecimal(completedApplication.finalInterestRate, 1, 2)} + '%'" style="color: #4a90e2;">5.25%</td>
-            </tr>
+<!--            <tr>-->
+<!--                <th>적용 금리</th>-->
+<!--                <td th:text="${#numbers.formatDecimal(completedApplication.finalInterestRate, 1, 2)} + '%'" style="color: #4a90e2;">5.25%</td>-->
+<!--            </tr>-->
             <tr>
                 <th>상환 방법</th>
                 <td th:text="${completedApplication.repaymentMethodName}">원리금균등분할상환</td>

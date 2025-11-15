@@ -1,9 +1,9 @@
-package bankapp.account.service.open.primary;
+package bankapp.account.service.open.loan;
 
-import bankapp.account.model.account.PrimaryAccount;
+
+import bankapp.account.model.account.LoanAccount;
 import bankapp.account.repository.AccountRepository;
-import bankapp.account.request.open.OpenPrimaryAccountRequest;
-import bankapp.account.exceptions.InvalidDepositAmountException;
+import bankapp.account.request.open.OpenLoanAccountRequest;
 import bankapp.account.service.open.component.AccountNumberGenerator;
 import bankapp.account.service.open.component.AccountOpeningValidator;
 import bankapp.member.exceptions.MemberNotFoundException;
@@ -13,25 +13,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
-/**
- * {@inheritDoc}
- * <p>
- * 이 구현체는 AccountDao와 MemberCheckService와 협력하여,
- * 회원 존재 여부와 초기 입금액을 검증한 후, 새로운 계좌번호를 생성하여
- * 데이터베이스에 신규 주계좌 정보를 저장하는 방식으로 로직을 수행합니다.
- */
-
 @Service
-public class DefaultOpenPrimaryAccountService implements OpenPrimaryAccountService{
+public class DefaultOpenLoanAccountService implements OpenLoanAccountService{
+
 
     private final MemberRepository memberRepository;
     private final AccountRepository accountRepository;
-        private final AccountOpeningValidator validator;
+    private final AccountOpeningValidator validator;
     private final AccountNumberGenerator accountNumberGenerator;
 
     @Autowired
-    public DefaultOpenPrimaryAccountService(MemberRepository memberRepository,
+    public DefaultOpenLoanAccountService(MemberRepository memberRepository,
                                             AccountRepository accountRepository,
                                             AccountOpeningValidator validator,
                                             AccountNumberGenerator accountNumberGenerator) {
@@ -43,17 +35,21 @@ public class DefaultOpenPrimaryAccountService implements OpenPrimaryAccountServi
 
     @Override
     @Transactional
-    public PrimaryAccount openPrimaryAccount(OpenPrimaryAccountRequest openPrimaryAccountRequest) throws InvalidDepositAmountException, MemberNotFoundException {
-        validator.validate(openPrimaryAccountRequest);
+    public LoanAccount openLoanAccount(OpenLoanAccountRequest openLoanAccountRequest){
 
-        Member member = memberRepository.findById(openPrimaryAccountRequest.getMemberId())
-                .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다: " + openPrimaryAccountRequest.getMemberId()));
+        validator.validate(openLoanAccountRequest);
+
+        Member member = memberRepository.findById(openLoanAccountRequest.getMemberId())
+                .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다: " + openLoanAccountRequest.getMemberId()));
 
 
         String accountNumber = accountNumberGenerator.generate();
-        PrimaryAccount newAccount = PrimaryAccount.from(openPrimaryAccountRequest,member,accountNumber);
+        LoanAccount newAccount = LoanAccount.from(openLoanAccountRequest,member,accountNumber);
 
         return accountRepository.save(newAccount);
     }
+
+
+
 
 }

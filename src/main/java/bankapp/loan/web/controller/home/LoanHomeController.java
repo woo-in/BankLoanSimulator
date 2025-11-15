@@ -166,6 +166,7 @@ public class LoanHomeController {
     }
 
 
+    // TODO : 시간 +1시간 문제 (2시에 신청했는데 3시로 신청)
     // TODO : 리다이렉트 -> 뒤로가기 문제
     @GetMapping("/complete")
     public String showLoanCompleteForm(Model model, HttpSession session){
@@ -175,14 +176,7 @@ public class LoanHomeController {
             return "loan/credit/apply-complete";
     }
 
-
-
-
-
-
-
-
-
+    // todo : 고정금리인지 변동금리인지에 따라 아얘 path 를 달리해야 함. 
 
     private void prepareCreditLoanListModel(Model model){
 

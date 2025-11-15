@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>대출 심사 대기 목록</title>
+    <style>
+        /* ... (기존 스타일 유지) ... */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 40px; background-color: #f9f9f9; }
+        h1, h2 { color: #333; }
+        .container { display: flex; gap: 40px; flex-direction: column; }
+
+        .list-section { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 15px 12px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
+        th { background-color: #f4f4f4; font-weight: 600; color: #555; border-top: 2px solid #ddd; }
+        tr:hover { background-color: #fbfbfb; }
+
+        .text-small { font-size: 0.85em; color: #666; }
+        .text-bold { font-weight: 600; color: #333; }
+        .text-blue { color: #007bff; }
+
+        .badge { display: inline-block; padding: 5px 10px; border-radius: 20px; font-size: 0.8em; font-weight: 600; text-align: center; }
+        .badge-applied { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+        .action-buttons { display: flex; gap: 5px; }
+        .btn-action { padding: 6px 12px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: 600; transition: background-color 0.2s; }
+        .btn-approve { background-color: #28a745; color: white; }
+        .btn-approve:hover { background-color: #218838; }
+        .btn-reject { background-color: #dc3545; color: white; }
+        .btn-reject:hover { background-color: #c82333; }
+
+        .header-controls { margin-bottom: 20px; }
+        .btn-home { text-decoration: none; color: #555; background-color: #e2e6ea; padding: 8px 15px; border-radius: 4px; font-size: 14px; }
+        .btn-home:hover { background-color: #dae0e5; }
+    </style>
+</head>
+<body>
+
+<div class="header-controls">
+    <a th:href="@{/temp-admin}" class="btn-home">&lt; 관리 홈으로 이동</a>
+</div>
+
+<h1>[임시] 대출 심사 대기 목록 (Pending Approvals)</h1>
+
+<div class="container">
+    <div class="list-section">
+        <h2>심사 대기 건</h2>
+        <p class="text-small">처리가 필요한 대출 신청 건만 표시됩니다.</p>
+
+        <div th:if="${#lists.isEmpty(loanApplicationCompleteResponses)}">
+            <p style="padding: 20px; text-align: center; color: #888;">현재 심사 대기 중인 건이 없습니다.</p>
+        </div>
+
+        <table th:unless="${#lists.isEmpty(loanApplicationCompleteResponses)}">
+            <thead>
+            <tr>
+                <th style="width: 5%">ID</th>
+                <th style="width: 15%">신청자</th>
+                <th style="width: 20%">상품 정보</th>
+                <th style="width: 25%">신청 조건 (금액/기간/금리)</th>
+                <th style="width: 15%">신청일시</th>
+                <th style="width: 20%">승인/거절</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr th:each="app : ${loanApplicationCompleteResponses}">
+
+                <td th:text="${app.loanApplicationId}">101</td>
+
+                <td>
+                    <div class="text-bold" th:text="${app.name}">홍길동</div>
+                    <div class="text-small" th:text="'User ID: ' + ${app.memberId}">User ID: 1</div>
+                </td>
+
+                <td>
+                    <div class="text-bold" th:text="${app.loanProductName}">직장인 신용대출</div>
+                    <div class="text-small" th:text="${app.loanType}">CREDIT</div>
+                </td>
+
+                <td>
+                    <div>
+                        <span class="text-small">금액: </span>
+                        <strong class="text-blue" th:text="${#numbers.formatCurrency(app.loanAmount)}">₩50,000,000</strong>
+                    </div>
+                    <div>
+                        <span class="text-small">기간: </span>
+                        <span th:text="${app.loanTerm} + '개월'">36개월</span>
+                    </div>
+
+                    <div style="margin-top: 6px;">
+                        <span class="text-small">총 금리: </span>
+                        <strong th:with="totalRate=${app.appliedBaseRate + app.appliedProductSpread + app.appliedCreditSpread}"
+                                th:text="${#numbers.formatDecimal(totalRate, 1, 2)} + '%'">
+                            5.25%
+                        </strong>
+                        <span class="text-small" th:text="' (' + ${app.interestRateTypeName} + ')'">(고정금리)</span>
+                    </div>
+
+                    <div class="text-small" style="color: #888; font-size: 0.8em; margin-top: 2px;">
+                        (기준 <span th:text="${#numbers.formatDecimal(app.appliedBaseRate, 1, 2)}">3.50</span>%
+                        + 상품 <span th:text="${#numbers.formatDecimal(app.appliedProductSpread, 1, 2)}">1.00</span>%
+                        + 신용 <span th:text="${#numbers.formatDecimal(app.appliedCreditSpread, 1, 2)}">0.75</span>%)
+                    </div>
+
+                    <div style="margin-top: 4px;" class="text-small" th:text="'상환: ' + ${app.repaymentMethodName}">원리금균등</div>
+                </td>
+
+                <td>
+                    <div style="margin-bottom: 5px;">
+                        <span class="badge badge-applied">심사대기</span>
+                    </div>
+                    <div class="text-small" th:text="${#temporals.format(app.createdAt, 'yyyy-MM-dd HH:mm')}">2024-10-25 14:30</div>
+                </td>
+
+                <td>
+                    <div class="action-buttons">
+                        <form th:action="@{/temp-admin/loan-applications/{id}/approve(id=${app.loanApplicationId})}" method="post">
+                            <button type="submit" class="btn-action btn-approve" onclick="return confirm('정말 승인하시겠습니까?');">승인</button>
+                        </form>
+
+                        <form th:action="@{/temp-admin/loan-applications/{id}/reject(id=${app.loanApplicationId})}" method="post">
+                            <button type="submit" class="btn-action btn-reject" onclick="return confirm('정말 거절하시겠습니까?');">거절</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

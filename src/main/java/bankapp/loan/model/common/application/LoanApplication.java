@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -50,7 +49,13 @@ public class LoanApplication {
     private Integer loanTerm;
 
     @Column(nullable = false)
-    private BigDecimal appliedRate;
+    private BigDecimal appliedBaseRate;
+
+    @Column(nullable = false)
+    private BigDecimal appliedProductSpread;
+
+    @Column(nullable = false)
+    private BigDecimal appliedCreditSpread;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
