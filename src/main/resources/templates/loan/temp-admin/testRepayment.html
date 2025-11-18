@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>상환 배치 테스트</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+    h2 { color: #333; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input[type="date"] { width: 100%; padding: 8px; box-sizing: border-box; }
+    button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    .alert { padding: 10px; background-color: #d4edda; color: #155724; border-radius: 4px; margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>🛠️ EOD 상환 배치 강제 실행</h2>
+  <p>특정 날짜를 입력하여 해당 일자의 상환 스케줄을 강제로 처리합니다.</p>
+
+  <div th:if="${param.success}" class="alert">
+    ✅ 배치가 성공적으로 실행되었습니다! 로그를 확인하세요.
+  </div>
+
+  <form th:action="@{/temp-admin/test-repayment}" method="post">
+    <div class="form-group">
+      <label for="targetDate">실행 기준일 (Target Date)</label>
+      <input type="date" id="targetDate" name="targetDate" required>
+    </div>
+
+    <button type="submit">🚀 배치 실행하기</button>
+  </form>
+
+  <br>
+  <a th:href="@{/temp-admin}">관리자 홈으로 돌아가기</a>
+</div>
+
+</body>
+</html>

@@ -2,14 +2,13 @@ package bankapp.account.model.account;
 
 
 import bankapp.account.request.open.OpenLoanAccountRequest;
-import bankapp.account.request.open.OpenPrimaryAccountRequest;
 import bankapp.loan.model.common.contract.LoanContract;
+import bankapp.loan.model.common.schedule.RepaymentSchedule;
 import bankapp.member.model.Member;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,20 +22,44 @@ import java.util.List;
 public class LoanAccount extends Account {
 
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "loanAccount")
+    // todo : 상환 출금 계좌 바꾸기 기능 추가
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "repayment_account_id", nullable = false)
+    private Account repaymentAccount;
+
+
+    @OneToMany(
+            mappedBy = "loanAccount",
+            fetch = FetchType.LAZY
+    )
     private List<LoanContract> loanContracts = new ArrayList<>();
 
-    public LoanAccount(Member member, String accountNumber, BigDecimal balance, String nickname, AccountStatus status) {
-        super(member, accountNumber, balance, nickname,status);
+    @OneToMany(
+            mappedBy = "loanAccount",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<RepaymentSchedule> repaymentSchedules = new ArrayList<>();
+
+    public LoanAccount(Account repaymentAccount, Member member, String accountNumber, BigDecimal balance, String nickname, AccountStatus status) {
+        super(member, accountNumber, balance, nickname, status);
+        this.repaymentAccount = repaymentAccount;
     }
 
-    public LoanAccount(Member member, String accountNumber, BigDecimal balance, AccountStatus status) {
-        super(member, accountNumber, balance, status);
-    }
+    public static LoanAccount from(OpenLoanAccountRequest openLoanAccountRequest,
+                                   Member member,
+                                   String accountNumber)  {
 
-    public static LoanAccount from(OpenLoanAccountRequest openLoanAccountRequest, Member member, String accountNumber)  {
-        return new LoanAccount(member , accountNumber , openLoanAccountRequest.getBalance() , openLoanAccountRequest.getNickname() , AccountStatus.ACTIVE);
+        // 수정된 생성자를 호출
+        return new LoanAccount(
+                openLoanAccountRequest.getRepaymentAccount(),
+                member,
+                accountNumber,
+                openLoanAccountRequest.getBalance(),
+                openLoanAccountRequest.getNickname(),
+                AccountStatus.ACTIVE
+        );
     }
 
 

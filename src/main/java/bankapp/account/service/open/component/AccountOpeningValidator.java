@@ -1,8 +1,11 @@
 package bankapp.account.service.open.component;
 
+import bankapp.account.exceptions.AccountMismatchException;
+import bankapp.account.exceptions.AccountNotFoundException;
 import bankapp.account.exceptions.InvalidDepositAmountException;
 import bankapp.account.request.open.OpenLoanAccountRequest;
 import bankapp.account.request.open.OpenPrimaryAccountRequest;
+import bankapp.account.service.check.AccountCheckService;
 import bankapp.member.exceptions.MemberNotFoundException;
 import bankapp.member.service.check.MemberCheckService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +16,13 @@ import java.math.BigDecimal;
 @Component
 public class AccountOpeningValidator {
     private final MemberCheckService memberCheckService;
+    private final AccountCheckService accountCheckService;
 
     @Autowired
-    public AccountOpeningValidator(MemberCheckService memberCheckService) {
+    public AccountOpeningValidator(MemberCheckService memberCheckService ,
+                                   AccountCheckService accountCheckService) {
         this.memberCheckService = memberCheckService;
+        this.accountCheckService = accountCheckService;
     }
 
 
@@ -56,7 +62,7 @@ public class AccountOpeningValidator {
      * @throws InvalidDepositAmountException 초기 입금액이 0보다 작은 경우
      * @throws MemberNotFoundException       요청에 포함된 회원 ID가 존재하지 않는 경우
      */
-    public void validate(OpenLoanAccountRequest request) throws InvalidDepositAmountException , MemberNotFoundException {
+    public void validate(OpenLoanAccountRequest request) throws InvalidDepositAmountException , MemberNotFoundException , AccountNotFoundException ,AccountMismatchException{
 
         if (request.getBalance().compareTo(BigDecimal.ZERO) < 0) {
             throw new InvalidDepositAmountException("입금액은 0원 이상이어야 합니다.");
@@ -65,6 +71,16 @@ public class AccountOpeningValidator {
         if (!memberCheckService.isMemberIdExist(request.getMemberId())) {
             throw new MemberNotFoundException("memberId " + request.getMemberId() + " not found.");
         }
+
+        if(request.getRepaymentAccount() == null){
+            throw new AccountNotFoundException("대출 계좌에 입출금 계좌를 등록해야 합니다.");
+        }
+
+        if(!memberCheckService.findMemberByAccount(request.getRepaymentAccount()).getMemberId().equals(request.getMemberId())){
+            throw new AccountMismatchException("계좌와 계정의 명의가 다릅니다.");
+
+        }
+
 
     }
 
