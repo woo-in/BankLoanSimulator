@@ -2,8 +2,10 @@ package bankapp.account.model.account;
 
 
 import bankapp.account.request.open.OpenLoanAccountRequest;
-import bankapp.loan.model.common.contract.LoanContract;
-import bankapp.loan.model.common.schedule.RepaymentSchedule;
+import bankapp.loan.origination.model.LoanContract;
+import bankapp.loan.servicing.model.LoanRepaymentTransaction;
+import bankapp.loan.servicing.model.OverdueRepaymentSchedule;
+import bankapp.loan.servicing.model.RepaymentSchedule;
 import bankapp.member.model.Member;
 import jakarta.persistence.*;
 import lombok.*;
@@ -42,9 +44,38 @@ public class LoanAccount extends Account {
     )
     private List<RepaymentSchedule> repaymentSchedules = new ArrayList<>();
 
+    @OneToMany(
+            mappedBy = "loanAccount",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<OverdueRepaymentSchedule> overdueRepaymentSchedules = new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "loanAccount",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<LoanRepaymentTransaction> loanRepaymentTransactions = new ArrayList<>();
+
+
+
+
+
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private LoanStatus loanStatus;
+
+
     public LoanAccount(Account repaymentAccount, Member member, String accountNumber, BigDecimal balance, String nickname, AccountStatus status) {
         super(member, accountNumber, balance, nickname, status);
         this.repaymentAccount = repaymentAccount;
+        // todo : 일단 생성하자마자 normal 로 세팅
+        this.loanStatus = LoanStatus.NORMAL;
     }
 
     public static LoanAccount from(OpenLoanAccountRequest openLoanAccountRequest,

@@ -1,7 +1,7 @@
 package bankapp.loan.web.request;
 
 
-import bankapp.loan.model.common.repayment.RepaymentMethod;
+import bankapp.loan.product.model.RepaymentMethod;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

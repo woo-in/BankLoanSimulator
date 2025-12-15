@@ -1,9 +1,8 @@
 package bankapp.loan.web.request;
 
-import bankapp.loan.common.enums.FinancialGrade;
-import bankapp.loan.model.common.product.LoanProduct;
-import bankapp.loan.model.common.product.ProductStatus;
-import bankapp.loan.model.credit.CreditLoanProduct;
+import bankapp.loan.product.model.LoanProduct;
+import bankapp.loan.product.model.ProductStatus;
+import bankapp.loan.product.model.CreditLoanProduct;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;

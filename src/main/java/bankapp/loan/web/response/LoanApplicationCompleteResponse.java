@@ -1,6 +1,6 @@
 package bankapp.loan.web.response;
 
-import bankapp.loan.model.common.application.LoanApplication;
+import bankapp.loan.origination.model.LoanApplication;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

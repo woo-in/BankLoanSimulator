@@ -1,6 +1,6 @@
 package bankapp.loan.web.response;
 
-import bankapp.loan.model.common.repayment.RepaymentMethod;
+import bankapp.loan.product.model.RepaymentMethod;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 

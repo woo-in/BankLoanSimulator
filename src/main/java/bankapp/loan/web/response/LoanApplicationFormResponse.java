@@ -1,8 +1,13 @@
 package bankapp.loan.web.response;
 
+import bankapp.loan.exceptions.InvalidInterestRate;
+import bankapp.loan.product.model.CreditLoanProduct;
+import bankapp.loan.product.model.LoanProductInterestRateTypeOption;
+import bankapp.loan.product.model.LoanProductRepaymentOption;
 import lombok.Builder;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -31,7 +36,50 @@ public class LoanApplicationFormResponse {
     @Data
     @Builder
     public static class FormOptionDto {
-        private Long id;       // <option th:value="..."></option>에 사용 (예: 3)
-        private String name;   // <option th:text="..."></option>에 사용 (예: "원금균등상환")
+        private Long id;       // <option th:value= "..."></option>에 사용 (예: 3)
+        private String name;   // <option th:text= "..."></option>에 사용 (예: "원금균등상환")
     }
+
+    public static LoanApplicationFormResponse from(CreditLoanProduct product, InterestRateInfoResponse rateInfo) throws InvalidInterestRate{
+
+        if(rateInfo == null || rateInfo.getFinalInterestRate() == null){
+            throw new InvalidInterestRate("금리 조회 정보가 잘못되었습니다.");
+        }
+
+        List<BigDecimal> amounts = product.getAvailableAmounts();
+        List<Integer> terms = product.getAvailableTerms();
+
+        List<FormOptionDto> repaymentOptions = new ArrayList<>();
+
+        for (LoanProductRepaymentOption option : product.getRepaymentOptions()) {
+            FormOptionDto dto = FormOptionDto.builder()
+                    .id(option.getRepaymentMethod().getRepaymentMethodId())
+                    .name(option.getRepaymentMethod().getMethodName())
+                    .build();
+            repaymentOptions.add(dto);
+        }
+
+        List<FormOptionDto> interestOptions = new ArrayList<>();
+
+        for (LoanProductInterestRateTypeOption option : product.getInterestRateTypeOptions()) {
+            FormOptionDto dto = FormOptionDto.builder()
+                    .id(option.getInterestRateType().getInterestRateTypeId())
+                    .name(option.getInterestRateType().getTypeName())
+                    .build();
+            interestOptions.add(dto);
+        }
+
+
+        return LoanApplicationFormResponse.builder()
+                .loanProductSlug(product.getLoanProductSlug())
+                .loanProductName(product.getLoanProductName())
+                .productDescription(product.getLoanProductDescription())
+                .finalInterestRate(rateInfo.getFinalInterestRate())
+                .availableAmounts(amounts)
+                .availableTerms(terms)
+                .repaymentOptions(repaymentOptions)
+                .interestRateTypeOptions(interestOptions)
+                .build();
+    }
+
 }

@@ -1,6 +1,6 @@
 package bankapp.loan.web.response;
 
-import bankapp.loan.model.common.product.LoanProduct;
+import bankapp.loan.product.model.LoanProduct;
 import lombok.Data;
 
 import java.math.BigDecimal;

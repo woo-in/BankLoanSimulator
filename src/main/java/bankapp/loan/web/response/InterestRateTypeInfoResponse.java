@@ -1,6 +1,6 @@
 package bankapp.loan.web.response;
 
-import bankapp.loan.model.common.rate.InterestRateType;
+import bankapp.loan.product.model.InterestRateType;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
