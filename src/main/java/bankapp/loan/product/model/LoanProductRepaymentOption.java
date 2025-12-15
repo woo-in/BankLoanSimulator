@@ -40,9 +40,4 @@ public class LoanProductRepaymentOption {
         this.loanProduct.getRepaymentOptions().add(this);
     }
 
-
-//    public LoanProductRepaymentOption(LoanProduct loanProduct, RepaymentMethod repaymentMethod) {
-//        this.loanProduct = loanProduct;
-//        this.repaymentMethod = repaymentMethod;
-//    }
 }

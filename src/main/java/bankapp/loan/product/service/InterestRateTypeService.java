@@ -2,6 +2,7 @@ package bankapp.loan.product.service;
 
 
 import bankapp.loan.product.model.InterestRateType;
+import bankapp.loan.web.request.InterestRateTypeRequest;
 
 import java.util.List;
 
@@ -15,9 +16,15 @@ public interface InterestRateTypeService {
     /**
      * 새로운 금리 유형을 시스템에 등록(저장)합니다.
      *
-     * @param interestRateType 저장할 금리 유형 엔티티
+     * @param interestRateTypeRequest 저장할 금리 유형 엔티티
      */
-    void saveInterestRateType(InterestRateType interestRateType);
+    void saveInterestRateType(InterestRateTypeRequest interestRateTypeRequest) ;
+
+
+    /**
+     * 기본이 되는 금리 종류를 시스템에 저장
+     */
+    void saveDefaultInterestRateType();
 
     /**
      * 시스템에 등록된 모든 금리 유형 목록을 조회합니다.

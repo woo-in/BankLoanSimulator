@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>우인은행 - 관리자 시스템</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- Header Style --- */
+        .header {
+            padding: 10px 0;
+            margin-bottom: 30px;
+            background-color: #f0f2f5;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-shape-container {
+            position: relative;
+            width: 35px;
+            height: 25px;
+            margin-right: 10px;
+        }
+        .circle-1, .circle-2 {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+        }
+        .circle-1 { background-color: #4a90e2; top: 0; left: 0; }
+        .circle-2 { background-color: #74ebd5; opacity: 0.8; top: 0; right: 0; }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .admin-badge {
+            background-color: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        .logout-button {
+            background: none;
+            border: none;
+            color: #555;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px;
+            transition: color 0.2s;
+        }
+        .logout-button:hover { color: #000; }
+
+        .main-nav {
+            display: flex;
+            gap: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .nav-item {
+            font-size: 18px;
+            font-weight: bold;
+            color: #888;
+            text-decoration: none;
+            padding-bottom: 10px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav-item:hover, .nav-item.active {
+            color: #4a90e2;
+            border-bottom-color: #4a90e2;
+        }
+
+        /* --- Admin Dashboard Layout --- */
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 30px 0 15px 0;
+            display: flex;
+            align-items: center;
+        }
+        .section-title::before {
+            content: '';
+            display: block;
+            width: 5px;
+            height: 20px;
+            background-color: #4a90e2;
+            margin-right: 10px;
+            border-radius: 3px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .admin-card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 120px;
+            border: 1px solid transparent;
+        }
+
+        .admin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: #4a90e2;
+        }
+
+        .card-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+        .card-desc {
+            font-size: 14px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* --- Setup Section Style --- */
+        .setup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .setup-btn {
+            background-color: white;
+            border: 1px solid #e1e5ea;
+            color: #555;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: left;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .setup-btn:hover {
+            background-color: #f8f9fa;
+            border-color: #4a90e2;
+            color: #4a90e2;
+        }
+
+        /* Alert 스타일은 사용하지 않지만 혹시 몰라 남겨둠 (필요 없으면 삭제 가능) */
+        .alert {
+            padding: 15px;
+            background-color: #d4edda;
+            color: #155724;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-top">
+        <div class="logo">
+            <div class="logo-shape-container">
+                <div class="circle-1"></div>
+                <div class="circle-2"></div>
+            </div>
+            <div class="logo-text">
+                우인은행 <span class="admin-badge">ADMIN</span>
+            </div>
+        </div>
+    </div>
+    <nav class="main-nav">
+        <a href="#" class="nav-item active">홈</a>
+    </nav>
+</header>
+
+<main>
+
+    <div th:if="${message}" class="alert">
+        <span th:text="${message}"></span>
+    </div>
+
+
+    <h3 class="section-title">주요 관리 업무</h3>
+    <div class="dashboard-grid">
+        <a th:href="@{/admin/loan-applications}" class="admin-card">
+            <div>
+                <div class="card-icon">📑</div>
+                <h4 class="card-title">대출 신청 승인/검토</h4>
+            </div>
+            <p class="card-desc">접수된 대출 신청 건을 심사하고 승인합니다.</p>
+        </a>
+    </div>
+
+    <h3 class="section-title">기준 정보 관리</h3>
+    <div class="dashboard-grid">
+        <a th:href="@{/admin/loan/loan-products}" class="admin-card">
+            <div>
+                <div class="card-icon">📦</div>
+                <h4 class="card-title">대출 상품 관리</h4>
+            </div>
+            <p class="card-desc">대출 상품을 관리합니다.</p>
+        </a>
+
+        <a th:href="@{/admin/loan/interest-types}" class="admin-card">
+            <div>
+                <div class="card-icon">📈</div>
+                <h4 class="card-title">금리 유형 관리</h4>
+            </div>
+            <p class="card-desc">금리 유형을 관리합니다.</p>
+        </a>
+
+        <a th:href="@{/admin/loan/repayment-methods}" class="admin-card">
+            <div>
+                <div class="card-icon">🔄</div>
+                <h4 class="card-title">상환 방법 관리</h4>
+            </div>
+            <p class="card-desc">상환 방법을 관리합니다.</p>
+        </a>
+    </div>
+
+    <h3 class="section-title" style="color: #e67e22;">⚡ 초기 데이터 셋업</h3>
+    <div class="setup-grid">
+        <form th:action="@{/admin/loan/setup/repayment-methods}" method="post">
+            <button type="submit" class="setup-btn">
+                기본 상환 방법 등록
+            </button>
+        </form>
+
+        <form th:action="@{/admin/loan/setup/interest-types}" method="post">
+            <button type="submit" class="setup-btn">
+                기본 금리 유형 등록
+            </button>
+        </form>
+
+        <form th:action="@{/admin/loan/setup/loan-products}" method="post">
+            <button type="submit" class="setup-btn">
+                기본 대출 상품 등록
+            </button>
+        </form>
+
+        <form th:action="@{/admin/loan/setup/core-accounts}" method="post">
+            <button type="submit" class="setup-btn">
+                은행 코어 계좌 개설
+            </button>
+        </form>
+    </div>
+
+</main>
+
+</body>
+</html>

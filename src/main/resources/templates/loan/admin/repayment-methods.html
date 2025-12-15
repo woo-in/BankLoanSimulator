@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>우인은행 - 상환 방법 관리</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* --- Header Style (관리자 공통) --- */
+    .header {
+      padding: 15px 20px;
+      background-color: white;
+      border-bottom: 1px solid #e1e5ea;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .logo-shape {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      background-color: #4a90e2;
+      border-radius: 50%;
+      margin-right: 8px;
+      position: relative;
+    }
+    .logo-shape::after {
+      content: '';
+      position: absolute;
+      left: 8px;
+      width: 12px;
+      height: 12px;
+      background-color: #74ebd5;
+      border-radius: 50%;
+      opacity: 0.7;
+    }
+
+    .admin-badge {
+      background-color: #333;
+      color: white;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* --- Layout Container --- */
+    .main-container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    /* --- Back Button --- */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      color: #666;
+      font-weight: 600;
+      margin-bottom: 20px;
+      transition: color 0.2s;
+    }
+    .back-link:hover {
+      color: #4a90e2;
+    }
+    .back-icon {
+      margin-right: 5px;
+      font-size: 18px;
+    }
+
+    /* --- Content Grid --- */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 350px 1fr; /* 왼쪽 폼 고정, 오른쪽 나머지 */
+      gap: 25px;
+    }
+    @media (max-width: 900px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    /* --- Card Common --- */
+    .card {
+      background-color: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin: 0 0 20px 0;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    /* --- Form Style --- */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      box-sizing: border-box; /* 중요 */
+      transition: border-color 0.2s;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #4a90e2;
+    }
+
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .checkbox-wrapper input {
+      width: 18px;
+      height: 18px;
+      margin-right: 10px;
+      cursor: pointer;
+      accent-color: #4a90e2;
+    }
+    .checkbox-label {
+      font-size: 14px;
+      color: #333;
+      cursor: pointer;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-top: 10px;
+    }
+    .submit-btn:hover {
+      background-color: #357ABD;
+    }
+
+    /* --- Table Style --- */
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .custom-table th {
+      text-align: left;
+      padding: 15px;
+      background-color: #f8f9fa;
+      color: #666;
+      font-weight: 600;
+      border-bottom: 2px solid #eef1f7;
+    }
+    .custom-table td {
+      padding: 15px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #333;
+      vertical-align: middle;
+    }
+    .custom-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-active {
+      background-color: #e6f7ff;
+      color: #0085cc;
+    }
+    .status-inactive {
+      background-color: #f5f5f5;
+      color: #999;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo-area">
+    <span class="logo-shape"></span>
+    우인은행 <span class="admin-badge">ADMIN</span>
+  </div>
+</header>
+
+<main class="main-container">
+
+  <a th:href="@{/admin/loan}" class="back-link">
+    <span class="back-icon">←</span> 관리자 홈으로
+  </a>
+
+  <div class="content-grid">
+
+    <section class="card">
+      <h2 class="card-title">신규 상환 방법 등록</h2>
+
+      <form th:action="@{/admin/loan/repayment-methods}" th:object="${newRepaymentMethod}" method="POST">
+
+        <div class="form-group">
+          <label for="methodCode" class="form-label">Method 코드 (영문)</label>
+          <input type="text" id="methodCode" th:field="*{methodCode}" class="form-input"
+                 placeholder="예: BULLET_PAYMENT" required>
+        </div>
+
+        <div class="form-group">
+          <label for="methodName" class="form-label">Method 이름 (한글)</label>
+          <input type="text" id="methodName" th:field="*{methodName}" class="form-input"
+                 placeholder="예: 만기일시상환" required>
+        </div>
+
+        <div class="form-group">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="isActive" th:field="*{isActive}">
+            <label for="isActive" class="checkbox-label">사용 활성화 (Active)</label>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn">등록하기</button>
+      </form>
+    </section>
+
+
+    <section class="card">
+      <h2 class="card-title">등록된 상환 방법 목록</h2>
+
+      <div th:if="${#lists.isEmpty(repaymentMethodInfoResponses)}" class="empty-state">
+        등록된 상환 방법이 없습니다.
+      </div>
+
+      <table class="custom-table" th:unless="${#lists.isEmpty(repaymentMethodInfoResponses)}">
+        <thead>
+        <tr>
+          <th style="width: 10%;">ID</th>
+          <th style="width: 35%;">코드</th>
+          <th style="width: 35%;">이름</th>
+          <th style="width: 20%;">상태</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="method : ${repaymentMethodInfoResponses}">
+          <td th:text="${method.repaymentMethodId}">1</td>
+          <td th:text="${method.methodCode}" style="font-family: monospace; color: #555;">CODE</td>
+          <td th:text="${method.methodName}" style="font-weight: bold;">이름</td>
+          <td>
+                            <span class="status-badge"
+                                  th:classappend="${method.isActive} ? 'status-active' : 'status-inactive'"
+                                  th:text="${method.isActive} ? '활성' : '비활성'">
+                                활성
+                            </span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </section>
+
+  </div>
+</main>
+
+</body>
+</html>

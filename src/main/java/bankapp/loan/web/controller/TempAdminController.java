@@ -126,7 +126,7 @@ public class TempAdminController {
     @PostMapping("/interest-types")
     public String registerInterestType(@ModelAttribute("newInterestType") InterestRateTypeRequest requestDto) {
 
-        interestRateTypeService.saveInterestRateType(requestDto.toEntity());
+        interestRateTypeService.saveInterestRateType(requestDto);
         // 3. 목록 페이지로 리다이렉트
         return "redirect:/temp-admin/interest-types";
     }
@@ -178,6 +178,13 @@ public class TempAdminController {
         creditLoanProductService.saveCreditLoanProduct(loanProductRequest);
         return "redirect:/temp-admin/loan-products";
     }
+
+
+
+
+
+
+
 
     // 대출 신청 관리 페이지
     @GetMapping("loan-applications")

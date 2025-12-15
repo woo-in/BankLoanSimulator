@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-@Transactional(readOnly = true)
 public class DefaultRepaymentMethodService implements RepaymentMethodService {
 
 
@@ -22,21 +21,45 @@ public class DefaultRepaymentMethodService implements RepaymentMethodService {
     }
 
     @Override
-    public void saveRepayment(RepaymentMethod repaymentMethod){
-        repaymentMethodRepository.save(repaymentMethod);
-    }
-
-    @Override
+    @Transactional
     public void saveRepayment(RepaymentMethodRequest repaymentMethodRequest){
         repaymentMethodRepository.save(repaymentMethodRequest.toEntity());
     }
 
     @Override
+    @Transactional
+    public void saveDefaultRepayment() {
+
+        RepaymentMethod bullet = RepaymentMethod.builder()
+                .methodCode("BULLET")
+                .methodName("원금만기일시상환")
+                .isActive(true)
+                .build();
+
+
+        RepaymentMethod equalPI = RepaymentMethod.builder()
+                .methodCode("EQUAL_PRINCIPAL_INTEREST")
+                .methodName("원리금균등분할상환")
+                .isActive(true)
+                .build();
+
+        RepaymentMethod equalP = RepaymentMethod.builder()
+                .methodCode("EQUAL_PRINCIPAL")
+                .methodName("원금균등분할상환")
+                .isActive(true)
+                .build();
+
+        repaymentMethodRepository.saveAll(List.of(bullet, equalPI, equalP));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<RepaymentMethod> findAllMethods() {
         return repaymentMethodRepository.findAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RepaymentMethod> findAllById(List<Long> ids){
         return repaymentMethodRepository.findAllById(ids);
     }

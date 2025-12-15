@@ -14,7 +14,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(new LoginCheckerInterceptor())
                 .order(1)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/error" , "/signup/success" , "/temp-admin/**");
+                .excludePathPatterns("/error" , "/signup/success" , "/temp-admin/**" , "/admin/**");
         // TODO : 임시 관리 페이지 허용 , 배포시 지울 것 "/temp-admin/**"
 
         registry.addInterceptor(new TransferRequestIdCheckInterceptor())
