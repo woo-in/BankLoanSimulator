@@ -76,6 +76,12 @@ public class DefaultCreditLoanProductService implements CreditLoanProductService
     }
 
 
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsBySlug(String slug){
+        return creditLoanProductRepository.findByLoanProductSlug(slug).isPresent();
+    }
+
 
 
 

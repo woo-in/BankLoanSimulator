@@ -60,6 +60,15 @@ public interface CreditLoanProductService {
      */
     BigDecimal findCreditLoanProductSpreadByLoanProductSlug(String loanProductSlug) throws LoanProductNotFoundException;
 
+    /**
+     * 상품 슬러그(Slug) 중복 체크
+     * 엔티티 전체를 조회하지 않고, 금리 계산에 필요한 가산 금리 정보만 추출하여 반환합니다.
+     *
+     * @param slug 체크할 대출 상품의 고유 슬러그
+     * @return 슬러그 중복 체크
+     *
+     */
+    boolean existsBySlug(String slug);
 
 }
 
