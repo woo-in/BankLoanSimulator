@@ -1,4 +1,4 @@
-package bankapp.loan.web.request;
+package bankapp.loan.product.web.request;
 
 import bankapp.loan.product.model.LoanProduct;
 import bankapp.loan.product.model.ProductStatus;
@@ -34,10 +34,10 @@ public class LoanProductRequest {
     private List<Long> interestRateTypeIds = new ArrayList<>();
     private List<Long> repaymentMethodIds = new ArrayList<>();
 
-
     public LoanProduct toEntity(){
 
         // TODO: 일단은 신용대출을 선택했다고 가정 , 다른 대출도 추가
+        // TODO: 여기에 각 필드에 대한 유효성 검사(Validation) 어노테이션 (예: @NotBlank, @NotNull, @Size, @Min)을 추가하는 것을 권장합니다.
         return CreditLoanProduct.builder()
                 .loanProductName(loanProductName)
                 .loanProductSlug(loanProductSlug)
@@ -53,10 +53,4 @@ public class LoanProductRequest {
                 .status(status)
                 .build();
     }
-
-
-
-
-    // TODO: 여기에 각 필드에 대한 유효성 검사(Validation) 어노테이션 (예: @NotBlank, @NotNull, @Size, @Min)을 추가하는 것을 권장합니다.
-    // TODO: 일단은 신용대출을 선택했다고 가정 , 다른 대출도 추가
 }

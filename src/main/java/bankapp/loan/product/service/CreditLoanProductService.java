@@ -5,7 +5,7 @@ import bankapp.loan.exceptions.InvalidLoanType;
 import bankapp.loan.exceptions.InvalidRepaymentMethodId;
 import bankapp.loan.exceptions.LoanProductNotFoundException;
 import bankapp.loan.product.model.CreditLoanProduct;
-import bankapp.loan.web.request.LoanProductRequest;
+import bankapp.loan.product.web.request.LoanProductRequest;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -36,6 +36,12 @@ public interface CreditLoanProductService {
      * @throws InvalidInterestRateTypeId 존재하지 않거나 유효하지 않은 금리 유형 ID가 포함된 경우
      */
     void saveCreditLoanProduct(LoanProductRequest loanProductRequest) throws InvalidLoanType , InvalidRepaymentMethodId , InvalidInterestRateTypeId;
+
+
+    /**
+     * 기본이 되는 신용 대출 상품을 등록합니다.
+     */
+    void saveDefaultCreditLoanProduct();
 
 
     /**

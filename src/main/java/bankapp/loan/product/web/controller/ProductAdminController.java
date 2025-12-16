@@ -1,17 +1,20 @@
 package bankapp.loan.product.web.controller;
 
 
+import bankapp.account.service.open.primary.OpenPrimaryAccountService;
 import bankapp.loan.product.model.CreditLoanProduct;
 import bankapp.loan.product.model.InterestRateType;
 import bankapp.loan.product.model.RepaymentMethod;
 import bankapp.loan.product.service.*;
 import bankapp.loan.product.web.validator.LoanProductValidator;
-import bankapp.loan.web.request.InterestRateTypeRequest;
-import bankapp.loan.web.request.LoanProductRequest;
-import bankapp.loan.web.request.RepaymentMethodRequest;
-import bankapp.loan.web.response.InterestRateTypeInfoResponse;
-import bankapp.loan.web.response.LoanProductInfoResponse;
-import bankapp.loan.web.response.RepaymentMethodInfoResponse;
+import bankapp.loan.product.web.request.InterestRateTypeRequest;
+import bankapp.loan.product.web.request.LoanProductRequest;
+import bankapp.loan.product.web.request.RepaymentMethodRequest;
+import bankapp.loan.product.web.response.InterestRateTypeInfoResponse;
+import bankapp.loan.product.web.response.LoanProductInfoResponse;
+import bankapp.loan.product.web.response.RepaymentMethodInfoResponse;
+import bankapp.member.model.Member;
+import bankapp.member.service.signup.SignUpService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,21 +30,27 @@ import java.util.List;
 @Slf4j
 @Controller
 @RequestMapping("/admin/loan")
-public class AdminController {
+public class ProductAdminController {
 
     private final RepaymentMethodService repaymentMethodService;
     private final InterestRateTypeService interestRateTypeService;
     private final CreditLoanProductService creditLoanProductService;
     private final LoanProductValidator loanProductValidator;
+    private final SignUpService signUpService;
+    private final OpenPrimaryAccountService openPrimaryAccountService;
 
-    public AdminController(RepaymentMethodService repaymentMethodService,
-                           InterestRateTypeService interestRateTypeService,
-                           CreditLoanProductService creditLoanProductService,
-                           LoanProductValidator loanProductValidator) {
+    public ProductAdminController(RepaymentMethodService repaymentMethodService,
+                                  InterestRateTypeService interestRateTypeService,
+                                  CreditLoanProductService creditLoanProductService,
+                                  LoanProductValidator loanProductValidator,
+                                  SignUpService signUpService,
+                                  OpenPrimaryAccountService openPrimaryAccountService) {
         this.repaymentMethodService = repaymentMethodService;
         this.interestRateTypeService = interestRateTypeService;
         this.creditLoanProductService = creditLoanProductService;
         this.loanProductValidator = loanProductValidator;
+        this.signUpService = signUpService;
+        this.openPrimaryAccountService = openPrimaryAccountService;
     }
 
 
@@ -131,6 +140,21 @@ public class AdminController {
         creditLoanProductService.saveCreditLoanProduct(loanProductRequest);
         return "redirect:/admin/loan/loan-products";
     }
+    @PostMapping("/setup/loan-products")
+    public String setupLoanProduct(RedirectAttributes  redirectAttributes) {
+        creditLoanProductService.saveDefaultCreditLoanProduct();
+        redirectAttributes.addFlashAttribute("message", "기본 신용대출 상품이 성공적으로 등록되었습니다!");
+        return "redirect:/admin/loan";
+    }
+
+    @PostMapping("/setup/core-account")
+    public String setupCoreAccount(RedirectAttributes redirectAttributes){
+        Member coreMember = signUpService.createCoreBankMember();
+        openPrimaryAccountService.createCoreBankAccount(coreMember);
+        redirectAttributes.addFlashAttribute("message", "코어 계좌가 생성 되었습니다!");
+        return "redirect:/admin/loan";
+    }
+
 
 
 
@@ -160,7 +184,6 @@ public class AdminController {
 
         return interestTypeInfoResponses;
     }
-
     private List<RepaymentMethodInfoResponse> getActiveRepaymentMethods() {
         List<RepaymentMethod> methods = repaymentMethodService.findAllMethods();
         List<RepaymentMethodInfoResponse> responses = new ArrayList<>();

@@ -2,7 +2,7 @@ package bankapp.loan.product.service;
 
 import bankapp.loan.product.model.RepaymentMethod;
 import bankapp.loan.product.repository.RepaymentMethodRepository;
-import bankapp.loan.web.request.RepaymentMethodRequest;
+import bankapp.loan.product.web.request.RepaymentMethodRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

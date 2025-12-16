@@ -1,7 +1,7 @@
 package bankapp.loan.product.web.validator;
 
 import bankapp.loan.product.service.CreditLoanProductService;
-import bankapp.loan.web.request.LoanProductRequest;
+import bankapp.loan.product.web.request.LoanProductRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;

@@ -15,7 +15,7 @@ import bankapp.loan.product.repository.InterestRateTypeRepository;
 import bankapp.loan.product.repository.RepaymentMethodRepository;
 import bankapp.loan.web.request.LoanApplicationRequest;
 import bankapp.loan.web.response.InterestRateInfoResponse;
-import bankapp.loan.web.response.LoanProductInfoResponse;
+import bankapp.loan.product.web.response.LoanProductInfoResponse;
 import bankapp.member.model.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

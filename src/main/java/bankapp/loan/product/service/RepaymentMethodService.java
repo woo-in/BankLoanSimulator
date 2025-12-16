@@ -2,7 +2,7 @@ package bankapp.loan.product.service;
 
 
 import bankapp.loan.product.model.RepaymentMethod;
-import bankapp.loan.web.request.RepaymentMethodRequest;
+import bankapp.loan.product.web.request.RepaymentMethodRequest;
 import java.util.List;
 
 

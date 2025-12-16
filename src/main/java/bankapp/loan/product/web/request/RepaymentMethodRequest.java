@@ -1,4 +1,4 @@
-package bankapp.loan.web.request;
+package bankapp.loan.product.web.request;
 
 
 import bankapp.loan.product.model.RepaymentMethod;

@@ -2,7 +2,7 @@ package bankapp.loan.product.service;
 
 
 import bankapp.loan.product.model.InterestRateType;
-import bankapp.loan.web.request.InterestRateTypeRequest;
+import bankapp.loan.product.web.request.InterestRateTypeRequest;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package bankapp.loan.web.response;
+package bankapp.loan.product.web.response;
 
 import bankapp.loan.product.model.RepaymentMethod;
 import lombok.Data;

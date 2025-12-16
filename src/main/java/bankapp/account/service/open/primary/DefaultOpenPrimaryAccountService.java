@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 
 /**
  * {@inheritDoc}
@@ -27,8 +29,12 @@ public class DefaultOpenPrimaryAccountService implements OpenPrimaryAccountServi
 
     private final MemberRepository memberRepository;
     private final AccountRepository accountRepository;
-        private final AccountOpeningValidator validator;
+    private final AccountOpeningValidator validator;
     private final AccountNumberGenerator accountNumberGenerator;
+
+    private static final BigDecimal CORE_INITIAL_BALANCE = new BigDecimal("200000000000000");
+    private static final String CORE_ACCOUNT_NICKNAME = "우인은행 중앙 금고";
+
 
     @Autowired
     public DefaultOpenPrimaryAccountService(MemberRepository memberRepository,
@@ -55,5 +61,22 @@ public class DefaultOpenPrimaryAccountService implements OpenPrimaryAccountServi
 
         return accountRepository.save(newAccount);
     }
+
+    @Override
+    @Transactional
+    public PrimaryAccount createCoreBankAccount(Member coreMember) {
+
+        String accountNumber = accountNumberGenerator.generate();
+
+        OpenPrimaryAccountRequest coreRequest = new OpenPrimaryAccountRequest(
+                coreMember.getMemberId(),
+                CORE_INITIAL_BALANCE,
+                CORE_ACCOUNT_NICKNAME
+        );
+
+        PrimaryAccount coreAccount = PrimaryAccount.from(coreRequest, coreMember, accountNumber);
+        return accountRepository.save(coreAccount);
+    }
+
 
 }

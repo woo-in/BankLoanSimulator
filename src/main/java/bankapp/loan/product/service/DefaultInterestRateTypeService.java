@@ -3,7 +3,7 @@ package bankapp.loan.product.service;
 
 import bankapp.loan.product.model.InterestRateType;
 import bankapp.loan.product.repository.InterestRateTypeRepository;
-import bankapp.loan.web.request.InterestRateTypeRequest;
+import bankapp.loan.product.web.request.InterestRateTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

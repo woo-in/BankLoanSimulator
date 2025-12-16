@@ -10,7 +10,7 @@ import bankapp.loan.web.request.LoanApplicationRequest;
 import bankapp.loan.web.response.InterestRateInfoResponse;
 import bankapp.loan.web.response.LoanApplicationCompleteResponse;
 import bankapp.loan.web.response.LoanApplicationFormResponse;
-import bankapp.loan.web.response.LoanProductInfoResponse;
+import bankapp.loan.product.web.response.LoanProductInfoResponse;
 import bankapp.member.model.Member;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -20,8 +20,6 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Controller
@@ -40,26 +38,6 @@ public class LoanHomeController {
         this.interestRateCalculator = interestRateCalculator;
     }
 
-    @RequestMapping("/home")
-    public String showHome(){
-        return "loan/loan-home";
-    }
-
-    @RequestMapping("/credit")
-    public String showCreditList(Model model)
-    {
-        prepareCreditLoanListModel(model);
-        return "loan/credit/list";
-    }
-
-    // 대출 상품 대략 표현
-    @RequestMapping("/credit/{type}")
-    public String showCreditDetail(@PathVariable("type") String type, Model model){
-        CreditLoanProduct creditLoanProduct = creditLoanProductService.findCreditLoanProductByLoanProductSlug(type);
-        LoanProductInfoResponse loanProductInfoResponse = LoanProductInfoResponse.from(creditLoanProduct);
-        model.addAttribute("LoanProductInfoResponse" , loanProductInfoResponse);
-        return "loan/credit/product-detail";
-    }
 
     @RequestMapping("/credit/{type}/inquiry")
     public String showLoanInquiryForm(@PathVariable("type") String type, Model model){
@@ -70,6 +48,9 @@ public class LoanHomeController {
 
         return "loan/credit/user-input";
     }
+
+
+
 
     @PostMapping("/credit/{type}/calculate")
     public String processLoanInquiry(@PathVariable("type") String type,
@@ -179,18 +160,6 @@ public class LoanHomeController {
 
     // todo : 고정금리인지 변동금리인지에 따라 아얘 path 를 달리해야 함. 
 
-    private void prepareCreditLoanListModel(Model model){
-
-
-
-        List<LoanProductInfoResponse> loanProductInfoResponses = new ArrayList<>();
-
-        for(CreditLoanProduct creditLoanProduct : creditLoanProductService.findAllCreditLoanProducts()){
-            loanProductInfoResponses.add(LoanProductInfoResponse.from(creditLoanProduct));
-        }
-
-        model.addAttribute("LoanProductInfoResponses" , loanProductInfoResponses);
-    }
 
 }
 
