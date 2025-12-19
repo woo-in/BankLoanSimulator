@@ -27,7 +27,6 @@ import java.util.Optional;
 @Service
 public class DefaultLoanApplicationService implements LoanApplicationService {
 
-
     private final LoanApplicationRepository loanApplicationRepository;
     private final LoanProductRepository loanProductRepository;
     private final RepaymentMethodRepository repaymentMethodRepository;
@@ -46,67 +45,42 @@ public class DefaultLoanApplicationService implements LoanApplicationService {
 
     @Override
     @Transactional
-    public LoanApplication saveLoanApplication(LoanApplicationRequest loanApplicationRequest ,
-                                               LoanProductInfoResponse loanProductInfoResponse ,
-                                               InterestRateInfoResponse interestRateInfoResponse ,
-                                               Member loginMember){
+    public LoanApplication saveLoanApplication(LoanApplicationRequest request,
+                                               LoanProductInfoResponse productInfo,
+                                               InterestRateInfoResponse rateInfo,
+                                               Member loginMember) {
 
-        LoanProduct loanProduct = loanProductRepository.findByLoanProductSlug(loanProductInfoResponse.getLoanProductSlug())
-                .orElseThrow(() -> new InvalidLoanProduct("대출 상품 정보를 찾을 수 없습니다."));
+        // todo : controller 부터 뭔가 꼬였다.
+        LoanProduct loanProduct = findLoanProduct(productInfo.getLoanProductSlug());
+        RepaymentMethod repaymentMethod = findRepaymentMethod(request.getRepaymentMethodId());
+        InterestRateType interestRateType = findInterestRateType(request.getInterestRateTypeId());
 
-        RepaymentMethod repaymentMethod = repaymentMethodRepository.findById(loanApplicationRequest.getRepaymentMethodId())
-                .orElseThrow(() -> new InvalidRepaymentMethodId("상환 방법 정보를 찾을 수 없습니다."));
-
-        InterestRateType interestRateType = interestRateTypeRepository.findById(loanApplicationRequest.getInterestRateTypeId())
-                .orElseThrow(() -> new InvalidInterestRate("금리 유형 정보를 찾을 수 없습니다."));
-
-        LoanApplication loanApplication = new LoanApplication();
-        loanApplication.setMember(loginMember);
-        loanApplication.setLoanProduct(loanProduct);
-        loanApplication.setRepaymentMethod(repaymentMethod);
-        loanApplication.setInterestRateType(interestRateType);
-        loanApplication.setLoanAmount(loanApplicationRequest.getLoanAmount());
-        loanApplication.setLoanTerm(loanApplicationRequest.getLoanTerm());
-        loanApplication.setAppliedBaseRate(interestRateInfoResponse.getBaseRate());
-        loanApplication.setAppliedCreditSpread(interestRateInfoResponse.getCreditSpread());
-        loanApplication.setAppliedProductSpread(interestRateInfoResponse.getProductSpread());
-
-        loanApplication.setApplicationStatus(ApplicationStatus.APPLIED);
+        LoanApplication loanApplication = createApplicationEntity(
+                loginMember, loanProduct, repaymentMethod, interestRateType, request, rateInfo
+        );
 
         return loanApplicationRepository.save(loanApplication);
     }
 
+
+
     @Override
     @Transactional
     public List<LoanApplication> getAppliedApplications() {
-        // APPLIED 상태인 것만 최신순으로 가져오기
         return loanApplicationRepository.findByApplicationStatusOrderByCreatedAtDesc(ApplicationStatus.APPLIED);
     }
-
 
     @Override
     @Transactional
     public void rejectApplication(Long applicationId) {
-        LoanApplication application = loanApplicationRepository.findById(applicationId)
-                .orElseThrow(() -> new InvalidLoanApplication("해당 대출 신청을 찾을 수 없습니다. ID: " + applicationId));
-
-        if (application.getApplicationStatus() != ApplicationStatus.APPLIED) {
-            throw new IllegalStateException("이미 처리된 대출 신청입니다.");
-        }
-
+        LoanApplication application = findAndValidateApplication(applicationId);
         application.setApplicationStatus(ApplicationStatus.REJECTED);
     }
 
     @Override
     @Transactional
-    public void approveApplication(Long applicationId){
-        LoanApplication application = loanApplicationRepository.findById(applicationId)
-                .orElseThrow(() -> new InvalidLoanApplication("해당 대출 신청을 찾을 수 없습니다. ID: " + applicationId));
-
-        if (application.getApplicationStatus() != ApplicationStatus.APPLIED) {
-            throw new IllegalStateException("이미 처리된 대출 신청입니다.");
-        }
-
+    public void approveApplication(Long applicationId) {
+        LoanApplication application = findAndValidateApplication(applicationId);
         application.setApplicationStatus(ApplicationStatus.APPROVED);
     }
 
@@ -115,6 +89,60 @@ public class DefaultLoanApplicationService implements LoanApplicationService {
     public Optional<LoanApplication> findById(Long applicationId){
         return loanApplicationRepository.findById(applicationId);
     }
+
+
+
+    private LoanProduct findLoanProduct(String slug) {
+        return loanProductRepository.findByLoanProductSlug(slug)
+                .orElseThrow(() -> new InvalidLoanProduct("대출 상품 정보를 찾을 수 없습니다. slug: " + slug));
+    }
+
+    private RepaymentMethod findRepaymentMethod(Long id) {
+        return repaymentMethodRepository.findById(id)
+                .orElseThrow(() -> new InvalidRepaymentMethodId("상환 방법 정보를 찾을 수 없습니다. ID: " + id));
+    }
+
+    private InterestRateType findInterestRateType(Long id) {
+        return interestRateTypeRepository.findById(id)
+                .orElseThrow(() -> new InvalidInterestRate("금리 유형 정보를 찾을 수 없습니다. ID: " + id));
+    }
+
+    private LoanApplication createApplicationEntity(Member member,
+                                                    LoanProduct product,
+                                                    RepaymentMethod method,
+                                                    InterestRateType rateType,
+                                                    LoanApplicationRequest request,
+                                                    InterestRateInfoResponse rateInfo) {
+        LoanApplication application = new LoanApplication();
+
+        application.setMember(member);
+        application.setLoanProduct(product);
+        application.setRepaymentMethod(method);
+        application.setInterestRateType(rateType);
+        application.setLoanAmount(request.getLoanAmount());
+        application.setLoanTerm(request.getLoanTerm());
+        application.setAppliedBaseRate(rateInfo.getBaseRate());
+        application.setAppliedCreditSpread(rateInfo.getCreditSpread());
+        application.setAppliedProductSpread(rateInfo.getProductSpread());
+
+        application.setApplicationStatus(ApplicationStatus.APPLIED);
+
+        return application;
+    }
+
+
+    private LoanApplication findAndValidateApplication(Long applicationId) {
+
+        LoanApplication application = loanApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> new InvalidLoanApplication("해당 대출 신청을 찾을 수 없습니다. ID: " + applicationId));
+
+        if (application.getApplicationStatus() != ApplicationStatus.APPLIED) {
+            throw new IllegalStateException("이미 처리된 대출 신청입니다. (현재 상태: " + application.getApplicationStatus() + ")");
+        }
+
+        return application;
+    }
+
 
 
 }

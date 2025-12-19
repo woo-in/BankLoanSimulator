@@ -46,6 +46,10 @@ public class LoanHomeController {
         LoanProductInfoResponse loanProductInfoResponse = LoanProductInfoResponse.from(creditLoanProduct);
         model.addAttribute("LoanProductInfoResponse" , loanProductInfoResponse);
 
+
+//        log.info("스트레스 금리는  : " + interestRateCalculator.calculateStressRate().toString());
+
+
         return "loan/credit/user-input";
     }
 

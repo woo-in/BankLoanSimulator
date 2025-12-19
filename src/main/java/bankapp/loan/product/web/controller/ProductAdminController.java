@@ -140,6 +140,8 @@ public class ProductAdminController {
         creditLoanProductService.saveCreditLoanProduct(loanProductRequest);
         return "redirect:/admin/loan/loan-products";
     }
+
+
     @PostMapping("/setup/loan-products")
     public String setupLoanProduct(RedirectAttributes  redirectAttributes) {
         creditLoanProductService.saveDefaultCreditLoanProduct();

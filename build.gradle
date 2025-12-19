@@ -63,6 +63,9 @@ dependencies {
 	// 주의 : 비동기/논블로킹
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
+
+	// WebClient 테스트
+//	testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
 }
 
 tasks.named('test') {

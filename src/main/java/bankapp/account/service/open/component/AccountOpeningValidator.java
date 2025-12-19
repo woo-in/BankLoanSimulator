@@ -5,7 +5,6 @@ import bankapp.account.exceptions.AccountNotFoundException;
 import bankapp.account.exceptions.InvalidDepositAmountException;
 import bankapp.account.request.open.OpenLoanAccountRequest;
 import bankapp.account.request.open.OpenPrimaryAccountRequest;
-import bankapp.account.service.check.AccountCheckService;
 import bankapp.member.exceptions.MemberNotFoundException;
 import bankapp.member.service.check.MemberCheckService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +15,10 @@ import java.math.BigDecimal;
 @Component
 public class AccountOpeningValidator {
     private final MemberCheckService memberCheckService;
-    private final AccountCheckService accountCheckService;
 
     @Autowired
-    public AccountOpeningValidator(MemberCheckService memberCheckService ,
-                                   AccountCheckService accountCheckService) {
+    public AccountOpeningValidator(MemberCheckService memberCheckService){
         this.memberCheckService = memberCheckService;
-        this.accountCheckService = accountCheckService;
     }
 
 
@@ -55,7 +51,6 @@ public class AccountOpeningValidator {
      * 이 메서드는 초기 입금액이 0원 이상인지,
      * 요청에 포함된 회원 ID가 실제로 존재하는 회원인지,
      * 계약서가 유효한지 확인합니다.
-     *
      * 모든 검증을 통과하면 정상적으로 반환되고, 그렇지 않으면 적절한 예외를 발생시킵니다.
      *
      * @param request 검증할 계좌 개설 요청 데이터 객체

@@ -8,13 +8,16 @@ import bankapp.loan.origination.component.LoanInquiryScorer;
 import bankapp.loan.product.service.CreditLoanProductService;
 import bankapp.loan.web.request.CreditCheckRequest;
 import bankapp.loan.web.response.InterestRateInfoResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
+@Slf4j
 @Component
 public class InterestRateCalculator {
 
@@ -63,27 +66,112 @@ public class InterestRateCalculator {
     /**
      * 기준 금리 계산하여 반환
      */
-    public BigDecimal calculateBaseRate(){
-        try{
-            LocalDate today = LocalDate.of(2025,11,7);
-            final String KORIBOR_12M_CODE = "010152000";
+    public BigDecimal calculateBaseRate() {
+        // 1. 오늘 날짜부터 조회 시작
+        LocalDate targetDate = LocalDate.now();
+        final String KORIBOR_12M_CODE = "010152000";
 
-            BokInterestRateDto.SearchData responseData = bokApiClient.fetchDayInterestRate(
-                    "kr",
-                    today,
-                    KORIBOR_12M_CODE
-            ).block(); // 동기식 대기
+        // 2. 최대 15일 전까지 조회 (명절 + 공휴일 + 주말이 겹치는 최장 연휴 대비)
+        int maxRetryDays = 15;
 
-            if (responseData == null || responseData.getDataValue() == null || responseData.getDataValue().isEmpty()) {
-                throw new BaseRateFetchException("한국은행 API로부터 기준금리(KORIBOR 12M)를 가져오지 못했습니다. (오늘자 데이터 없음) - 날짜: " + today);
+        for (int i = 0; i < maxRetryDays; i++) {
+            try {
+                BokInterestRateDto.SearchData responseData = bokApiClient.fetchDayInterestRate(
+                        "kr",
+                        targetDate,
+                        KORIBOR_12M_CODE
+                ).block(); // 동기식 호출
+
+                // 3. 유효한 데이터가 있으면 즉시 반환
+                if (responseData != null && responseData.getDataValue() != null && !responseData.getDataValue().isEmpty()) {
+                    return new BigDecimal(responseData.getDataValue());
+                }
+
+            } catch (WebClientResponseException e) {
+                // API 호출 실패(4xx, 5xx) 시 로그만 남기고 다음 날짜(과거) 시도
+                // log.warn("금리 조회 실패 (API 에러) - 날짜: {}", targetDate);
+            } catch (Exception e) {
+                // 기타 오류 무시하고 계속 시도
             }
 
-            return new BigDecimal(responseData.getDataValue());
+            // 4. 데이터가 없으면 '하루 전'으로 날짜 이동
+            targetDate = targetDate.minusDays(1);
+        }
 
-        }catch (WebClientResponseException | NumberFormatException e) {
-            throw new BaseRateFetchException("한국은행 API 호출 또는 데이터 변환 중 오류가 발생했습니다: " + e.getMessage());
+        // 5. 15일을 다 뒤져도 없으면 예외 발생 (심각한 시스템 오류 또는 한국은행 데이터 누락)
+        throw new BaseRateFetchException("최근 " + maxRetryDays + "일 간의 기준금리 데이터를 찾을 수 없습니다. (한국은행 API 확인 필요)");
+    }
+
+
+    /**
+     * 가중치 미적용 스트레스 금리(Stress Rate) 반환
+     * 공식: (과거 5년 최고 금리 - 현재 금리)
+     * - 하한 1.5%, 상한 3.0% 적용
+     * 데이터가 없으면 , 안전한 값(0.75) 반환 , 규제상 5월 ,11월 이지만 , 최신으로 현재금리 계산
+     */
+    public BigDecimal calculateStressRate() {
+
+        final String CREDIT_LOAN_CODE = "BECBLA03051";
+        LocalDate now = LocalDate.now();
+        // 한국은행 데이터는 집계 시차(1~2개월)가 있으므로 안전하게 2달 전부터 과거 5년을 조회
+        LocalDate endDate = now.minusMonths(1);
+        LocalDate startDate = endDate.minusYears(5);
+        String startMonth = startDate.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMM"));
+        String endMonth = endDate.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMM"));
+
+        try {
+
+            List<BokInterestRateDto.SearchData> rates = bokApiClient.fetchMonthlyInterestRates(
+                    "kr",
+                    startMonth,
+                    endMonth,
+                    CREDIT_LOAN_CODE
+            ).block();
+
+            if (rates == null || rates.isEmpty()) {
+                // 데이터가 없으면 안전값(Safe Fallback) 반환
+                // 예: 1.5% * 50% = 0.75%
+                return new BigDecimal("0.75");
+            }
+
+//            log.info(rates.toString());
+
+            // 4. 데이터 파싱
+            List<BigDecimal> rateValues = rates.stream()
+                    .map(data -> new BigDecimal(data.getDataValue()))
+                    .toList();
+
+            // 5. [A] 최고 금리 (Max)
+            BigDecimal maxRate = rateValues.stream()
+                    .max(BigDecimal::compareTo)
+                    .orElseThrow();
+
+            // 6. [B] 현재 금리 - 리스트의 마지막 데이터 사용
+            // (규정상 5월/11월 갱신이지만, 시스템에서는 최신 데이터를 쓰는 것이 더 안전함)
+            BigDecimal currentRate = rateValues.get(rateValues.size() - 1);
+
+            // 7. 스트레스 금리 원본 계산 (A - B)
+            BigDecimal rawStressRate = maxRate.subtract(currentRate);
+
+            // 8. 하한(1.5%) ~ 상한(3.0%) 적용 (Clamping)
+            BigDecimal floor = new BigDecimal("1.5");
+            BigDecimal ceiling = new BigDecimal("3.0");
+
+            BigDecimal clampedRate;
+            if (rawStressRate.compareTo(floor) < 0) {
+                clampedRate = floor;
+            } else if (rawStressRate.compareTo(ceiling) > 0) {
+                clampedRate = ceiling;
+            } else {
+                clampedRate = rawStressRate;
+            }
+
+            return clampedRate;
+
         } catch (Exception e) {
-            throw new BaseRateFetchException("기준금리 조회 중 알 수 없는 시스템 오류가 발생했습니다: " + e.getMessage());
+            // API 장애 시 기본값 반환 (로그 남김)
+            log.error("스트레스 금리 계산 중 오류 발생", e);
+            return new BigDecimal("0.75");
         }
     }
 
@@ -100,6 +188,7 @@ public class InterestRateCalculator {
     public BigDecimal calculateCreditSpread(CreditCheckRequest request) {
         return loanInquiryScorer.getCreditSpread(request);
     }
+
 
 
 

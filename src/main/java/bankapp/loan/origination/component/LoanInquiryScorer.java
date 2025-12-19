@@ -10,8 +10,6 @@ import java.util.Map;
 @Component
 public class LoanInquiryScorer {
 
-    // 1. 규칙 중앙화 (점수표)
-    // (향후 @ConfigurationProperties 등으로 분리 가능)
     private static final Map<TotalAssets, Integer> ASSET_SCORES = Map.of(
             TotalAssets.ASSET_A, 10,
             TotalAssets.ASSET_B, 20,
@@ -34,7 +32,7 @@ public class LoanInquiryScorer {
     );
 
     private static final Map<FixedExpenses, Integer> EXPENSE_SCORES = Map.of(
-            FixedExpenses.EXPENSE_A, 40, // 지출은 낮을수록 점수가 높음
+            FixedExpenses.EXPENSE_A, 40,
             FixedExpenses.EXPENSE_B, 30,
             FixedExpenses.EXPENSE_C, 15,
             FixedExpenses.EXPENSE_D, 5
