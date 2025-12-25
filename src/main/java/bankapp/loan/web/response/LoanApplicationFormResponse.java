@@ -1,6 +1,7 @@
 package bankapp.loan.web.response;
 
 import bankapp.loan.exceptions.InvalidInterestRate;
+import bankapp.loan.origination.web.response.InterestRateInfoResponse;
 import bankapp.loan.product.model.CreditLoanProduct;
 import bankapp.loan.product.model.LoanProductInterestRateTypeOption;
 import bankapp.loan.product.model.LoanProductRepaymentOption;

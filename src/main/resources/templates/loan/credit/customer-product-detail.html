@@ -2,211 +2,122 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>우인은행 - 금리/한도 결과</title>
+  <title>우인은행 - 한도/금리 조회 결과</title>
   <style>
-    /* ... (기존 product-detail.html 스타일과 동일) ... */
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f0f2f5;
-      margin: 0;
-      padding: 20px;
-    }
-
-    .simple-header {
-      display: flex;
-      align-items: center;
-      padding: 10px 0;
-      margin-bottom: 20px;
-      background-color: #f0f2f5;
-      position: sticky;
-      top: 0;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .back-button {
-      font-size: 28px;
-      font-weight: bold;
-      color: #333;
-      text-decoration: none;
-      margin-right: 15px;
-      padding: 0 10px;
-    }
-
-    .product-detail-card {
-      background-color: white;
-      padding: 35px 40px;
-      border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    }
-
-    .product-header {
-      margin-bottom: 30px;
-      border-bottom: 2px solid #f0f2f5;
-      padding-bottom: 20px;
-    }
-
-    .product-name {
-      font-size: 28px;
-      font-weight: bold;
-      color: #333;
-      margin: 0 0 8px 0;
-    }
-
-    .product-title {
-      font-size: 16px;
-      color: #555;
-      margin: 0;
-    }
-
-    .info-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 30px;
-    }
-
-    .info-table th, .info-table td {
-      padding: 20px 15px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-
-    .info-table th {
-      width: 30%;
-      font-weight: bold;
-      background-color: #f7f9fc;
-      color: #333;
-    }
-
-    .info-table td {
-      color: #555;
-      font-weight: 500;
-    }
-
-    .info-table tr:last-child th, .info-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    /* --- [신규] 금리 하이라이트 섹션 스타일 --- */
-    .result-highlight {
-      background-color: #f7f9fc;
-      border-radius: 15px;
-      padding: 25px;
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .result-highlight-label {
-      font-size: 16px;
-      font-weight: bold;
-      color: #555;
-      margin-bottom: 10px;
-    }
-
-    .result-highlight-rate {
-      font-size: 42px;
-      font-weight: bold;
-      color: #4a90e2; /* 브랜드 컬러 */
-      margin: 0;
-    }
-
-    /* --- [신규] 금리 상세 테이블 (기존 info-table 재활용) --- */
-    .info-table.rate-breakdown th {
-      background-color: #fafafa; /* 약간 다른 배경색 */
-    }
-
-
-    /* --- 하단 버튼 컨테이너 (버튼 색상 수정) --- */
-    .action-button-container {
-      text-align: center;
-      margin-top: 20px;
-    }
-
-    .action-button {
-      width: 100%;
-      padding: 18px;
-      font-size: 18px;
-      font-weight: bold;
-      color: white;
-      background-color: #E64A19; /* [수정] 대출 신청하기 (주황색/빨간색 계열 강조) */
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .action-button:hover {
-      background-color: #D84315;
-    }
+    /* ... (기존 스타일 동일) ... */
+    body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+    .simple-header { display: flex; align-items: center; padding: 10px 0; margin-bottom: 20px; position: sticky; top: 0; background-color: #f0f2f5; border-bottom: 1px solid #e0e0e0; z-index: 100; }
+    .back-button { font-size: 28px; font-weight: bold; color: #333; text-decoration: none; margin-right: 15px; padding: 0 10px; }
+    .result-card { background-color: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); max-width: 700px; margin: 0 auto; }
+    .product-header { text-align: left; margin-bottom: 30px; border-bottom: 2px solid #f0f2f5; padding-bottom: 20px; }
+    .product-name { font-size: 26px; font-weight: 700; color: #333; margin: 0 0 8px 0; }
+    .product-desc { font-size: 15px; color: #666; margin: 0; line-height: 1.5; }
+    .highlight-box { background-color: #f7f9fc; border-radius: 16px; padding: 30px; text-align: center; margin-bottom: 35px; border: 1px solid #e9ecef; }
+    .highlight-label { font-size: 15px; font-weight: 600; color: #555; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .estimate-badge { background-color: #e3f2fd; color: #1565c0; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 700; }
+    .highlight-rate-range { font-size: 40px; font-weight: 800; color: #4a90e2; letter-spacing: -0.5px; margin: 5px 0 15px 0; }
+    .highlight-rate-unit { font-size: 20px; font-weight: 600; color: #666; margin-left: 2px; }
+    .dsr-info-container { display: inline-flex; align-items: center; justify-content: center; background-color: #fff; padding: 10px 20px; border-radius: 30px; border: 1px solid #dfe1e5; position: relative; }
+    .dsr-label { font-size: 14px; font-weight: 600; color: #444; margin-right: 6px; }
+    .dsr-value { color: #d32f2f; font-weight: 800; font-size: 15px; }
+    .tooltip-icon { display: inline-flex; justify-content: center; align-items: center; width: 18px; height: 18px; background-color: #90a4ae; color: white; border-radius: 50%; font-size: 12px; font-weight: bold; cursor: help; margin-left: 6px; position: relative; }
+    .tooltip-content { visibility: hidden; opacity: 0; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); width: 280px; background-color: #333; color: #fff; text-align: left; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.5; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: opacity 0.3s, visibility 0.3s; }
+    .tooltip-content::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -6px; border-width: 6px; border-style: solid; border-color: #333 transparent transparent transparent; }
+    .tooltip-icon:hover .tooltip-content { visibility: visible; opacity: 1; }
+    .tooltip-title { color: #81d4fa; font-weight: bold; margin-bottom: 4px; display: block; }
+    .section-title { font-size: 17px; font-weight: 700; color: #333; margin-bottom: 12px; margin-top: 30px; display: flex; align-items: center; }
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .info-table th { width: 35%; text-align: left; padding: 14px 10px; color: #666; font-weight: 500; border-bottom: 1px solid #eee; }
+    .info-table td { text-align: right; padding: 14px 10px; color: #333; font-weight: 600; border-bottom: 1px solid #eee; }
+    .info-table tr:last-child th, .info-table tr:last-child td { border-bottom: none; }
+    .disclaimer { font-size: 13px; color: #888; background-color: #fafafa; padding: 15px; border-radius: 8px; margin-top: 30px; line-height: 1.6; }
+    .action-button-container { margin-top: 30px; }
+    .action-button { width: 100%; padding: 18px; font-size: 18px; font-weight: bold; color: white; background-color: #E64A19; border: none; border-radius: 12px; cursor: pointer; transition: background-color 0.2s; }
+    .action-button:hover { background-color: #D84315; }
   </style>
 </head>
 <body>
 
 <header class="simple-header">
-  <a th:href="@{'/loan/credit/' + ${LoanProductInfoResponse.loanProductSlug}}" class="back-button">&lt;</a>
+  <a th:href="@{'/loan/credit/' + ${loanProductInfoResponse?.loanProductSlug}}" class="back-button">&lt;</a>
 </header>
 
 <main>
-  <section class="product-detail-card" th:object="${LoanProductInfoResponse}">
+  <section class="result-card">
 
-    <div class="product-header">
-      <h1 class="product-name" th:text="*{loanProductName}">상품 이름</h1>
-      <p class="product-title" th:text="*{productDescription}">상품 타이틀(특징)</p>
+    <div class="product-header" th:object="${loanProductInfoResponse}">
+      <h1 class="product-name" th:text="*{loanProductName}">직장인 신용대출</h1>
+      <p class="product-desc" th:text="*{productDescription}">소득이 있는 직장인을 위한 든든한 신용대출 상품입니다.</p>
     </div>
 
-    <div class="result-highlight">
-      <div class="result-highlight-label">고객님 예상 금리</div>
-      <h2 class="result-highlight-rate" th:text="${#numbers.formatDecimal(InterestRateInfoResponse.finalInterestRate, 1, 2)} + '%'">
-        5.25%
+    <div class="highlight-box">
+      <div class="highlight-label">
+        예상 금리 <span class="estimate-badge">예상</span>
+      </div>
+
+      <h2 class="highlight-rate-range" th:object="${interestRateInfoResponse}">
+        <span th:text="*{minFinalInterestRate != null ? #numbers.formatDecimal(minFinalInterestRate, 1, 2) : '0.00'}">5.10</span>
+        <span style="font-size: 24px; color: #aaa;">~</span>
+        <span th:text="*{maxFinalInterestRate != null ? #numbers.formatDecimal(maxFinalInterestRate, 1, 2) : '0.00'}">5.60</span>
+        <span class="highlight-rate-unit">%</span>
       </h2>
+
+      <div class="dsr-info-container">
+        <span class="dsr-label">예상 DSR</span>
+        <span class="dsr-value" th:text="${currentDsrResponse != null ? #numbers.formatDecimal(currentDsrResponse, 1, 2) : '0.00'} + '%'">35.50%</span>
+
+        <div class="tooltip-icon">?
+          <div class="tooltip-content">
+            <span class="tooltip-title">DSR (총부채원리금상환비율)</span>
+            연 소득 대비 모든 대출의 연간 원리금 상환액 비율을 의미합니다.<br><br>
+            • <strong>의미:</strong> 갚을 능력이 되는지 판단하는 지표<br>
+            • <strong>제한:</strong> 일반적으로 <strong>40%를 초과</strong>하면 추가 대출이 제한될 수 있습니다.
+          </div>
+        </div>
+      </div>
     </div>
 
-    <h3 style="font-weight: bold; margin-bottom: 15px;">금리 상세 내역</h3>
-    <table class="info-table rate-breakdown">
-      <tbody>
-      <tr>
-        <th>기준 금리 (A)</th>
-        <td th:text="${#numbers.formatDecimal(InterestRateInfoResponse.baseRate, 1, 2)} + '%'">3.50%</td>
-      </tr>
-      <tr>
-        <th>상품 가산금리 (B)</th>
-        <td th:text="${#numbers.formatDecimal(InterestRateInfoResponse.productSpread, 1, 2)} + '%'">1.25%</td>
-      </tr>
-      <tr>
-        <th>신용 가산금리 (C)</th>
-        <td th:text="${#numbers.formatDecimal(InterestRateInfoResponse.creditSpread, 1, 2)} + '%'">0.50%</td>
-      </tr>
-      </tbody>
-    </table>
-
-    <h3 style="font-weight: bold; margin-bottom: 15px; margin-top: 40px;">상품 기본 정보</h3>
-    <table class="info-table">
-      <tbody>
+    <h3 class="section-title">상품 상세 조건</h3>
+    <table class="info-table" th:object="${loanProductInfoResponse}">
       <tr>
         <th>대출 한도</th>
-        <td th:text="'최대 ' + ${#numbers.formatInteger(LoanProductInfoResponse.maxLoanAmount, 3, 'COMMA')} + '원'">최대 300,000,000원</td>
+        <td th:if="${loanProductInfoResponse.maxLoanAmount != null}"
+            th:text="'최대 ' + ${#numbers.formatInteger(loanProductInfoResponse.maxLoanAmount, 0, 'COMMA')} + '원'">
+          최대 100,000,000원
+        </td>
+        <td th:unless="${loanProductInfoResponse.maxLoanAmount != null}" style="color: #888;">한도 조회 불가</td>
       </tr>
       <tr>
         <th>대출 기간</th>
-        <td th:text="'최장 ' + *{maxLoanTerm} + '개월'">최장 120개월</td>
+        <td th:text="*{maxLoanTerm != null ? '최장 ' + maxLoanTerm + '개월' : '-'}">최장 60개월</td>
       </tr>
       <tr>
         <th>상환 방법</th>
-        <td th:text="*{repaymentOptions}">원리금균등분할상환</td>
+        <td th:text="*{repaymentOptions}">원리금균등, 만기일시</td>
       </tr>
       <tr>
-        <th>금리 종류</th>
-        <td th:text="*{interestRateTypeOptions}">고정금리</td>
+        <th>금리 유형</th>
+        <td th:text="*{interestRateTypeOptions}">변동금리, 고정금리</td>
       </tr>
-      </tbody>
     </table>
 
+    <div class="disclaimer">
+      ※ <strong>안내사항</strong><br>
+      • 위 <strong>금리</strong>는 고객님이 입력하신 정보를 바탕으로 산출된 <strong>예상 결과</strong>입니다.<br>
+      • 실제 대출 가능 여부와 최종 금리는 <strong>본심사</strong> 진행 시, 신용점수 및 당행 심사 기준에 따라 달라질 수 있습니다.<br>
+      • DSR(총부채원리금상환비율)은 금융당국 규제에 따라 산출되었으며, 실제 대출 시점의 대출 현황에 따라 변동될 수 있습니다.
+    </div>
+
     <div class="action-button-container">
-      <button class="action-button"
-              type="button" th:onclick="|location.href='@{'/loan/credit/' + *{loanProductSlug} + '/apply'}'|">
-        대출 신청하기
+      <button class="action-button" type="button"
+              th:if="${loanProductInfoResponse != null}"
+              th:onclick="|location.href='@{/loan/credit/' + ${loanProductInfoResponse.loanProductSlug} + '/apply'}'|">
+        대출 신청하러 가기
       </button>
     </div>
+
   </section>
 </main>
+
 </body>
 </html>

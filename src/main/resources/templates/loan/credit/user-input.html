@@ -4,196 +4,126 @@
   <meta charset="UTF-8">
   <title>우인은행 - 한도 알아보기</title>
   <style>
-    /* ... (스타일은 기존과 동일) ... */
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f0f2f5;
-      margin: 0;
-      padding: 20px;
+    /* ... (기존 스타일 유지) ... */
+    body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+    .simple-header { display: flex; align-items: center; padding: 10px 0; margin-bottom: 20px; background-color: #f0f2f5; position: sticky; top: 0; border-bottom: 1px solid #e0e0e0; z-index: 100; }
+    .back-button { font-size: 28px; font-weight: bold; color: #333; text-decoration: none; margin-right: 15px; padding: 0 10px; }
+    .form-card { background-color: white; padding: 35px 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); max-width: 700px; margin: 0 auto; }
+    .form-header { text-align: center; margin-bottom: 35px; }
+    .form-title { font-size: 24px; font-weight: bold; color: #333; margin: 0; }
+    .form-group { margin-bottom: 25px; position: relative; }
+    .form-group label { display: block; font-size: 16px; font-weight: bold; color: #555; margin-bottom: 10px; }
+
+    /* Input 스타일 */
+    .form-group select, .form-group input[type="text"], .form-group input[type="number"] {
+      width: 100%; padding: 14px 18px; font-size: 16px; color: #333;
+      border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; box-sizing: border-box;
     }
 
-    /* --- 심플 헤더 스타일 (기존과 동일) --- */
-    .simple-header {
-      display: flex;
-      align-items: center;
-      padding: 10px 0;
-      margin-bottom: 20px;
-      background-color: #f0f2f5;
-      position: sticky;
-      top: 0;
-      border-bottom: 1px solid #e0e0e0;
+    /* 한글 금액 표기 스타일 */
+    .amount-display {
+      font-size: 13px; color: #1976d2; font-weight: 600;
+      margin-top: 6px; text-align: right; display: block;
     }
 
-    .back-button {
-      font-size: 28px;
-      font-weight: bold;
-      color: #333;
-      text-decoration: none;
-      margin-right: 15px;
-      padding: 0 10px;
-    }
+    /* 기존 대출 목록 스타일 */
+    .loan-list-box { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 15px; }
+    .loan-item { display: flex; justify-content: space-between; align-items: center; background-color: white; border: 1px solid #dfe1e5; border-radius: 8px; padding: 15px; margin-bottom: 10px; }
+    .loan-item:last-child { margin-bottom: 0; }
+    .loan-info-name { font-weight: 600; color: #333; font-size: 15px; display: flex; align-items: center; }
+    .loan-info-amount { font-weight: bold; color: #1976d2; font-size: 15px; }
+    .no-loan-message { text-align: center; color: #888; font-size: 14px; padding: 10px 0; }
 
-    /* --- 입력 폼 카드 스타일 --- */
-    .form-card {
-      background-color: white;
-      padding: 35px 40px;
-      border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      max-width: 700px; /* 폼이 너무 넓어지지 않도록 최대 너비 설정 */
-      margin: 0 auto; /* 중앙 정렬 */
-    }
+    /* 타행 대출 추가 버튼 스타일 */
+    .add-loan-btn { width: 100%; padding: 12px; background-color: white; border: 2px dashed #4a90e2; color: #4a90e2; font-weight: bold; border-radius: 10px; cursor: pointer; transition: all 0.2s; margin-top: 10px; }
+    .add-loan-btn:hover { background-color: #e3f2fd; }
 
-    .form-header {
-      text-align: center;
-      margin-bottom: 35px;
-    }
+    /* 삭제 버튼 스타일 */
+    .delete-btn { margin-left: 10px; color: #ff5252; cursor: pointer; font-size: 14px; font-weight: bold; background: none; border: none; }
 
-    .form-title {
-      font-size: 24px;
-      font-weight: bold;
-      color: #333;
-      margin: 0;
-    }
+    /* 모달 스타일 */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+    .modal-content { background-color: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .modal-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; text-align: center; }
+    .modal-actions { display: flex; justify-content: space-between; margin-top: 25px; gap: 10px; }
+    .modal-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+    .btn-cancel { background-color: #f1f3f5; color: #333; }
+    .btn-confirm { background-color: #4a90e2; color: white; }
+    .modal-input-group { margin-bottom: 15px; }
+    .modal-input-group label { display: block; font-size: 14px; color: #666; margin-bottom: 5px; font-weight: 600; }
+    .modal-input-group input, .modal-input-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; box-sizing: border-box; }
+    .radio-group { display: flex; gap: 10px; flex-wrap: wrap; }
+    .radio-label { display: flex; align-items: center; gap: 5px; font-size: 14px; cursor: pointer; }
 
-    /* --- 폼 그룹 스타일 --- */
-    .form-group {
-      margin-bottom: 25px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 16px;
-      font-weight: bold;
-      color: #555;
-      margin-bottom: 10px;
-    }
-
-    .form-group select {
-      width: 100%;
-      padding: 14px 18px;
-      font-size: 16px;
-      color: #333;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      background-color: #f9f9f9;
-      -webkit-appearance: none; /* 기본 화살표 제거 (웹킷) */
-      -moz-appearance: none;    /* 기본 화살표 제거 (파이어폭스) */
-      appearance: none;         /* 기본 화살표 제거 */
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D'20'%20height%3D'20'%20fill%3D'%23555'%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%3E%3Cpath%20d%3D'M7.41%208.59L12%2013.17l4.59-4.58L18%2010l-6%206-6-6%201.41-1.41z'%2F%3E%3C%2Fsvg%3E");
-      background-repeat: no-repeat;
-      background-position: right 15px center;
-      background-size: 20px;
-      cursor: pointer;
-    }
-
-    /* --- 동의 섹션 --- */
-    .agreement-section {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 40px;
-      margin-bottom: 25px;
-    }
-
-    .agreement-section input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      margin-right: 10px;
-      cursor: pointer;
-    }
-
-    .agreement-section label {
-      font-size: 15px;
-      color: #666;
-      cursor: pointer;
-    }
-
-    /* --- 하단 버튼 컨테이너 (기존과 동일) --- */
-    .action-button-container {
-      text-align: center;
-      margin-top: 20px;
-    }
-
-    .action-button {
-      width: 100%;
-      padding: 18px;
-      font-size: 18px;
-      font-weight: bold;
-      color: white;
-      background-color: #4a90e2;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .action-button:hover:not(:disabled) {
-      background-color: #357ABD;
-    }
-
-    /* 비활성화된 버튼 스타일 */
-    .action-button:disabled {
-      background-color: #b0c4de; /* 흐린 파란색 */
-      cursor: not-allowed;
-    }
+    .agreement-section { display: flex; align-items: center; justify-content: center; margin-top: 40px; margin-bottom: 25px; }
+    .agreement-section input[type="checkbox"] { width: 18px; height: 18px; margin-right: 10px; cursor: pointer; }
+    .action-button-container { text-align: center; margin-top: 20px; }
+    .action-button { width: 100%; padding: 18px; font-size: 18px; font-weight: bold; color: white; background-color: #4a90e2; border: none; border-radius: 12px; cursor: pointer; }
+    .action-button:disabled { background-color: #b0c4de; cursor: not-allowed; }
   </style>
 </head>
 <body>
 
 <header class="simple-header">
-  <a th:href="@{/loan/credit}" href="product-detail.html" class="back-button">&lt;</a>
+  <a th:href="@{'/loan/credit/' + ${loanProductInfoResponse.loanProductSlug}}" class="back-button">&lt;</a>
 </header>
 
 <main>
   <section class="form-card">
     <div class="form-header">
-      <h1 class="form-title" th:text="${LoanProductInfoResponse.loanProductName} + ' 금리/한도 알아보기'"></h1>
+      <h1 class="form-title" th:text="${loanProductInfoResponse.loanProductName} + ' 금리/한도 알아보기'"></h1>
     </div>
 
-    <form id="loan-info-form" th:action="@{'/loan/credit/' + ${LoanProductInfoResponse.loanProductSlug} + '/calculate'}" method="post">
+    <form id="loan-info-form" th:action="@{'/loan/credit/' + ${loanProductInfoResponse.loanProductSlug} + '/calculate'}" method="post" onsubmit="removeCommasBeforeSubmit()">
+
+      <input type="hidden" id="external-loans-json" name="externalLoansJson" value="[]">
 
       <div class="form-group">
-        <label for="total-assets">총 자산규모</label>
-        <select id="total-assets" name="totalAssets" required>
-          <option value="">선택하세요</option>
-          <option value="ASSET_A">1억원 미만</option>
-          <option value="ASSET_B">1억원 이상 5억원 미만</option>
-          <option value="ASSET_C">5억원 이상 10억원 미만</option>
-          <option value="ASSET_D">10억원 이상</option>
-        </select>
+        <label for="total-assets">총 자산규모 (원)</label>
+        <input type="text" inputmode="numeric" id="total-assets" name="totalAssetsAmount"
+               placeholder="예: 150,000,000" required oninput="formatInput(this)">
+        <span class="amount-display" id="display-total-assets">0원</span>
       </div>
 
       <div class="form-group">
-        <label for="total-income">총 소득</label>
-        <select id="total-income" name="totalIncome" required>
-          <option value="">선택하세요</option>
-          <option value="INCOME_A">2천5백만원 미만</option>
-          <option value="INCOME_B">2천5백만원 이상 5천만원 미만</option>
-          <option value="INCOME_C">5천만원 이상 1억원 미만</option>
-          <option value="INCOME_D">1억원 이상</option>
-        </select>
+        <label for="annual-income">연 소득 (원)</label>
+        <input type="text" inputmode="numeric" id="annual-income" name="annualIncomeAmount"
+               placeholder="예: 50,000,000" required oninput="formatInput(this)">
+        <span class="amount-display" id="display-annual-income">0원</span>
       </div>
 
       <div class="form-group">
-        <label for="total-debt">총 부채</label>
-        <select id="total-debt" name="totalDebt" required>
-          <option value="">선택하세요</option>
-          <option value="DEBT_A">5천만원 미만</option>
-          <option value="DEBT_B">5천만원 이상 1억원 미만</option>
-          <option value="DEBT_C">1억원 이상 5억원 미만</option>
-          <option value="DEBT_D">5억원 이상</option>
-        </select>
+        <label for="fixed-expenses">연간 고정지출 (원)</label>
+        <input type="text" inputmode="numeric" id="fixed-expenses" name="fixedExpensesAmount"
+               placeholder="예: 12,000,000" required oninput="formatInput(this)">
+        <span class="amount-display" id="display-fixed-expenses">0원</span>
       </div>
 
       <div class="form-group">
-        <label for="fixed-expenses">고정지출</label>
-        <select id="fixed-expenses" name="fixedExpenses" required>
-          <option value="">선택하세요</option>
-          <option value="EXPENSE_A">연간소득의 30% 미만</option>
-          <option value="EXPENSE_B">연간소득의 30% 이상 50% 미만</option>
-          <option value="EXPENSE_C">연간소득의 50% 이상 70% 미만</option>
-          <option value="EXPENSE_D">연간소득의 70% 이상</option>
-        </select>
+        <label>우인은행 대출 현황</label>
+        <div class="loan-list-box">
+          <th:block th:if="${not #lists.isEmpty(existingLoanContracts)}">
+            <div class="loan-item" th:each="loan : ${existingLoanContracts}">
+              <div class="loan-info-name">
+                <span th:text="${loan.loanProductName}">직장인 신용대출</span>
+              </div>
+              <div class="loan-info-amount">
+                <span th:text="${#numbers.formatInteger(loan.loanAmount, 0, 'COMMA')} + '원'">100,000,000원</span>
+              </div>
+            </div>
+          </th:block>
+          <div th:if="${#lists.isEmpty(existingLoanContracts)}" class="no-loan-message">
+            보유 중인 대출이 없습니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>타행 대출 현황 (직접 입력)</label>
+        <div class="loan-list-box" id="external-loan-list">
+          <div class="no-loan-message" id="external-no-loan-msg">등록된 타행 대출이 없습니다.</div>
+        </div>
+        <button type="button" class="add-loan-btn" onclick="openModal()">+ 타행 대출 추가하기</button>
       </div>
 
       <div class="agreement-section">
@@ -202,31 +132,224 @@
       </div>
 
       <div class="action-button-container">
-        <button type="submit" id="next-button" class="action-button" disabled>
-          다음으로
-        </button>
+        <button type="submit" id="next-button" class="action-button" disabled>다음으로</button>
       </div>
-
     </form>
   </section>
 </main>
 
+<div class="modal-overlay" id="loanModal">
+  <div class="modal-content">
+    <div class="modal-title">타행 대출 정보 입력</div>
+
+    <div class="modal-input-group">
+      <label>상품 이름</label>
+      <input type="text" id="m_loanName" placeholder="예: 국민은행 직장인대출">
+    </div>
+
+    <div class="modal-input-group">
+      <label>대출 종류</label>
+      <div class="radio-group">
+        <label class="radio-label"><input type="radio" name="m_loanType" value="CREDIT" checked> 신용대출</label>
+        <label class="radio-label"><input type="radio" name="m_loanType" value="MORTGAGE"> 주택담보</label>
+        <label class="radio-label"><input type="radio" name="m_loanType" value="OTHER"> 기타</label>
+      </div>
+    </div>
+
+    <div class="modal-input-group">
+      <label>대출 총액 (원)</label>
+      <input type="text" inputmode="numeric" id="m-loan-amount" placeholder="숫자만 입력" oninput="formatInput(this)">
+      <span class="amount-display" id="display-m-loan-amount" style="text-align:left;">0원</span>
+    </div>
+
+    <div class="modal-input-group">
+      <label>금리 (%)</label>
+      <input type="number" step="0.1" id="m_interestRate" placeholder="예: 4.5">
+    </div>
+
+    <div class="modal-input-group">
+      <label>대출 기간 (개월)</label>
+      <input type="number" id="m_loanTerm" placeholder="예: 24">
+    </div>
+
+    <div class="modal-input-group">
+      <label>상환 방법</label>
+      <select id="m_repaymentMethod">
+        <option value="EQUAL_PRINCIPAL_INTEREST">원리금 균등 상환</option>
+        <option value="EQUAL_PRINCIPAL">원금 균등 상환</option>
+        <option value="BULLET">만기 일시 상환</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn btn-cancel" onclick="closeModal()">취소</button>
+      <button class="modal-btn btn-confirm" onclick="addExternalLoan()">추가 완료</button>
+    </div>
+  </div>
+</div>
+
 <script>
-  // DOM 요소 가져오기
+  // --- [NEW] 금액 포맷팅 및 한글 변환 함수 ---
+  function formatInput(input) {
+    // 1. 숫자 이외의 문자 제거
+    let val = input.value.replace(/[^0-9]/g, "");
+
+    if (!val) {
+      input.value = "";
+      updateKoreanDisplay(input, 0);
+      return;
+    }
+
+    // 2. 3자리마다 콤마 찍기 (화면 표시용)
+    input.value = new Intl.NumberFormat('ko-KR').format(val);
+
+    // 3. 한글 금액 표기 업데이트
+    updateKoreanDisplay(input, parseInt(val));
+  }
+
+  function updateKoreanDisplay(input, numberVal) {
+    // ID 규칙: display-{input.id}
+    // 예: m-loan-amount -> display-m-loan-amount
+    let displayId = "display-" + input.id.replace(/_/g, "-");
+    let displaySpan = document.getElementById(displayId);
+
+    if (displaySpan) {
+      if (!numberVal || numberVal === 0) {
+        displaySpan.innerText = "0원";
+      } else {
+        displaySpan.innerText = numberToKorean(numberVal);
+      }
+    }
+  }
+
+  function numberToKorean(number) {
+    const inputNumber = number < 0 ? false : number;
+    const unitWords = ['', '만', '억', '조', '경'];
+    const splitUnit = 10000;
+    const splitCount = unitWords.length;
+    let resultArray = [];
+    let resultString = '';
+
+    for (let i = 0; i < splitCount; i++) {
+      let unitResult = (inputNumber % Math.pow(splitUnit, i + 1)) / Math.pow(splitUnit, i);
+      unitResult = Math.floor(unitResult);
+      if (unitResult > 0) {
+        resultArray[i] = unitResult;
+      }
+    }
+
+    for (let i = 0; i < resultArray.length; i++) {
+      if (!resultArray[i]) continue;
+      resultString = String(resultArray[i]) + unitWords[i] + ' ' + resultString;
+    }
+
+    return resultString.trim() + '원';
+  }
+
+  // --- 폼 제출 시 콤마 제거 ---
+  function removeCommasBeforeSubmit() {
+    // 'Amount'로 끝나는 input들을 찾아서 콤마 제거
+    const inputs = document.querySelectorAll('input[name$="Amount"]');
+    inputs.forEach(input => {
+      input.value = input.value.replace(/,/g, "");
+    });
+    return true;
+  }
+
+  // --- 타행 대출 관리 로직 ---
+  let externalLoans = [];
+
+  function openModal() {
+    document.getElementById('m_loanName').value = '';
+
+    // [수정] ID 변경 반영: m-loan-amount
+    document.getElementById('m-loan-amount').value = '';
+
+    // [수정] 한글 표기도 초기화
+    document.getElementById('display-m-loan-amount').innerText = '0원';
+
+    document.getElementById('m_interestRate').value = '';
+    document.getElementById('m_loanTerm').value = '';
+    document.querySelector('input[name="m_loanType"][value="CREDIT"]').checked = true;
+    document.getElementById('m_repaymentMethod').value = 'EQUAL_PRINCIPAL_INTEREST';
+
+    document.getElementById('loanModal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('loanModal').style.display = 'none';
+  }
+
+  function addExternalLoan() {
+    const name = document.getElementById('m_loanName').value;
+
+    // [수정] ID 변경 반영 & 콤마 제거 후 값 가져오기
+    const amountStr = document.getElementById('m-loan-amount').value.replace(/,/g, "");
+
+    const rate = document.getElementById('m_interestRate').value;
+    const term = document.getElementById('m_loanTerm').value;
+    const type = document.querySelector('input[name="m_loanType"]:checked').value;
+    const method = document.getElementById('m_repaymentMethod').value;
+
+    if(!name || !amountStr || !rate || !term) {
+      alert("모든 정보를 입력해주세요.");
+      return;
+    }
+
+    // [수정] DTO 필드명 매핑 (totalInterestRate)
+    const loanObj = {
+      loanProductName: name,
+      loanType: type,
+      loanAmount: parseInt(amountStr), // 정수로 저장
+      loanTerm: parseInt(term),
+
+      // [핵심 수정] ExistingLoanResponse의 필드명 'totalInterestRate'와 일치시킴
+      totalInterestRate: parseFloat(rate),
+
+      repaymentMethodName: method,
+      isExternal: true
+    };
+
+    externalLoans.push(loanObj);
+    renderExternalLoans();
+    closeModal();
+  }
+
+  function removeExternalLoan(index) {
+    externalLoans.splice(index, 1);
+    renderExternalLoans();
+  }
+
+  function renderExternalLoans() {
+    const container = document.getElementById('external-loan-list');
+    const noMsg = document.getElementById('external-no-loan-msg');
+    const hiddenInput = document.getElementById('external-loans-json');
+
+    const items = container.querySelectorAll('.loan-item');
+    items.forEach(el => el.remove());
+
+    if (externalLoans.length === 0) {
+      noMsg.style.display = 'block';
+    } else {
+      noMsg.style.display = 'none';
+      externalLoans.forEach((loan, index) => {
+        const div = document.createElement('div');
+        div.className = 'loan-item';
+        const formattedAmount = new Intl.NumberFormat('ko-KR').format(loan.loanAmount) + '원';
+        div.innerHTML = `
+          <div class="loan-info-name"><span>${loan.loanProductName}</span></div>
+          <div class="loan-info-amount"><span>${formattedAmount}</span>
+            <button type="button" class="delete-btn" onclick="removeExternalLoan(${index})">삭제</button>
+          </div>`;
+        container.appendChild(div);
+      });
+    }
+    hiddenInput.value = JSON.stringify(externalLoans);
+  }
+
   const agreeCheckbox = document.getElementById('privacy-agree');
   const nextButton = document.getElementById('next-button');
-
-  // 체크박스에 'change' 이벤트 리스너 추가
-  agreeCheckbox.addEventListener('change', function() {
-    // 체크박스가 체크되었는지 확인
-    if (this.checked) {
-      // 체크되었다면, '다음으로' 버튼의 disabled 속성을 제거 (활성화)
-      nextButton.disabled = false;
-    } else {
-      // 체크가 해제되었다면, '다음으로' 버튼에 disabled 속성을 추가 (비활성화)
-      nextButton.disabled = true;
-    }
-  });
+  agreeCheckbox.addEventListener('change', function() { nextButton.disabled = !this.checked; });
 </script>
 
 </body>

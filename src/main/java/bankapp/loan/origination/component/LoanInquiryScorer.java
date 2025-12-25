@@ -1,7 +1,7 @@
 package bankapp.loan.origination.component;
 
 import bankapp.loan.common.enums.*;
-import bankapp.loan.web.request.CreditCheckRequest;
+import bankapp.loan.origination.web.request.CreditCheckRequest;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

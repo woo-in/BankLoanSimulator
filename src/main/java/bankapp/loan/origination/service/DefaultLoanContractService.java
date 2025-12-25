@@ -7,11 +7,15 @@ import bankapp.loan.origination.model.LoanApplication;
 import bankapp.loan.origination.model.ContractStatus;
 import bankapp.loan.origination.model.LoanContract;
 import bankapp.loan.origination.repository.LoanContractRepository;
+import bankapp.loan.origination.web.response.ExistingLoanResponse;
+import bankapp.member.model.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -35,6 +39,21 @@ public class DefaultLoanContractService implements LoanContractService {
         LoanContract loanContract = createLoanContractEntity(loanApplication, loanAccount);
         return loanContractRepository.save(loanContract);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LoanContract> findAllByMember(Member member) {
+        return loanContractRepository.findAllByMember(member);
+    }
+
+
+    @Override
+    public List<ExistingLoanResponse> findAllContractResponsesByMember(Member member) {
+        return loanContractRepository.findAllByMember(member).stream()
+                .map(ExistingLoanResponse::from)
+                .collect(Collectors.toList());
+    }
+
 
     private LoanContract createLoanContractEntity(LoanApplication application, LoanAccount account) {
         LocalDateTime now = LocalDateTime.now();

@@ -2,12 +2,10 @@ package bankapp.loan.web.controller;
 
 import bankapp.loan.common.component.InterestRateCalculator;
 import bankapp.loan.origination.model.LoanApplication;
-import bankapp.loan.product.model.CreditLoanProduct;
 import bankapp.loan.origination.service.LoanApplicationService;
 import bankapp.loan.product.service.CreditLoanProductService;
-import bankapp.loan.web.request.CreditCheckRequest;
 import bankapp.loan.web.request.LoanApplicationRequest;
-import bankapp.loan.web.response.InterestRateInfoResponse;
+import bankapp.loan.origination.web.response.InterestRateInfoResponse;
 import bankapp.loan.web.response.LoanApplicationCompleteResponse;
 import bankapp.loan.web.response.LoanApplicationFormResponse;
 import bankapp.loan.product.web.response.LoanProductInfoResponse;
@@ -38,48 +36,6 @@ public class LoanHomeController {
         this.interestRateCalculator = interestRateCalculator;
     }
 
-
-    @RequestMapping("/credit/{type}/inquiry")
-    public String showLoanInquiryForm(@PathVariable("type") String type, Model model){
-
-        CreditLoanProduct creditLoanProduct = creditLoanProductService.findCreditLoanProductByLoanProductSlug(type);
-        LoanProductInfoResponse loanProductInfoResponse = LoanProductInfoResponse.from(creditLoanProduct);
-        model.addAttribute("LoanProductInfoResponse" , loanProductInfoResponse);
-
-
-//        log.info("스트레스 금리는  : " + interestRateCalculator.calculateStressRate().toString());
-
-
-        return "loan/credit/user-input";
-    }
-
-
-
-
-    @PostMapping("/credit/{type}/calculate")
-    public String processLoanInquiry(@PathVariable("type") String type,
-                                     @Valid @ModelAttribute CreditCheckRequest creditCheckRequest,
-                                     Model model,
-                                     HttpSession session) {
-
-        // 입력을 바탕으로 신용등급 계산 , 고객 유저 금리 정보 계산
-        InterestRateInfoResponse interestRateInfoResponse = interestRateCalculator.calculateInterestRateInfo(type,creditCheckRequest);
-
-        // 상품 정보
-        CreditLoanProduct creditLoanProduct = creditLoanProductService.findCreditLoanProductByLoanProductSlug(type);
-        LoanProductInfoResponse loanProductInfoResponse = LoanProductInfoResponse.from(creditLoanProduct);
-
-        // 견적정보 세션에 추가
-        session.setAttribute("loanProductInfoResponse" , loanProductInfoResponse);
-        session.setAttribute("interestRateInfoResponse", interestRateInfoResponse);
-
-        // 추가
-        model.addAttribute("LoanProductInfoResponse" , loanProductInfoResponse);
-        model.addAttribute("InterestRateInfoResponse" , interestRateInfoResponse);
-
-        return "loan/credit/customer-product-detail";
-
-    }
 
     // 대출 신청
     @GetMapping("/credit/{type}/apply")

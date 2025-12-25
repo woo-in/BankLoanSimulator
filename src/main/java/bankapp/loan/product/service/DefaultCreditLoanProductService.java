@@ -6,6 +6,7 @@ import bankapp.loan.product.repository.LoanProductInterestRateTypeOptionReposito
 import bankapp.loan.product.repository.LoanProductRepaymentOptionRepository;
 import bankapp.loan.product.repository.CreditLoanProductRepository;
 import bankapp.loan.product.web.request.LoanProductRequest;
+import bankapp.loan.product.web.response.LoanProductInfoResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -87,6 +88,12 @@ public class DefaultCreditLoanProductService implements CreditLoanProductService
         return creditLoanProductRepository.findByLoanProductSlug(slug).isPresent();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public LoanProductInfoResponse getLoanProductInfo(String slug) {
+        CreditLoanProduct product = findCreditLoanProductByLoanProductSlug(slug);
+        return LoanProductInfoResponse.from(product);
+    }
 
 
 

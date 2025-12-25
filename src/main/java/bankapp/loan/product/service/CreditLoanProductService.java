@@ -6,6 +6,7 @@ import bankapp.loan.exceptions.InvalidRepaymentMethodId;
 import bankapp.loan.exceptions.LoanProductNotFoundException;
 import bankapp.loan.product.model.CreditLoanProduct;
 import bankapp.loan.product.web.request.LoanProductRequest;
+import bankapp.loan.product.web.response.LoanProductInfoResponse;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -75,6 +76,17 @@ public interface CreditLoanProductService {
      *
      */
     boolean existsBySlug(String slug);
+
+
+
+    /**
+     * 상품 슬러그(Slug)를 기준으로 신용 대출 상품의 상품 정보 DTO 를 반환 합니다.
+     * @param slug 조회할 대출 상품의 고유 슬러그
+     * @return 해당 상품의 정보 DTO 객체
+     * @throws LoanProductNotFoundException 해당 슬러그를 가진 대출 상품이 존재하지 않는 경우
+     */
+    LoanProductInfoResponse getLoanProductInfo(String slug) throws LoanProductNotFoundException;
+
 
 }
 

@@ -3,7 +3,7 @@ package bankapp.loan.origination.service;
 import bankapp.loan.exceptions.InvalidLoanApplication;
 import bankapp.loan.origination.model.LoanApplication;
 import bankapp.loan.web.request.LoanApplicationRequest;
-import bankapp.loan.web.response.InterestRateInfoResponse;
+import bankapp.loan.origination.web.response.InterestRateInfoResponse;
 import bankapp.loan.product.web.response.LoanProductInfoResponse;
 import bankapp.member.model.Member;
 import java.util.List;

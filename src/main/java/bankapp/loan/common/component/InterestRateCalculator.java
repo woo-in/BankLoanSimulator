@@ -6,8 +6,8 @@ import bankapp.loan.exceptions.BaseRateFetchException;
 import bankapp.loan.exceptions.LoanProductNotFoundException;
 import bankapp.loan.origination.component.LoanInquiryScorer;
 import bankapp.loan.product.service.CreditLoanProductService;
-import bankapp.loan.web.request.CreditCheckRequest;
-import bankapp.loan.web.response.InterestRateInfoResponse;
+import bankapp.loan.origination.web.request.CreditCheckRequest;
+import bankapp.loan.origination.web.response.InterestRateInfoResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,6 +26,9 @@ public class InterestRateCalculator {
     private final CreditLoanProductService creditLoanProductService;
     private final LoanInquiryScorer loanInquiryScorer;
 
+    // todo : 임시 설정 입니다. 실제 (대출신청금/대출기간/상환방법/금리종류) 테이블을 등록하면 , 수치를 바꿔야 합니다.
+    private static final BigDecimal MIN_SELECTION_SPREAD = new BigDecimal("0.00");
+    private static final BigDecimal MAX_SELECTION_SPREAD = new BigDecimal("0.50");
 
     @Autowired
     public InterestRateCalculator(BokApiClient bokApiClient ,
@@ -42,24 +45,21 @@ public class InterestRateCalculator {
      *
      * @param loanProductSlug 대출 상품 식별자
      * @param request 고객 신용 정보가 포함된 요청 DTO
-     * @return 금리 구성 요소(A, B, C)와 최종 금리가 포함된 응답 객체
+     * @return 금리 정보가 포함된 응답 객체
      * @throws LoanProductNotFoundException 상품을 찾을 수 없는 경우
      */
     public InterestRateInfoResponse calculateInterestRateInfo(String loanProductSlug, CreditCheckRequest request) throws LoanProductNotFoundException {
-        // 1. (A) 기준 금리 조회
         BigDecimal baseRate = calculateBaseRate();
-
-        // 2. (B) 상품 가산 금리 조회
         BigDecimal productSpread = calculateProductSpread(loanProductSlug);
-
-        // 3. (C) 신용 가산 금리 산출
         BigDecimal creditSpread = calculateCreditSpread(request);
 
-        // 4. (Final) 최종 금리 합산 (A + B + C)
-        BigDecimal finalRate = baseRate.add(productSpread).add(creditSpread);
-
-        // 5. 응답 객체 생성 및 반환
-        return new InterestRateInfoResponse(baseRate, productSpread, creditSpread, finalRate);
+        return new InterestRateInfoResponse(
+                baseRate,
+                productSpread,
+                creditSpread,
+                MIN_SELECTION_SPREAD,
+                MAX_SELECTION_SPREAD
+        );
     }
 
 
@@ -188,6 +188,9 @@ public class InterestRateCalculator {
     public BigDecimal calculateCreditSpread(CreditCheckRequest request) {
         return loanInquiryScorer.getCreditSpread(request);
     }
+
+
+
 
 
 

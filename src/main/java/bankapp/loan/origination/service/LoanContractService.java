@@ -3,6 +3,10 @@ package bankapp.loan.origination.service;
 import bankapp.account.request.open.OpenLoanAccountRequest;
 import bankapp.loan.origination.model.LoanApplication;
 import bankapp.loan.origination.model.LoanContract;
+import bankapp.loan.origination.web.response.ExistingLoanResponse;
+import bankapp.member.model.Member;
+
+import java.util.List;
 
 /**
  * 대출 계약 비즈니스 로직을 정의
@@ -18,5 +22,21 @@ public interface LoanContractService {
      */
     LoanContract saveLoanContract(OpenLoanAccountRequest openLoanAccountRequest,
                                   LoanApplication loanApplication);
+
+
+
+    /**
+     * 특정 회원의 대출 계약 목록을 조회 합니다.
+     * @return 특정 회원의 대출 계약 목록
+     */
+    List<LoanContract> findAllByMember(Member member);
+
+
+    /**
+     * 특정 회원의 대출 계약 DTO 목록을 조회 합니다.
+     * @return 특정 회원의 대출 계약 DTO 목록
+     */
+    List<ExistingLoanResponse> findAllContractResponsesByMember(Member member);
+
 
 }

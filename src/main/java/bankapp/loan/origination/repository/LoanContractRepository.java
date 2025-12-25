@@ -1,6 +1,12 @@
 package bankapp.loan.origination.repository;
 
 import bankapp.loan.origination.model.LoanContract;
+import bankapp.member.model.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface LoanContractRepository extends JpaRepository<LoanContract, Long> { }
+import java.util.List;
+
+public interface LoanContractRepository extends JpaRepository<LoanContract, Long> {
+    List<LoanContract> findAllByMember(Member member);
+}
+
