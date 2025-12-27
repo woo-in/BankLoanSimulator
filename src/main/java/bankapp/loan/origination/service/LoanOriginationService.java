@@ -2,10 +2,14 @@ package bankapp.loan.origination.service;
 
 import bankapp.loan.exceptions.InvalidLoanProduct;
 import bankapp.loan.exceptions.InvalidPendingLoan;
+import bankapp.loan.origination.model.ApplicationStatus;
+import bankapp.loan.origination.web.request.ApplicationAuthRequest;
 import bankapp.loan.origination.web.request.ApplicationRequest;
 import bankapp.loan.origination.web.request.FinancialInfoRequest;
+import bankapp.loan.origination.web.response.ApplicationResponse;
 import bankapp.loan.origination.web.response.ExistingLoanResponse;
 import bankapp.loan.origination.web.response.InterestRateInfoResponse;
+import bankapp.member.exceptions.IncorrectPasswordException;
 import bankapp.member.exceptions.MemberNotFoundException;
 import bankapp.member.model.Member;
 import java.math.BigDecimal;
@@ -37,6 +41,27 @@ public interface LoanOriginationService {
      * @throws InvalidPendingLoan 유효하지 않은 신청 ID일 경우 발생
      */
     void submitLoanApplication(Long pendingLoanApplicationId, ApplicationRequest request) throws InvalidPendingLoan;
+
+
+
+    /**
+     * 대출 가심사(Pending) 종료 , 신청서 작성
+     * @param pendingLoanApplicationId 대출 진행 식별 키
+     * @param applicationAuthRequest 인증 요청
+     * @throws InvalidPendingLoan 유효하지 않은 신청 ID일 경우 발생
+     * @throws IncorrectPasswordException 비밀번호 불일치
+     */
+    void completeOrigination(Long pendingLoanApplicationId , ApplicationAuthRequest applicationAuthRequest) throws InvalidPendingLoan , IncorrectPasswordException;
+
+
+    /**
+     * 현재 대출 진행 상태를 반환 합니다.
+     * @param pendingLoanApplicationId 대출 진행 식별 키
+     * @throws InvalidPendingLoan 유효하지 않은 신청 ID일 경우 발생
+     * @return 현재 대출 진행 상태
+     */
+    ApplicationStatus getApplicationStatus(Long pendingLoanApplicationId)throws InvalidPendingLoan;
+
 
     /**
      * 회원의 내부 대출(DB 조회)과 외부 대출(사용자 입력 JSON)을 통합하여
@@ -78,9 +103,19 @@ public interface LoanOriginationService {
      * 키를 바탕으로 임시 금리 정보를 계산하여 반환
      * @param productSlug  대출 상품 슬러그
      * @param pendingLoanApplicationId 대출 진행 식별 키
+     * @throws InvalidPendingLoan 유효하지 않은 신청 ID일 경우 발생
      * @return 임시 금리 정보
      */
-    InterestRateInfoResponse calculateInterestRate(String productSlug,Long pendingLoanApplicationId);
+    InterestRateInfoResponse calculateInterestRate(String productSlug,Long pendingLoanApplicationId) throws InvalidPendingLoan;
+
+
+    /**
+     * 키를 바탕으로 신청 정보 반환
+     * @param pendingLoanApplicationId 대출 진행 식별 키
+     * @throws InvalidPendingLoan 유효하지 않은 신청 ID일 경우 발생
+     * @return 신청 정보
+     */
+    ApplicationResponse getApplicationResponse(Long pendingLoanApplicationId) throws InvalidPendingLoan;
 
 
 }

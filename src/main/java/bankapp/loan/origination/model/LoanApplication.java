@@ -57,6 +57,8 @@ public class LoanApplication {
     @Column(nullable = false)
     private BigDecimal appliedCreditSpread;
 
+    // todo : 리스크 조정 금리를 왜 미리 계산 안하는가 ?
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ApplicationStatus applicationStatus;
@@ -68,6 +70,30 @@ public class LoanApplication {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    public static LoanApplication createFrom(PendingLoanApplication pending,
+                                             BigDecimal appliedBaseRate,
+                                             BigDecimal appliedProductSpread,
+                                             BigDecimal appliedCreditSpread) {
+
+        LoanApplication app = new LoanApplication();
+
+        app.setMember(pending.getMember());
+        app.setLoanProduct(pending.getLoanProduct());
+
+        app.setLoanAmount(pending.getRequestLoanAmount());
+        app.setLoanTerm(pending.getRequestLoanTerm());
+        app.setRepaymentMethod(pending.getRepaymentMethod());
+        app.setInterestRateType(pending.getInterestRateType());
+
+        app.setAppliedBaseRate(appliedBaseRate);
+        app.setAppliedProductSpread(appliedProductSpread);
+        app.setAppliedCreditSpread(appliedCreditSpread);
+
+        app.setApplicationStatus(ApplicationStatus.APPLIED);
+
+        return app;
+    }
 
 
 }

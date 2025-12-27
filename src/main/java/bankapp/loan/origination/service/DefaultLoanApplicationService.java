@@ -4,6 +4,7 @@ import bankapp.loan.exceptions.InvalidLoanApplication;
 import bankapp.loan.exceptions.InvalidLoanProduct;
 import bankapp.loan.origination.model.ApplicationStatus;
 import bankapp.loan.origination.model.LoanApplication;
+import bankapp.loan.origination.model.PendingLoanApplication;
 import bankapp.loan.product.model.LoanProduct;
 import bankapp.loan.product.model.InterestRateType;
 import bankapp.loan.product.model.RepaymentMethod;
@@ -60,6 +61,20 @@ public class DefaultLoanApplicationService implements LoanApplicationService {
         return loanApplicationRepository.save(loanApplication);
     }
 
+    @Override
+    @Transactional
+    public LoanApplication saveLoanApplication(PendingLoanApplication pendingLoanApplication ,
+                                        InterestRateInfoResponse interestRateInfoResponse){
+
+        LoanApplication newApplication = LoanApplication.createFrom(
+                pendingLoanApplication,
+                interestRateInfoResponse.getBaseRate(),
+                interestRateInfoResponse.getProductSpread(),
+                interestRateInfoResponse.getCreditSpread()
+        );
+
+        return loanApplicationRepository.save(newApplication);
+    }
 
 
     @Override

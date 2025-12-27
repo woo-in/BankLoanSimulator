@@ -6,8 +6,10 @@ import bankapp.loan.origination.model.ApplicationStatus;
 import bankapp.loan.origination.model.ExistingLoan;
 import bankapp.loan.origination.model.PendingLoanApplication;
 import bankapp.loan.origination.repository.PendingLoanApplicationRepository;
+import bankapp.loan.origination.web.request.ApplicationAuthRequest;
 import bankapp.loan.origination.web.request.CreditCheckRequest;
 import bankapp.loan.origination.web.request.FinancialInfoRequest;
+import bankapp.loan.origination.web.response.ApplicationResponse;
 import bankapp.loan.origination.web.response.ExistingLoanResponse;
 import bankapp.loan.product.model.LoanProduct;
 import bankapp.loan.origination.web.response.InterestRateInfoResponse;
@@ -15,12 +17,14 @@ import bankapp.loan.origination.web.request.ApplicationRequest;
 import bankapp.loan.product.service.InterestRateTypeService;
 import bankapp.loan.product.service.LoanProductService;
 import bankapp.loan.product.service.RepaymentMethodService;
+import bankapp.member.exceptions.IncorrectPasswordException;
 import bankapp.member.exceptions.MemberNotFoundException;
 import bankapp.member.model.Member;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -31,13 +35,18 @@ import java.util.List;
 @Slf4j
 public class DefaultLoanOriginationService implements LoanOriginationService{
 
+
+    // todo : refactor
+
     private final PendingLoanApplicationRepository pendingLoanApplicationRepository;
     private final LoanProductService loanProductService;
     private final RepaymentMethodService repaymentMethodService;
     private final InterestRateTypeService interestRateTypeService;
     private final LoanContractService loanContractService;
+    private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
     private final InterestRateCalculator interestRateCalculator;
+    private final LoanApplicationService loanApplicationService;
 
 
     @Autowired
@@ -46,15 +55,18 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
                                          RepaymentMethodService repaymentMethodService,
                                          InterestRateTypeService interestRateTypeService,
                                          LoanContractService loanContractService,
+                                         PasswordEncoder passwordEncoder,
                                          ObjectMapper objectMapper,
-                                         InterestRateCalculator interestRateCalculator) {
+                                         InterestRateCalculator interestRateCalculator, LoanApplicationService loanApplicationService) {
         this.pendingLoanApplicationRepository = pendingLoanApplicationRepository;
         this.loanProductService = loanProductService;
         this.repaymentMethodService = repaymentMethodService;
         this.interestRateTypeService = interestRateTypeService;
         this.loanContractService = loanContractService;
+        this.passwordEncoder = passwordEncoder;
         this.objectMapper = objectMapper;
         this.interestRateCalculator = interestRateCalculator;
+        this.loanApplicationService = loanApplicationService;
     }
 
 
@@ -123,7 +135,41 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
 
     }
 
+    @Override
+    @Transactional
+    public void completeOrigination(Long pendingLoanApplicationId , ApplicationAuthRequest applicationAuthRequest){
 
+
+        // 1. 비밀번호 확인
+        PendingLoanApplication pendingApp = pendingLoanApplicationRepository.findById(pendingLoanApplicationId)
+                .orElseThrow(() -> new InvalidPendingLoan("신청 정보를 찾을 수 없습니다."));
+        Member loginMember = pendingApp.getMember();
+        if(!passwordEncoder.matches(applicationAuthRequest.getPassword(), loginMember.getPassword())) {
+            throw new IncorrectPasswordException("비밀번호가 일치하지 않습니다.");
+        }
+
+
+        // 2. pendingLoanApplication 바탕으로 LoanApplication 만들기
+        InterestRateInfoResponse interestRateInfoResponse = calculateInterestRate(pendingApp.getLoanProduct().getLoanProductSlug(),pendingLoanApplicationId);
+        loanApplicationService.saveLoanApplication(pendingApp,interestRateInfoResponse);
+
+        // 3. pendingLoanApplication 상태 신청 완료로 수정
+        // todo : 가심사를 위한 상태 따로 만드는게 낫겠다.
+        pendingApp.setStatus(ApplicationStatus.APPLIED);
+    }
+
+
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApplicationStatus getApplicationStatus(Long pendingLoanApplicationId){
+
+        PendingLoanApplication pendingApp = pendingLoanApplicationRepository.findById(pendingLoanApplicationId)
+                .orElseThrow(() -> new InvalidPendingLoan("신청 정보를 찾을 수 없습니다."));
+
+        return pendingApp.getStatus();
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -190,6 +236,23 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
         CreditCheckRequest creditCheckRequest = CreditCheckRequest.from(userInfoRequest, totalDebtAmount);
         return interestRateCalculator.calculateInterestRateInfo(productSlug, creditCheckRequest);
     }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApplicationResponse getApplicationResponse(Long pendingLoanApplicationId){
+        PendingLoanApplication pendingApp = pendingLoanApplicationRepository.findById(pendingLoanApplicationId)
+                .orElseThrow(() -> new InvalidPendingLoan("진행 중인 대출 신청 정보를 찾을 수 없습니다. ID: " + pendingLoanApplicationId));
+
+        return ApplicationResponse.builder()
+                .loanAmount(pendingApp.getRequestLoanAmount())
+                .loanTerm(pendingApp.getRequestLoanTerm())
+                .repaymentMethod(pendingApp.getRepaymentMethod().getMethodName())
+                .interestRateType(pendingApp.getInterestRateType().getTypeName())
+                .build();
+
+    }
+
 
 
 

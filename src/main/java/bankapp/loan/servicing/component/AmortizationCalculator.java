@@ -56,6 +56,68 @@ public class AmortizationCalculator {
         }
     }
 
+
+
+    /**
+     * 핵심설명서용 첫 달 예상 납부액 계산
+     * * @param loanAmount 대출 신청 금액
+     * @param loanTerm 대출 기간 (개월)
+     * @param annualInterestRate 연 이자율 (%)
+     * @param repaymentMethodName 상환 방법 이름 (코드 또는 한글)
+     * @return 첫 달 납부 예상 금액 (원금 + 이자, 원 단위 반올림)
+     */
+    public BigDecimal calculateFirstMonthEstimatedPayment(BigDecimal loanAmount,
+                                                          Integer loanTerm,
+                                                          BigDecimal annualInterestRate,
+                                                          String repaymentMethodName) {
+
+        // 유효성 검사
+        if (loanAmount == null || loanAmount.compareTo(BigDecimal.ZERO) == 0 ||
+                loanTerm == null || loanTerm == 0 ||
+                annualInterestRate == null) {
+            return BigDecimal.ZERO;
+        }
+
+        // 월 이율 변환 (연이율 / 12 / 100)
+        BigDecimal monthlyRate = annualInterestRate.divide(BigDecimal.valueOf(100), MC)
+                .divide(BigDecimal.valueOf(12), MC);
+
+        // 1. 원금만기일시상환 (Bullet)
+        // 첫 달은 이자만 납부 (원금 상환 0원)
+        if (repaymentMethodName.contains("만기") || repaymentMethodName.contains("BULLET")) {
+            return loanAmount.multiply(monthlyRate).setScale(0, ROUNDING_MODE);
+        }
+
+        // 2. 원리금균등분할상환 (Equal Principal & Interest - PMT)
+        // PMT = P * r * (1+r)^n / ((1+r)^n - 1)
+        if (repaymentMethodName.contains("원리금") || repaymentMethodName.contains("EQUAL_PRINCIPAL_INTEREST")) {
+            // (1+r)^n
+            BigDecimal onePlusRatePow = BigDecimal.ONE.add(monthlyRate).pow(loanTerm, MC);
+
+            BigDecimal numerator = loanAmount.multiply(monthlyRate).multiply(onePlusRatePow);
+            BigDecimal denominator = onePlusRatePow.subtract(BigDecimal.ONE);
+
+            if (denominator.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
+
+            return numerator.divide(denominator, 0, ROUNDING_MODE);
+        }
+
+        // 3. 원금균등분할상환 (Equal Principal)
+        // 첫 달 납부액 = (총원금 / 기간) + (총원금 * 월이율)
+        // * 첫 달이 이자가 가장 많고 갈수록 줄어드는 구조
+        if (repaymentMethodName.contains("원금") || repaymentMethodName.contains("EQUAL_PRINCIPAL")) {
+            BigDecimal monthlyPrincipal = loanAmount.divide(BigDecimal.valueOf(loanTerm), MC);
+            BigDecimal monthlyInterest = loanAmount.multiply(monthlyRate);
+
+            return monthlyPrincipal.add(monthlyInterest).setScale(0, ROUNDING_MODE);
+        }
+
+        return BigDecimal.ZERO;
+    }
+
+
+
+
     /**
      * 1. 원리금균등상환 (Equal Installment)
      * M = P * (r * (1+r)^n) / ((1+r)^n - 1)
@@ -139,5 +201,8 @@ public class AmortizationCalculator {
         }
         return details;
     }
+
+
+
 
 }

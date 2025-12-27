@@ -121,6 +121,9 @@ public class DefaultTransferService implements TransferService {
         debitFromSender(pendingTransfer);
         creditToReceiver(pendingTransfer);
         transferCompletion(pendingTransfer);
+        pendingTransfer.setStatus(PENDING_TRANSFER);
+        pendingTransfer.setUpdatedAt(LocalDateTime.now());
+
     }
 
 
@@ -156,10 +159,6 @@ public class DefaultTransferService implements TransferService {
         if(!passwordEncoder.matches(transferAuthRequest.getPassword(), senderMember.getPassword())) {
             throw new IncorrectPasswordException("비밀번호가 일치하지 않습니다.");
         }
-
-        pendingTransfer.setStatus(PENDING_TRANSFER);
-        pendingTransfer.setUpdatedAt(LocalDateTime.now());
-
     }
 
     private void debitFromSender(PendingTransfer pendingTransfer) {

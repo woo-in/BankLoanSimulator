@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>신청 완료</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; text-align: center; padding-top: 100px; }
+        .icon { font-size: 80px; color: #4a90e2; margin-bottom: 20px; }
+        h1 { color: #333; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 40px; }
+        .home-btn { padding: 15px 30px; background-color: #4a90e2; color: white; text-decoration: none; border-radius: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="icon">🎉</div>
+<h1>대출 신청이 완료되었습니다!</h1>
+<p><span th:text="${loanProductName}" style="font-weight:bold;"></span> 상품 신청이 정상적으로 접수되었습니다.</p>
+<p>심사 결과는 일주일 안에 안내해 드립니다.</p>
+<a href="/" class="home-btn">메인으로 돌아가기</a>
+</body>
+</html>

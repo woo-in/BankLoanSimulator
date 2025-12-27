@@ -65,10 +65,4 @@ public class PendingLoanApplication {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-
-    public PendingLoanApplication(Member member, LoanProduct loanProduct) {
-        this.member = member;
-        this.loanProduct = loanProduct;
-        this.status = ApplicationStatus.DRAFT;
-    }
 }

@@ -21,8 +21,6 @@ public class BriefDsrCalculator {
             log.info("loan : " + loan.getLoanProductName() + " , " + loan.getLoanAmount() + " , " + loan.getLoanTerm() + " , " + loan.getRepaymentMethodName() + " , " + loan.getTotalInterestRate());
         }
 
-
-
         BigDecimal annualIncome = userInfoRequest.getAnnualIncomeAmount();
 
         if (annualIncome.compareTo(BigDecimal.ZERO) == 0) {

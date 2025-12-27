@@ -176,6 +176,8 @@ public class TransferController {
                                   Model model){
 
         if (bindingResult.hasErrors()) {
+            // todo : model 넣어줘야 하지 않나 검토
+            // model.addAttribute("transferAuthRequest", new TransferAuthRequest());
             return "account/transfer/transfer-auth-form";
         }
 
@@ -187,7 +189,7 @@ public class TransferController {
         }catch(IncorrectPasswordException e){
             bindingResult.rejectValue("password", "invalid", "비밀번호가 일치하지 않습니다.");
         }
-
+        // model.addAttribute("transferAuthRequest", new TransferAuthRequest());
         return "account/transfer/transfer-auth-form";
 
     }

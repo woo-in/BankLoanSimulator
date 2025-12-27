@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>우인은행 - 상품 핵심설명서</title>
+  <style>
+    /* ... (기존 스타일 동일) ... */
+    body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+
+    .container { max-width: 700px; margin: 0 auto; }
+
+    /* 헤더 */
+    .header-nav { text-align: center; margin-bottom: 25px; }
+    .page-title { font-size: 22px; font-weight: 700; color: #333; margin: 0; }
+
+    /* 카드 공통 스타일 */
+    .card { background-color: white; border-radius: 20px; padding: 30px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+    /* 1. 맞춤 요약 섹션 */
+    .summary-header { border-bottom: 2px solid #f0f2f5; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .product-badge { background-color: #e3f2fd; color: #1565c0; font-size: 13px; padding: 5px 10px; border-radius: 6px; font-weight: 700; }
+    .summary-title { font-size: 20px; font-weight: 800; color: #333; margin: 0; }
+
+    .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; }
+    .summary-label { color: #666; font-weight: 500; }
+    .summary-value { color: #333; font-weight: 700; }
+    .highlight-value { color: #d32f2f; font-size: 18px; }
+
+    /* 2. 핵심 설명 텍스트 섹션 */
+    .desc-title { font-size: 17px; font-weight: 700; color: #333; margin-bottom: 12px; margin-top: 25px; }
+    .desc-title:first-child { margin-top: 0; }
+
+    .desc-box { background-color: #f9f9f9; padding: 20px; border-radius: 12px; font-size: 14px; color: #444; line-height: 1.6; }
+    .desc-box ul { padding-left: 20px; margin: 0; }
+    .desc-box li { margin-bottom: 8px; }
+    .desc-box li:last-child { margin-bottom: 0; }
+    .desc-box strong { color: #222; }
+
+    /* 중요 박스 */
+    .important-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+    .important-item { border: 1px solid #ffe0b2; background-color: #fffbe6; padding: 15px; border-radius: 10px; }
+    .important-head { color: #e65100; font-weight: 800; font-size: 14px; margin-bottom: 4px; display: block; }
+    .important-text { font-size: 13px; color: #555; margin: 0; line-height: 1.4; }
+
+    /* 하단 확인바 */
+    .bottom-action { position: sticky; bottom: 20px; background-color: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: 1px solid #eee; z-index: 100; }
+    .check-label { display: flex; align-items: center; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 15px; user-select: none; }
+    .check-label input { width: 22px; height: 22px; margin-right: 12px; accent-color: #4a90e2; cursor: pointer; }
+
+    .next-btn { width: 100%; padding: 16px; font-size: 18px; font-weight: bold; color: white; background-color: #4a90e2; border: none; border-radius: 12px; cursor: pointer; transition: background-color 0.2s; }
+    .next-btn:disabled { background-color: #cfd8dc; cursor: not-allowed; }
+    .next-btn:not(:disabled):hover { background-color: #357ABD; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header-nav">
+    <h1 class="page-title">상품 핵심설명서</h1>
+  </div>
+
+  <div class="card">
+    <div class="summary-header">
+      <h2 class="summary-title" th:text="${loanProductInfoResponse.loanProductName}">직장인 신용대출</h2>
+      <span class="product-badge">신청요약</span>
+    </div>
+
+    <div class="summary-row">
+      <span class="summary-label">신청 금액</span>
+      <span class="summary-value" th:text="${#numbers.formatInteger(applicationResponse.loanAmount, 0, 'COMMA')} + '원'">50,000,000원</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">대출 기간</span>
+      <span class="summary-value" th:text="${applicationResponse.loanTerm} + '개월'">24개월</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">상환 방법</span>
+      <span class="summary-value" th:text="${applicationResponse.repaymentMethod}">원리금균등</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">예상 금리</span>
+      <span class="summary-value highlight-value"
+            th:text="${#numbers.formatDecimal(interestRateInfoResponse.minFinalInterestRate, 1, 2)} + ' ~ ' + ${#numbers.formatDecimal(interestRateInfoResponse.maxFinalInterestRate, 1, 2)} + '%'">
+        5.42 ~ 5.92%
+      </span>
+    </div>
+    <div class="summary-row" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e0e0e0;">
+      <span class="summary-label">첫 달 예상 납부액</span>
+      <span class="summary-value" style="color:#1976d2;"
+            th:text="'약 ' + ${#numbers.formatInteger(monthlyPayment, 0, 'COMMA')} + '원'">
+        약 2,150,000원
+      </span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="background-color: #f1f3f5; padding: 12px; border-radius: 8px; font-size: 13px; color: #555; text-align: center; margin-bottom: 25px; font-weight: 600;">
+      본 자료는 금융소비자보호법에 의거하여 고객님이 신청하신 대출 상품의 핵심 내용을 요약한 것입니다.
+    </div>
+
+    <h3 class="desc-title">💰 금리 및 비용 안내</h3>
+    <div class="desc-box">
+      <ul>
+        <li><strong>대출금리:</strong> 기준금리 + 상품금리 + 신용가산금리 + 리스크 조정 금리로 결정됩니다.</li>
+        <li><strong>변동금리:</strong> 기준금리 변동에 따라 대출 기간 중 금리가 변경될 수 있습니다.</li>
+        <li><strong>중도상환해약금:</strong> 대출 만기 전 원금을 상환할 경우 발생하는 비용입니다.</li>
+        <li><strong>연체이자:</strong> 이자를 납입일에 납입하지 않거나 대출금을 만기일에 상환하지 않으면 연체이자가 부과됩니다.</li>
+      </ul>
+    </div>
+
+    <h3 class="desc-title">🛡️ 금융소비자의 권리</h3>
+    <div class="important-grid">
+      <div class="important-item">
+        <span class="important-head">1. 금리인하요구권</span>
+        <p class="important-text">본인의 신용상태가 개선(취업, 승진, 재산증가 등)되었다고 판단되는 경우, 은행에 금리 인하를 요구할 수 있습니다.</p>
+      </div>
+
+      <div class="important-item">
+        <span class="important-head">2. 대출계약 철회권</span>
+        <p class="important-text">계약서 발급일 또는 대출 실행일로부터 14일 이내에 서면 등으로 대출 계약을 철회할 수 있습니다.</p>
+      </div>
+
+      <div class="important-item">
+        <span class="important-head">3. 위법계약 해지권</span>
+        <p class="important-text">은행이 법령을 위반하여 계약을 체결한 경우, 위법 사실을 안 날로부터 1년 이내에 계약 해지를 요구할 수 있습니다.</p>
+      </div>
+    </div>
+  </div>
+
+  <form th:action="@{'/loan/credit/' + ${loanProductInfoResponse.loanProductSlug} + '/apply/terms'}"
+        method="get" class="bottom-action">
+
+    <label class="check-label">
+      <input type="checkbox" id="confirm-check">
+      <span>위 상품설명서의 내용을 충분히 이해하였으며 확인하였습니다.</span>
+    </label>
+
+    <button type="submit" id="next-btn" class="next-btn" disabled>
+      약관 동의하러 가기
+    </button>
+  </form>
+
+</div>
+
+<script>
+  const checkbox = document.getElementById('confirm-check');
+  const btn = document.getElementById('next-btn');
+
+  checkbox.addEventListener('change', () => {
+    btn.disabled = !checkbox.checked;
+  });
+</script>
+
+</body>
+</html>

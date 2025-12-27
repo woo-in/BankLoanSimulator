@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>우인은행 - 대출 전자서명</title>
+  <style>
+    /* ... (스타일은 기존과 동일) ... */
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #74ebd5, #acb6e5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .auth-container {
+      background-color: white;
+      padding: 40px 60px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 400px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .logo-shape-container {
+      position: relative;
+      width: 35px;
+      height: 25px;
+      margin-right: 10px;
+    }
+    .circle-1, .circle-2 {
+      position: absolute;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      opacity: 0.8;
+    }
+    .circle-1 { background-color: #0056b3; left: 0; }
+    .circle-2 { background-color: #00aaff; left: 10px; }
+
+    .logo-text {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .auth-header {
+      margin-bottom: 30px;
+      font-size: 22px;
+      color: #333;
+    }
+
+    .input-field {
+      margin-bottom: 25px;
+      text-align: left;
+    }
+
+    .input-field input {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .input-field input:focus {
+      border-color: #4a90e2;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .submit-btn:hover {
+      background-color: #357ABD;
+    }
+
+    .cancel-link {
+      display: block;
+      margin-top: 15px;
+      color: #888;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .cancel-link:hover {
+      text-decoration: underline;
+    }
+
+    .error-message {
+      color: #d32f2f;
+      font-size: 14px;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="auth-container">
+  <div class="logo">
+    <div class="logo-shape-container">
+      <div class="circle-1"></div>
+      <div class="circle-2"></div>
+    </div>
+    <div class="logo-text">우인은행</div>
+  </div>
+
+  <h2 class="auth-header">대출 약정 전자서명</h2>
+  <p style="color:#666; margin-bottom: 20px; font-size: 14px;">본인 확인을 위해 비밀번호를 입력해주세요.</p>
+
+  <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+
+  <form th:action="@{'/loan/credit/' + ${productSlug} + '/apply/complete'}" th:object="${applicationAuthRequest}" method="post">
+
+    <div class="input-field">
+      <input type="password" th:field="*{password}" placeholder="비밀번호 입력"
+             maxlength="30" required autocomplete="off" autofocus>
+
+      <div class="error-message" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+    </div>
+
+    <button type="submit" class="submit-btn">서명 및 대출 실행</button>
+  </form>
+
+  <a href="javascript:history.back()" class="cancel-link">취소하고 돌아가기</a>
+</div>
+
+</body>
+</html>
