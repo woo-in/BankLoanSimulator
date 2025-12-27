@@ -4,186 +4,126 @@
   <meta charset="UTF-8">
   <title>우인은행 - 대출 신청하기</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f0f2f5;
-      margin: 0;
-      padding: 20px;
-    }
-    .simple-header {
-      display: flex;
-      align-items: center;
-      padding: 10px 0;
-      margin-bottom: 20px;
-      background-color: #f0f2f5;
-      position: sticky;
-      top: 0;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .back-button {
-      font-size: 28px;
-      font-weight: bold;
-      color: #333;
-      text-decoration: none;
-      margin-right: 15px;
-      padding: 0 10px;
-    }
-    .form-card {
-      background-color: white;
-      padding: 35px 40px;
-      border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      max-width: 700px;
-      margin: 0 auto;
-    }
+    /* ... (기존 스타일 동일) ... */
+    body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+    .simple-header { display: flex; align-items: center; padding: 10px 0; margin-bottom: 20px; background-color: #f0f2f5; position: sticky; top: 0; border-bottom: 1px solid #e0e0e0; z-index: 100; }
+    .back-button { font-size: 28px; font-weight: bold; color: #333; text-decoration: none; margin-right: 15px; padding: 0 10px; }
+    .form-card { background-color: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); max-width: 600px; margin: 0 auto; }
 
-    /* --- 폼 상단의 정보 요약 --- */
-    .info-summary {
-      text-align: center;
-      margin-bottom: 30px;
-      border-bottom: 2px solid #f0f2f5;
-      padding-bottom: 25px;
-    }
-    .info-summary-product-name {
-      font-size: 24px;
-      font-weight: bold;
-      color: #333;
-      margin: 0;
-    }
-    .info-summary-rate-box {
-      background-color: #f7f9fc;
-      border-radius: 10px;
-      padding: 15px;
-      margin-top: 15px;
-      display: inline-block;
-    }
-    .info-summary-rate-label {
-      font-size: 15px;
-      color: #555;
-      margin: 0;
-    }
-    .info-summary-rate-value {
-      font-size: 28px;
-      font-weight: bold;
-      color: #4a90e2;
-      margin: 5px 0 0 0;
-    }
+    .info-summary { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #f0f2f5; padding-bottom: 25px; }
+    .info-summary-product-name { font-size: 24px; font-weight: bold; color: #333; margin: 0; }
+    .info-summary-rate-box { background-color: #e3f2fd; border-radius: 10px; padding: 15px 25px; margin-top: 15px; display: inline-block; }
+    .info-summary-rate-label { font-size: 14px; color: #1565c0; margin: 0; font-weight: 600; }
+    .info-summary-rate-value { font-size: 26px; font-weight: 800; color: #1565c0; margin: 5px 0 0 0; }
 
-    /* --- 폼 그룹 스타일 --- */
     .form-group { margin-bottom: 25px; }
-    .form-group label {
-      display: block;
-      font-size: 16px;
-      font-weight: bold;
-      color: #555;
-      margin-bottom: 10px;
-    }
-    .form-group select {
-      width: 100%;
-      padding: 14px 18px;
-      font-size: 16px;
-      color: #333;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      background-color: #f9f9f9;
-      box-sizing: border-box;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D'20'%20height%3D'20'%20fill%3D'%23555'%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%3E%3Cpath%20d%3D'M7.41% 8.59L12% 2013.17l4.59-4.58L18% 2010l-6% 206-6-6% 201.41-1.41z'%2F%3E%3C%2Fsvg%3E");
-      background-repeat: no-repeat;
-      background-position: right 15px center;
-      background-size: 20px;
-      cursor: pointer;
-    }
+    .form-group label { display: block; font-size: 15px; font-weight: 700; color: #555; margin-bottom: 8px; }
+    .form-group input, .form-group select { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; background-color: #fff; }
 
-    /* ... (기타 스타일) ... */
+    /* 유효성 검사 에러 메시지 스타일 */
+    .error-msg { color: #d32f2f; font-size: 13px; margin-top: 5px; display: none; font-weight: bold; }
+    .input-error { border: 2px solid #d32f2f !important; background-color: #fff8f8 !important; }
 
-    /* --- 동의/제출 버튼 --- */
-    .agreement-section {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 40px;
-      margin-bottom: 25px;
-    }
-    .agreement-section input[type="checkbox"] { margin-right: 10px; }
-    .agreement-section label { font-size: 15px; color: #666; }
-    .action-button-container { text-align: center; margin-top: 20px; }
-    .action-button {
-      width: 100%;
-      padding: 18px;
-      font-size: 18px;
-      font-weight: bold;
-      color: white;
-      background-color: #E64A19; /* '신청하기' 강조 색상 */
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-    }
-    .action-button:disabled { background-color: #f3a995; cursor: not-allowed; }
+    .amount-display { font-size: 13px; color: #1976d2; font-weight: 600; margin-top: 6px; text-align: right; display: block; }
+    .helper-text { font-size: 12px; color: #888; margin-top: 4px; }
+
+    .agreement-section { display: flex; align-items: center; justify-content: center; margin-top: 40px; margin-bottom: 25px; }
+    .agreement-section input { width: 18px; height: 18px; margin-right: 10px; cursor: pointer; }
+    .agreement-section label { font-size: 15px; color: #666; cursor: pointer; }
+
+    .action-button { width: 100%; padding: 18px; font-size: 18px; font-weight: bold; color: white; background-color: #E64A19; border: none; border-radius: 12px; cursor: pointer; transition: background-color 0.2s; }
+    .action-button:hover { background-color: #D84315; }
+    .action-button:disabled { background-color: #ffccbc; cursor: not-allowed; }
   </style>
 </head>
 <body>
 
 <header class="simple-header">
-  <a th:href="@{'/loan/credit/' + ${formSetup.loanProductSlug} + '/calculate'}" class="back-button">&lt;</a>
+  <a th:href="@{'/loan/credit/' + ${loanProductInfoResponse.loanProductSlug} + '/calculate'}" class="back-button">&lt;</a>
 </header>
 
 <main>
   <section class="form-card">
 
     <div class="info-summary">
-      <h1 class="info-summary-product-name" th:text="${formSetup.loanProductName}">상품명</h1>
-      <div class="info-summary-rate-box">
-        <p class="info-summary-rate-label">고객님 예상 금리</p>
-        <p class="info-summary-rate-value" th:text="${#numbers.formatDecimal(formSetup.finalInterestRate, 1, 2)} + '%'">5.25%</p>
+      <h1 class="info-summary-product-name" th:text="${loanProductInfoResponse.loanProductName}">상품명</h1>
+
+      <div class="info-summary-rate-box" th:object="${interestRateInfoResponse}">
+        <p class="info-summary-rate-label">예상 적용 금리</p>
+        <p class="info-summary-rate-value">
+          <span th:text="*{minFinalInterestRate != null ? #numbers.formatDecimal(minFinalInterestRate, 1, 2) : '0.00'}">0.00</span>
+          <span style="font-size: 0.7em; font-weight: normal;">~</span>
+          <span th:text="*{maxFinalInterestRate != null ? #numbers.formatDecimal(maxFinalInterestRate, 1, 2) : '0.00'}">0.00</span>
+          <span style="font-size: 0.7em">%</span>
+        </p>
       </div>
     </div>
 
     <form id="loan-apply-form"
-          th:action="@{'/loan/credit/' + ${formSetup.loanProductSlug} + '/apply'}"
+          th:action="@{'/loan/credit/' + ${loanProductInfoResponse.loanProductSlug} + '/apply'}"
           th:object="${newApplicationRequest}"
-          method="post">
+          method="post"
+          onsubmit="return validateAndSubmit()">
 
       <div class="form-group">
         <label for="loan-amount">대출 신청금액 (원)</label>
-        <select id="loan-amount" th:field="*{loanAmount}" required>
-          <option value="">-- 금액 선택 --</option>
-          <option th:each="amount : ${formSetup.availableAmounts}"
-                  th:value="${amount}"
-                  th:text="${#numbers.formatCurrency(amount)} + '원'"></option>
-        </select>
+
+        <input type="text" inputmode="numeric" id="loan-amount" th:field="*{loanAmount}"
+               placeholder="예: 50,000,000"
+               required
+               oninput="formatInput(this)"
+               onblur="validateAmount(this)"
+               th:data-min="${loanProductInfoResponse.minLoanAmount}"
+               th:data-max="${loanProductInfoResponse.maxLoanAmount}"
+               th:data-unit="${loanProductInfoResponse.applicationAmountUnit}">
+
+        <div class="amount-display" id="display-loan-amount">0원</div>
+
+        <div class="helper-text"
+             th:text="'가능 한도: ' + ${#numbers.formatInteger(loanProductInfoResponse.minLoanAmount, 0, 'COMMA')} + '원 ~ ' + ${#numbers.formatInteger(loanProductInfoResponse.maxLoanAmount, 0, 'COMMA')} + '원 (단위: ' + ${#numbers.formatInteger(loanProductInfoResponse.applicationAmountUnit, 0, 'COMMA')} + '원)'">
+          가능 한도 안내
+        </div>
+
+        <div class="error-msg" id="amount-error-msg"></div>
       </div>
 
       <div class="form-group">
         <label for="loan-term">대출기간 (개월)</label>
         <select id="loan-term" th:field="*{loanTerm}" required>
           <option value="">-- 기간 선택 --</option>
-          <option th:each="term : ${formSetup.availableTerms}"
+
+          <option th:each="term : ${#numbers.sequence(loanProductInfoResponse.minLoanTerm, loanProductInfoResponse.maxLoanTerm, loanProductInfoResponse.applicationTermUnit)}"
                   th:value="${term}"
-                  th:text="${term} + '개월'"></option>
+                  th:text="${term} + '개월'">
+          </option>
         </select>
+        <div class="helper-text" th:text="'가능 기간: ' + ${loanProductInfoResponse.minLoanTerm} + '개월 ~ ' + ${loanProductInfoResponse.maxLoanTerm} + '개월'"></div>
       </div>
 
       <div class="form-group">
         <label for="repayment-method">상환방법</label>
-        <select id="repayment-method" th:field="*{repaymentMethodId}" required>
+        <select id="repayment-method" th:field="*{repaymentMethod}" required>
           <option value="">-- 상환방법 선택 --</option>
-          <option th:each="option : ${formSetup.repaymentOptions}"
-                  th:value="${option.id}"
-                  th:text="${option.name}"></option>
+
+          <option th:each="opt : ${#strings.arraySplit(loanProductInfoResponse.repaymentOptions, ', ')}"
+                  th:value="${opt}"
+                  th:text="${opt}">
+          </option>
         </select>
+        <div class="helper-text">해당 상품에서 선택 가능한 상환 방식입니다.</div>
       </div>
 
       <div class="form-group">
         <label for="interest-rate-type">금리종류</label>
-        <select id="interest-rate-type" th:field="*{interestRateTypeId}" required>
+        <select id="interest-rate-type" th:field="*{interestRateType}" required>
           <option value="">-- 금리종류 선택 --</option>
-          <option th:each="option : ${formSetup.interestRateTypeOptions}"
-                  th:value="${option.id}"
-                  th:text="${option.name}"></option>
+
+          <option th:each="opt : ${#strings.arraySplit(loanProductInfoResponse.interestRateTypeOptions, ', ')}"
+                  th:value="${opt}"
+                  th:text="${opt}">
+          </option>
         </select>
+        <div class="helper-text">해당 상품에서 선택 가능한 금리종류입니다.</div>
       </div>
 
       <div class="agreement-section">
@@ -202,11 +142,104 @@
 </main>
 
 <script>
+  // 1. 동의 체크박스 로직
   const agreeCheckbox = document.getElementById('privacy-agree');
   const submitButton = document.getElementById('submit-button');
   agreeCheckbox.addEventListener('change', function() {
     submitButton.disabled = !this.checked;
   });
+
+  // 2. 금액 포맷팅 및 한글 표시
+  function formatInput(input) {
+    let val = input.value.replace(/[^0-9]/g, "");
+    if (!val) {
+      input.value = "";
+      updateKoreanDisplay(input, 0);
+      return;
+    }
+    input.value = new Intl.NumberFormat('ko-KR').format(val);
+    updateKoreanDisplay(input, parseInt(val));
+
+    // 입력 중 에러 메시지 초기화
+    hideError(input);
+  }
+
+  function updateKoreanDisplay(input, numberVal) {
+    let displayId = "display-" + input.id;
+    let displaySpan = document.getElementById(displayId);
+    if (displaySpan) {
+      displaySpan.innerText = (numberVal === 0) ? "0원" : numberToKorean(numberVal);
+    }
+  }
+
+  function numberToKorean(number) {
+    const inputNumber = number < 0 ? false : number;
+    const unitWords = ['', '만', '억', '조', '경'];
+    const splitUnit = 10000;
+    const splitCount = unitWords.length;
+    let resultString = '';
+
+    for (let i = 0; i < splitCount; i++) {
+      let unitResult = Math.floor((inputNumber % Math.pow(splitUnit, i + 1)) / Math.pow(splitUnit, i));
+      if (unitResult > 0) resultString = String(unitResult) + unitWords[i] + ' ' + resultString;
+    }
+    return resultString.trim() + '원';
+  }
+
+  // 3. [핵심] 금액 유효성 검사 (Min, Max, Unit 체크)
+  function validateAmount(input) {
+    const rawVal = input.value.replace(/,/g, "");
+    if (!rawVal) return true; // 빈 값은 required가 처리
+
+    const val = parseInt(rawVal);
+    const min = parseInt(input.dataset.min);
+    const max = parseInt(input.dataset.max);
+    const unit = parseInt(input.dataset.unit);
+
+    if (val < min) {
+      showError(input, `최소 신청 금액은 ${new Intl.NumberFormat('ko-KR').format(min)}원입니다.`);
+      return false;
+    }
+    if (val > max) {
+      showError(input, `최대 신청 가능 금액은 ${new Intl.NumberFormat('ko-KR').format(max)}원입니다.`);
+      return false;
+    }
+    if (val % unit !== 0) {
+      showError(input, `신청 금액은 ${new Intl.NumberFormat('ko-KR').format(unit)}원 단위로 입력해주세요.`);
+      return false;
+    }
+
+    hideError(input);
+    return true;
+  }
+
+  function showError(input, msg) {
+    const errorDiv = document.getElementById('amount-error-msg');
+    input.classList.add('input-error');
+    errorDiv.innerText = msg;
+    errorDiv.style.display = 'block';
+  }
+
+  function hideError(input) {
+    const errorDiv = document.getElementById('amount-error-msg');
+    input.classList.remove('input-error');
+    errorDiv.style.display = 'none';
+  }
+
+  // 4. 폼 제출 시 검증
+  function validateAndSubmit() {
+    const amountInput = document.getElementById('loan-amount');
+
+    // 금액 검증 다시 수행
+    if (!validateAmount(amountInput)) {
+      amountInput.focus();
+      return false; // 제출 차단
+    }
+
+    // 콤마 제거 후 전송
+    amountInput.value = amountInput.value.replace(/,/g, "");
+    return true;
+  }
 </script>
 
 </body>

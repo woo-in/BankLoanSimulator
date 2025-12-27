@@ -2,7 +2,7 @@ package bankapp.loan.origination.service;
 
 import bankapp.loan.exceptions.InvalidLoanApplication;
 import bankapp.loan.origination.model.LoanApplication;
-import bankapp.loan.web.request.LoanApplicationRequest;
+import bankapp.loan.origination.web.request.ApplicationRequest;
 import bankapp.loan.origination.web.response.InterestRateInfoResponse;
 import bankapp.loan.product.web.response.LoanProductInfoResponse;
 import bankapp.member.model.Member;
@@ -20,13 +20,13 @@ public interface LoanApplicationService {
      * 선택한 상품 정보, 산출된 금리 정보, 고객의 입력 정보를 결합하여
      * 최종 대출 신청서(LoanApplication) 엔티티를 생성하고 '신청(APPLIED)' 상태로 저장합니다.
      *
-     * @param loanApplicationRequest   고객이 입력한 대출 신청 정보 (대출 금액, 기간, 상환 방식 등)
+     * @param applicationRequest   고객이 입력한 대출 신청 정보 (대출 금액, 기간, 상환 방식 등)
      * @param loanProductInfoResponse  고객이 선택한 대출 상품의 상세 정보 (상품 규격 확인용)
      * @param interestRateInfoResponse 사전에 산출된 금리 정보 (기준금리, 가산금리, 최종금리)
      * @param loginMember              대출을 신청하는 로그인된 회원 엔티티
      * @return DB에 저장된 대출 신청서 엔티티
      */
-    LoanApplication saveLoanApplication(LoanApplicationRequest loanApplicationRequest,
+    LoanApplication saveLoanApplication(ApplicationRequest applicationRequest,
                                         LoanProductInfoResponse loanProductInfoResponse,
                                         InterestRateInfoResponse interestRateInfoResponse,
                                         Member loginMember);

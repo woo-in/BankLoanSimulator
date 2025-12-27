@@ -29,7 +29,7 @@ public class CreditCheckRequest {
      * @param calculatedTotalDebt 시스템이 합산한 총 부채 금액 (내부 + 외부)
      * @return 생성된 CreditCheckRequest
      */
-    public static CreditCheckRequest from(UserFinancialInfoRequest userInfo, BigDecimal calculatedTotalDebt) {
+    public static CreditCheckRequest from(FinancialInfoRequest userInfo, BigDecimal calculatedTotalDebt) {
         CreditCheckRequest request = new CreditCheckRequest();
 
         request.totalAssets = mapToAssetsEnum(userInfo.getTotalAssetsAmount());

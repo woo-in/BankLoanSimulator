@@ -1,10 +1,13 @@
 package bankapp.loan.origination.service;
 
-import bankapp.loan.origination.web.request.UserFinancialInfoRequest;
+import bankapp.loan.exceptions.InvalidLoanProduct;
+import bankapp.loan.exceptions.InvalidPendingLoan;
+import bankapp.loan.origination.web.request.ApplicationRequest;
+import bankapp.loan.origination.web.request.FinancialInfoRequest;
 import bankapp.loan.origination.web.response.ExistingLoanResponse;
 import bankapp.loan.origination.web.response.InterestRateInfoResponse;
+import bankapp.member.exceptions.MemberNotFoundException;
 import bankapp.member.model.Member;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -18,17 +21,22 @@ public interface LoanOriginationService {
      * @param productSlug 대출 상품 Slug
      * @param userInfoRequest 유저 재산 정보 DTO
      * @param allExistingLoans 유저 총 대출 현황 리스트
+     * @return 생성된 대출 진행 식별 키
      */
-    void startOrigination(Member member,
+    Long startOrigination(Member member,
                                  String productSlug,
-                                 UserFinancialInfoRequest userInfoRequest,
-                                 List<ExistingLoanResponse> allExistingLoans);
+                                 FinancialInfoRequest userInfoRequest,
+                                 List<ExistingLoanResponse> allExistingLoans) throws MemberNotFoundException , InvalidLoanProduct;
 
 
-
-
-
-
+    /**
+     * 사용자가 선택한 대출 조건(금액, 기간, 상환방식, 금리유형)을 반영하여 대출 신청을 제출합니다.
+     *
+     * @param pendingLoanApplicationId 대출 진행 식별 키
+     * @param request                  사용자가 입력한 확정 대출 조건 정보
+     * @throws InvalidPendingLoan 유효하지 않은 신청 ID일 경우 발생
+     */
+    void submitLoanApplication(Long pendingLoanApplicationId, ApplicationRequest request) throws InvalidPendingLoan;
 
     /**
      * 회원의 내부 대출(DB 조회)과 외부 대출(사용자 입력 JSON)을 통합하여
@@ -43,17 +51,16 @@ public interface LoanOriginationService {
      * @return 내부 대출과 외부 대출이 합쳐진 통합 대출 목록 {@code List<ExistingLoanResponse>}
      * @see bankapp.loan.origination.service.LoanContractService#findAllContractResponsesByMember(Member)
      */
-    List<ExistingLoanResponse> getIntegratedLoanList(Member member, UserFinancialInfoRequest request);
-
-
+    List<ExistingLoanResponse> getIntegratedLoanList(Member member, FinancialInfoRequest request);
 
 
     /**
-     * 대출 목록을 받아 , 총 부채를 반환
+     * 대출 목록 DTO 를 받아 , 총 부채를 반환
      * @param loans  대출 목록
      * @return 총 부채
      */
     BigDecimal calculateTotalDebt(List<ExistingLoanResponse> loans);
+
 
     /**
      * 임시 금리 정보를 계산하여 반환
@@ -63,7 +70,17 @@ public interface LoanOriginationService {
      * @return 임시 금리 정보
      */
     InterestRateInfoResponse calculateInterestRate(String productSlug,
-                                                          UserFinancialInfoRequest userInfoRequest,
+                                                          FinancialInfoRequest userInfoRequest,
                                                           List<ExistingLoanResponse> allExistingLoans);
+
+
+    /**
+     * 키를 바탕으로 임시 금리 정보를 계산하여 반환
+     * @param productSlug  대출 상품 슬러그
+     * @param pendingLoanApplicationId 대출 진행 식별 키
+     * @return 임시 금리 정보
+     */
+    InterestRateInfoResponse calculateInterestRate(String productSlug,Long pendingLoanApplicationId);
+
 
 }

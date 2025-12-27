@@ -1,5 +1,6 @@
 package bankapp.loan.origination.model;
 
+import bankapp.loan.origination.web.response.ExistingLoanResponse;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -50,6 +51,10 @@ public class ExistingLoan {
         this.pendingLoanApplication = pendingLoanApplication;
         this.pendingLoanApplication.getExistingLoans().add(this);
     }
+
+
+
+
 
 
 }

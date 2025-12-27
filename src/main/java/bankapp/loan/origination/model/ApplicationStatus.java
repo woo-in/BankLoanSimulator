@@ -18,9 +18,7 @@ public enum ApplicationStatus {
     DRAFT("작성 중"),
 
     /**
-     * 2. 한도 산출 완료 (Pre-Checked)
-     * 입력된 정보를 바탕으로 DSR, 금리, 한도 계산이 완료된 상태.
-     * 고객에게 "예상 한도"가 보여지는 시점.
+    * 유저 : 대출금 / 대출 기간 / 상환 방법 / 금리 종류 입력
      */
     PRE_CHECKED("한도 산출 완료"),
 

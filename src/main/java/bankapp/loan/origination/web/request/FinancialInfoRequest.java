@@ -6,7 +6,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class UserFinancialInfoRequest {
+public class FinancialInfoRequest {
 
     @NotNull(message = "총 자산 규모는 필수 입력값입니다.")
     @PositiveOrZero(message = "자산은 0원 이상이어야 합니다.")

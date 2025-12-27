@@ -1,5 +1,6 @@
 package bankapp.loan.origination.web.response;
 
+import bankapp.loan.origination.model.ExistingLoan;
 import bankapp.loan.origination.model.LoanContract;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,9 +22,6 @@ public class ExistingLoanResponse {
     private BigDecimal totalInterestRate;
     private boolean isExternal;
 
-    /**
-     * Entity -> DTO 변환 팩토리 메서드
-     */
     public static ExistingLoanResponse from(LoanContract contract) {
 
         BigDecimal totalRate = contract.getContractBaseRate()
@@ -39,4 +37,18 @@ public class ExistingLoanResponse {
                 .totalInterestRate(totalRate)
                 .build();
     }
+
+    public static ExistingLoanResponse from(ExistingLoan entity) {
+        return ExistingLoanResponse.builder()
+                .loanProductName(entity.getLoanProductName())
+                .loanType(entity.getLoanType())
+                .loanAmount(entity.getLoanAmount())
+                .loanTerm(entity.getLoanTerm())
+                .repaymentMethodName(entity.getRepaymentMethodName())
+                .totalInterestRate(entity.getTotalInterestRate())
+                .isExternal(entity.isExternal())
+                .build();
+    }
+
+
 }

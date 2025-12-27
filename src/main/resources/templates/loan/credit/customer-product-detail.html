@@ -111,7 +111,7 @@
     <div class="action-button-container">
       <button class="action-button" type="button"
               th:if="${loanProductInfoResponse != null}"
-              th:onclick="|location.href='@{/loan/credit/' + ${loanProductInfoResponse.loanProductSlug} + '/apply'}'|">
+              th:onclick="|location.href='@{/loan/credit/{slug}/apply(slug=${loanProductInfoResponse.loanProductSlug})}'|">
         대출 신청하러 가기
       </button>
     </div>

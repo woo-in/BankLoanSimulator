@@ -64,4 +64,13 @@ public class DefaultRepaymentMethodService implements RepaymentMethodService {
         return repaymentMethodRepository.findAllById(ids);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public RepaymentMethod findByMethodName(String methodName) {
+        return repaymentMethodRepository.findByMethodName(methodName)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상환 방법입니다: " + methodName));
+    }
+
+
+
 }

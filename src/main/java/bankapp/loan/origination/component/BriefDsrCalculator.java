@@ -1,6 +1,6 @@
 package bankapp.loan.origination.component;
 
-import bankapp.loan.origination.web.request.UserFinancialInfoRequest;
+import bankapp.loan.origination.web.request.FinancialInfoRequest;
 import bankapp.loan.origination.web.response.ExistingLoanResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,7 @@ public class BriefDsrCalculator {
     // DSR 계산 시 신용대출 만기일시상환의 원금 산정 기간 (현행 규제: 5년)
     private static final BigDecimal DEEMED_TERM_YEARS = new BigDecimal("5");
 
-    public BigDecimal calculateDsr(UserFinancialInfoRequest userInfoRequest, List<ExistingLoanResponse> allLoans) {
+    public BigDecimal calculate(FinancialInfoRequest userInfoRequest, List<ExistingLoanResponse> allLoans) {
 
         for(ExistingLoanResponse loan : allLoans){
             log.info("loan : " + loan.getLoanProductName() + " , " + loan.getLoanAmount() + " , " + loan.getLoanTerm() + " , " + loan.getRepaymentMethodName() + " , " + loan.getTotalInterestRate());

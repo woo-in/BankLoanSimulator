@@ -1,4 +1,4 @@
-package bankapp.loan.web.request;
+package bankapp.loan.origination.web.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
-public class LoanApplicationRequest {
+public class ApplicationRequest {
 
     @NotNull
     private BigDecimal loanAmount;
@@ -17,9 +17,10 @@ public class LoanApplicationRequest {
     private Integer loanTerm;
 
     @NotNull
-    private Long repaymentMethodId;
+    private String repaymentMethod;
 
     @NotNull
-    private Long interestRateTypeId;
+    private String interestRateType;
+
 }
 

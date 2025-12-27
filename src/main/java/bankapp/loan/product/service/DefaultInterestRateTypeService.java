@@ -57,5 +57,11 @@ public class DefaultInterestRateTypeService implements InterestRateTypeService {
         return interestRateTypeRepository.findAllById(ids);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public InterestRateType findByTypeName(String typeName) {
+        return interestRateTypeRepository.findByTypeName(typeName)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 금리 종류입니다: " + typeName));
+    }
 
 }

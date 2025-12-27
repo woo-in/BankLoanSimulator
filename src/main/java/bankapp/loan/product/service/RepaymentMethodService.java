@@ -40,4 +40,12 @@ public interface RepaymentMethodService {
      */
     List<RepaymentMethod> findAllById(List<Long> ids);
 
+
+    /**
+     * methodName 에 해당하는 상환 방식들을 조회합니다.
+     * @param methodName 상환방식 이름
+     * @return ID에 매칭되는 상환 방식 엔티티
+     */
+    RepaymentMethod findByMethodName(String methodName);
+
 }
