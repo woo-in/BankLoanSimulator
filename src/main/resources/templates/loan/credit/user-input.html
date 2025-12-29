@@ -4,17 +4,20 @@
   <meta charset="UTF-8">
   <title>우인은행 - 한도 알아보기</title>
   <style>
-    /* ... (기존 스타일 유지) ... */
     body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+
+    /* 헤더 스타일 */
     .simple-header { display: flex; align-items: center; padding: 10px 0; margin-bottom: 20px; background-color: #f0f2f5; position: sticky; top: 0; border-bottom: 1px solid #e0e0e0; z-index: 100; }
     .back-button { font-size: 28px; font-weight: bold; color: #333; text-decoration: none; margin-right: 15px; padding: 0 10px; }
+
+    /* 폼 컨테이너 스타일 */
     .form-card { background-color: white; padding: 35px 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); max-width: 700px; margin: 0 auto; }
     .form-header { text-align: center; margin-bottom: 35px; }
     .form-title { font-size: 24px; font-weight: bold; color: #333; margin: 0; }
+
+    /* 입력 그룹 스타일 */
     .form-group { margin-bottom: 25px; position: relative; }
     .form-group label { display: block; font-size: 16px; font-weight: bold; color: #555; margin-bottom: 10px; }
-
-    /* Input 스타일 */
     .form-group select, .form-group input[type="text"], .form-group input[type="number"] {
       width: 100%; padding: 14px 18px; font-size: 16px; color: #333;
       border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; box-sizing: border-box;
@@ -26,7 +29,7 @@
       margin-top: 6px; text-align: right; display: block;
     }
 
-    /* 기존 대출 목록 스타일 */
+    /* 대출 목록 스타일 */
     .loan-list-box { background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; padding: 15px; }
     .loan-item { display: flex; justify-content: space-between; align-items: center; background-color: white; border: 1px solid #dfe1e5; border-radius: 8px; padding: 15px; margin-bottom: 10px; }
     .loan-item:last-child { margin-bottom: 0; }
@@ -34,11 +37,9 @@
     .loan-info-amount { font-weight: bold; color: #1976d2; font-size: 15px; }
     .no-loan-message { text-align: center; color: #888; font-size: 14px; padding: 10px 0; }
 
-    /* 타행 대출 추가 버튼 스타일 */
+    /* 버튼 스타일 */
     .add-loan-btn { width: 100%; padding: 12px; background-color: white; border: 2px dashed #4a90e2; color: #4a90e2; font-weight: bold; border-radius: 10px; cursor: pointer; transition: all 0.2s; margin-top: 10px; }
     .add-loan-btn:hover { background-color: #e3f2fd; }
-
-    /* 삭제 버튼 스타일 */
     .delete-btn { margin-left: 10px; color: #ff5252; cursor: pointer; font-size: 14px; font-weight: bold; background: none; border: none; }
 
     /* 모달 스타일 */
@@ -49,12 +50,17 @@
     .modal-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
     .btn-cancel { background-color: #f1f3f5; color: #333; }
     .btn-confirm { background-color: #4a90e2; color: white; }
+
     .modal-input-group { margin-bottom: 15px; }
     .modal-input-group label { display: block; font-size: 14px; color: #666; margin-bottom: 5px; font-weight: 600; }
     .modal-input-group input, .modal-input-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; box-sizing: border-box; }
-    .radio-group { display: flex; gap: 10px; flex-wrap: wrap; }
-    .radio-label { display: flex; align-items: center; gap: 5px; font-size: 14px; cursor: pointer; }
 
+    /* 라디오 버튼 그룹 */
+    .radio-group { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px; }
+    .radio-label { display: flex; align-items: center; gap: 5px; font-size: 14px; cursor: pointer; }
+    .radio-label input[type="radio"] { width: auto; margin: 0; cursor: pointer; accent-color: #4a90e2; }
+
+    /* 하단 액션 버튼 */
     .agreement-section { display: flex; align-items: center; justify-content: center; margin-top: 40px; margin-bottom: 25px; }
     .agreement-section input[type="checkbox"] { width: 18px; height: 18px; margin-right: 10px; cursor: pointer; }
     .action-button-container { text-align: center; margin-top: 20px; }
@@ -157,9 +163,15 @@
     </div>
 
     <div class="modal-input-group">
-      <label>대출 총액 (원)</label>
+      <label>대출 원금 (최초 대출액)</label>
       <input type="text" inputmode="numeric" id="m-loan-amount" placeholder="숫자만 입력" oninput="formatInput(this)">
       <span class="amount-display" id="display-m-loan-amount" style="text-align:left;">0원</span>
+    </div>
+
+    <div class="modal-input-group">
+      <label>남은 대출금 (현재 잔액)</label>
+      <input type="text" inputmode="numeric" id="m-remaining-balance" placeholder="숫자만 입력" oninput="formatInput(this)">
+      <span class="amount-display" id="display-m-remaining-balance" style="text-align:left;">0원</span>
     </div>
 
     <div class="modal-input-group">
@@ -181,6 +193,14 @@
       </select>
     </div>
 
+    <div class="modal-input-group">
+      <label>금리 종류</label>
+      <div class="radio-group">
+        <label class="radio-label"><input type="radio" name="m_rateType" value="VARIABLE" checked> 변동금리</label>
+        <label class="radio-label"><input type="radio" name="m_rateType" value="FIXED"> 고정금리</label>
+      </div>
+    </div>
+
     <div class="modal-actions">
       <button class="modal-btn btn-cancel" onclick="closeModal()">취소</button>
       <button class="modal-btn btn-confirm" onclick="addExternalLoan()">추가 완료</button>
@@ -189,9 +209,8 @@
 </div>
 
 <script>
-  // --- [NEW] 금액 포맷팅 및 한글 변환 함수 ---
+  // --- [금액 포맷팅 및 한글 변환 함수] ---
   function formatInput(input) {
-    // 1. 숫자 이외의 문자 제거
     let val = input.value.replace(/[^0-9]/g, "");
 
     if (!val) {
@@ -200,16 +219,11 @@
       return;
     }
 
-    // 2. 3자리마다 콤마 찍기 (화면 표시용)
     input.value = new Intl.NumberFormat('ko-KR').format(val);
-
-    // 3. 한글 금액 표기 업데이트
     updateKoreanDisplay(input, parseInt(val));
   }
 
   function updateKoreanDisplay(input, numberVal) {
-    // ID 규칙: display-{input.id}
-    // 예: m-loan-amount -> display-m-loan-amount
     let displayId = "display-" + input.id.replace(/_/g, "-");
     let displaySpan = document.getElementById(displayId);
 
@@ -246,9 +260,8 @@
     return resultString.trim() + '원';
   }
 
-  // --- 폼 제출 시 콤마 제거 ---
+  // --- [폼 제출 시 전처리] ---
   function removeCommasBeforeSubmit() {
-    // 'Amount'로 끝나는 input들을 찾아서 콤마 제거
     const inputs = document.querySelectorAll('input[name$="Amount"]');
     inputs.forEach(input => {
       input.value = input.value.replace(/,/g, "");
@@ -256,21 +269,23 @@
     return true;
   }
 
-  // --- 타행 대출 관리 로직 ---
+  // --- [타행 대출 관리 로직] ---
   let externalLoans = [];
 
   function openModal() {
     document.getElementById('m_loanName').value = '';
 
-    // [수정] ID 변경 반영: m-loan-amount
     document.getElementById('m-loan-amount').value = '';
-
-    // [수정] 한글 표기도 초기화
     document.getElementById('display-m-loan-amount').innerText = '0원';
+
+    document.getElementById('m-remaining-balance').value = '';
+    document.getElementById('display-m-remaining-balance').innerText = '0원';
 
     document.getElementById('m_interestRate').value = '';
     document.getElementById('m_loanTerm').value = '';
+
     document.querySelector('input[name="m_loanType"][value="CREDIT"]').checked = true;
+    document.querySelector('input[name="m_rateType"][value="VARIABLE"]').checked = true;
     document.getElementById('m_repaymentMethod').value = 'EQUAL_PRINCIPAL_INTEREST';
 
     document.getElementById('loanModal').style.display = 'flex';
@@ -283,30 +298,47 @@
   function addExternalLoan() {
     const name = document.getElementById('m_loanName').value;
 
-    // [수정] ID 변경 반영 & 콤마 제거 후 값 가져오기
+    // 콤마 제거 후 숫자 문자열 추출
     const amountStr = document.getElementById('m-loan-amount').value.replace(/,/g, "");
+    const remainingStr = document.getElementById('m-remaining-balance').value.replace(/,/g, "");
 
     const rate = document.getElementById('m_interestRate').value;
     const term = document.getElementById('m_loanTerm').value;
+
+    // 1. 영어 코드 저장: .value를 가져오므로 value="VARIABLE" 등이 저장됨 (이미 적용됨)
     const type = document.querySelector('input[name="m_loanType"]:checked').value;
+    const rateType = document.querySelector('input[name="m_rateType"]:checked').value;
     const method = document.getElementById('m_repaymentMethod').value;
 
-    if(!name || !amountStr || !rate || !term) {
+    // 빈 값 체크
+    if(!name || !amountStr || !remainingStr || !rate || !term) {
       alert("모든 정보를 입력해주세요.");
       return;
     }
 
-    // [수정] DTO 필드명 매핑 (totalInterestRate)
+    // [수정됨] 2. 잔액 유효성 검사 추가
+    // 문자열을 숫자로 변환하여 비교
+    const loanAmountNum = parseInt(amountStr);
+    const remainingBalanceNum = parseInt(remainingStr);
+
+    if (remainingBalanceNum > loanAmountNum) {
+      alert("남은 대출금(잔액)이 대출 원금보다 클 수 없습니다.\n다시 확인해주세요.");
+      // 입력 필드로 포커스 이동 (사용자 편의)
+      document.getElementById('m-remaining-balance').focus();
+      return;
+    }
+
     const loanObj = {
       loanProductName: name,
       loanType: type,
-      loanAmount: parseInt(amountStr), // 정수로 저장
-      loanTerm: parseInt(term),
+      loanAmount: loanAmountNum,
+      remainingBalance: remainingBalanceNum,
 
-      // [핵심 수정] ExistingLoanResponse의 필드명 'totalInterestRate'와 일치시킴
       totalInterestRate: parseFloat(rate),
+      interestRateTypeName: rateType, // 영어 값(VARIABLE/FIXED)이 들어감
 
-      repaymentMethodName: method,
+      loanTerm: parseInt(term),
+      repaymentMethodName: method,    // 영어 값(EQUAL_PRINCIPAL...)이 들어감
       isExternal: true
     };
 

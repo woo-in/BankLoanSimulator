@@ -1,6 +1,6 @@
 package bankapp.loan.origination.repository;
 
-import bankapp.loan.origination.model.LoanContract;
+import bankapp.loan.underwriting.model.LoanContract;
 import bankapp.member.model.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 

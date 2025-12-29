@@ -1,6 +1,6 @@
 package bankapp.loan.servicing.component;
 
-import bankapp.loan.origination.model.LoanContract;
+import bankapp.loan.underwriting.model.LoanContract;
 import bankapp.loan.servicing.model.RepaymentDetail;
 import bankapp.loan.product.model.RepaymentMethod;
 import org.springframework.stereotype.Component;

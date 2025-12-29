@@ -1,7 +1,7 @@
 package bankapp.loan.servicing.service;
 
 import bankapp.account.model.account.LoanAccount;
-import bankapp.loan.origination.model.LoanContract;
+import bankapp.loan.underwriting.model.LoanContract;
 import bankapp.loan.servicing.model.RepaymentDetail;
 import bankapp.loan.servicing.model.RepaymentSchedule;
 import bankapp.loan.servicing.model.RepaymentStatus;

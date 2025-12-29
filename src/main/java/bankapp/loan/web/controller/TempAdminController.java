@@ -5,10 +5,7 @@ import bankapp.account.request.open.OpenLoanAccountRequest;
 import bankapp.account.service.account.AccountService;
 import bankapp.account.service.check.AccountCheckService;
 import bankapp.loan.origination.model.LoanApplication;
-import bankapp.loan.origination.model.LoanContract;
-import bankapp.loan.product.model.LoanProduct;
-import bankapp.loan.product.model.InterestRateType;
-import bankapp.loan.product.model.RepaymentMethod;
+import bankapp.loan.underwriting.model.LoanContract;
 import bankapp.loan.origination.service.LoanApplicationService;
 import bankapp.loan.servicing.service.RepaymentBatchService;
 import bankapp.loan.origination.service.LoanContractService;
@@ -17,13 +14,6 @@ import bankapp.loan.product.service.InterestRateTypeService;
 import bankapp.loan.product.service.RepaymentMethodService;
 import bankapp.loan.servicing.service.RepaymentScheduleService;
 import bankapp.loan.product.service.CreditLoanProductService;
-import bankapp.loan.product.web.request.InterestRateTypeRequest;
-import bankapp.loan.product.web.request.LoanProductRequest;
-import bankapp.loan.product.web.request.RepaymentMethodRequest;
-import bankapp.loan.product.web.response.InterestRateTypeInfoResponse;
-import bankapp.loan.web.response.LoanApplicationCompleteResponse;
-import bankapp.loan.product.web.response.LoanProductInfoResponse;
-import bankapp.loan.product.web.response.RepaymentMethodInfoResponse;
 import bankapp.member.model.Member;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -31,8 +21,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Controller
@@ -74,26 +62,6 @@ public class TempAdminController {
         this.repaymentBatchService = repaymentBatchService;
     }
 
-
-
-
-
-
-    // 대출 신청 관리 페이지
-    @GetMapping("loan-applications")
-    public String showLoanApplications(Model model) {
-
-        List<LoanApplicationCompleteResponse> loanApplicationCompleteResponses = new ArrayList<>();
-        List<LoanApplication> loanApplications = loanApplicationService.getAppliedApplications();
-
-        for(LoanApplication loanApplication : loanApplications){
-            loanApplicationCompleteResponses.add(LoanApplicationCompleteResponse.from(loanApplication));
-        }
-
-        model.addAttribute("loanApplicationCompleteResponses", loanApplicationCompleteResponses);
-        return "loan/temp-admin/loanApplications";
-
-    }
 
     // 거절
     @PostMapping("/loan-applications/{id}/reject")

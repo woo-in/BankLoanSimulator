@@ -38,6 +38,7 @@ public class PendingLoanApplication {
     private BigDecimal totalAssets;
     private BigDecimal annualIncome;
     private BigDecimal fixedExpenses;
+
     @Builder.Default
     @OneToMany(mappedBy = "pendingLoanApplication", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExistingLoan> existingLoans = new ArrayList<>();
@@ -57,7 +58,7 @@ public class PendingLoanApplication {
     // 진행 상태 및 감사 정보
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ApplicationStatus status;
+    private PendingLoanApplicationStatus status;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

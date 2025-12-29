@@ -2,7 +2,7 @@ package bankapp.account.model.account;
 
 
 import bankapp.account.request.open.OpenLoanAccountRequest;
-import bankapp.loan.origination.model.LoanContract;
+import bankapp.loan.underwriting.model.LoanContract;
 import bankapp.loan.servicing.model.LoanRepaymentTransaction;
 import bankapp.loan.servicing.model.OverdueRepaymentSchedule;
 import bankapp.loan.servicing.model.RepaymentSchedule;

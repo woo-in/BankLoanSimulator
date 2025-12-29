@@ -2,7 +2,7 @@ package bankapp.loan.origination.service;
 
 import bankapp.loan.exceptions.InvalidLoanProduct;
 import bankapp.loan.exceptions.InvalidPendingLoan;
-import bankapp.loan.origination.model.ApplicationStatus;
+import bankapp.loan.origination.model.PendingLoanApplicationStatus;
 import bankapp.loan.origination.web.request.ApplicationAuthRequest;
 import bankapp.loan.origination.web.request.ApplicationRequest;
 import bankapp.loan.origination.web.request.FinancialInfoRequest;
@@ -40,7 +40,7 @@ public interface LoanOriginationService {
      * @param request                  사용자가 입력한 확정 대출 조건 정보
      * @throws InvalidPendingLoan 유효하지 않은 신청 ID일 경우 발생
      */
-    void submitLoanApplication(Long pendingLoanApplicationId, ApplicationRequest request) throws InvalidPendingLoan;
+    void selectLoanTerms(Long pendingLoanApplicationId, ApplicationRequest request) throws InvalidPendingLoan;
 
 
 
@@ -60,7 +60,7 @@ public interface LoanOriginationService {
      * @throws InvalidPendingLoan 유효하지 않은 신청 ID일 경우 발생
      * @return 현재 대출 진행 상태
      */
-    ApplicationStatus getApplicationStatus(Long pendingLoanApplicationId)throws InvalidPendingLoan;
+    PendingLoanApplicationStatus getApplicationStatus(Long pendingLoanApplicationId)throws InvalidPendingLoan;
 
 
     /**

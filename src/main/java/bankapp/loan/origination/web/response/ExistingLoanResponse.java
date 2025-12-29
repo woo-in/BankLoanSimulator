@@ -1,7 +1,7 @@
 package bankapp.loan.origination.web.response;
 
 import bankapp.loan.origination.model.ExistingLoan;
-import bankapp.loan.origination.model.LoanContract;
+import bankapp.loan.underwriting.model.LoanContract;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,8 +17,10 @@ public class ExistingLoanResponse {
     private String loanProductName;
     private String loanType;
     private BigDecimal loanAmount;
+    private BigDecimal remainingBalance;
     private Integer loanTerm;
     private String repaymentMethodName;
+    private String interestRateTypeName;
     private BigDecimal totalInterestRate;
     private boolean isExternal;
 
@@ -32,8 +34,10 @@ public class ExistingLoanResponse {
                 .loanProductName(contract.getLoanProduct().getLoanProductName())
                 .loanType(contract.getLoanProduct().getLoanType())
                 .loanAmount(contract.getLoanAmount())
+                .remainingBalance(contract.getLoanAccount().getBalance())
                 .loanTerm(contract.getLoanTerm())
                 .repaymentMethodName(contract.getRepaymentMethod().getMethodName())
+                .interestRateTypeName(contract.getInterestRateType().getTypeName())
                 .totalInterestRate(totalRate)
                 .build();
     }

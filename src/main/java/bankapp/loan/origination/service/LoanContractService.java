@@ -2,7 +2,7 @@ package bankapp.loan.origination.service;
 
 import bankapp.account.request.open.OpenLoanAccountRequest;
 import bankapp.loan.origination.model.LoanApplication;
-import bankapp.loan.origination.model.LoanContract;
+import bankapp.loan.underwriting.model.LoanContract;
 import bankapp.loan.origination.web.response.ExistingLoanResponse;
 import bankapp.member.model.Member;
 

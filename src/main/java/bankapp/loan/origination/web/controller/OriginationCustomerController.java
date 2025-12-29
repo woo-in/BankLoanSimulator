@@ -3,7 +3,7 @@ package bankapp.loan.origination.web.controller;
 
 import bankapp.core.common.SessionConst;
 import bankapp.loan.origination.component.BriefDsrCalculator;
-import bankapp.loan.origination.model.ApplicationStatus;
+import bankapp.loan.origination.model.PendingLoanApplicationStatus;
 import bankapp.loan.origination.service.LoanContractService;
 import bankapp.loan.origination.service.LoanOriginationService;
 import bankapp.loan.origination.web.request.ApplicationAuthRequest;
@@ -56,6 +56,7 @@ public class OriginationCustomerController {
     // todo : pendingLoan 이 대출 전반의 과정에 관여 하도록 리펙터링 (must refactor)
     // todo : 각 단계마다 , 고유의 상태로 관리해야 할듯 (같은 상태여도 뛰면 ?) - 가능
 
+
     @RequestMapping("/credit/{type}/inquiry")
     public String showLoanInquiryForm(@PathVariable("type") String type,
                                       Model model,
@@ -102,7 +103,7 @@ public class OriginationCustomerController {
                                     @SessionAttribute(value = SessionConst.PENDING_LOAN_ID, required = false) Long pendingLoanApplicationId,
                                     Model model) {
 
-        if (pendingLoanApplicationId == null || loanOriginationService.getApplicationStatus(pendingLoanApplicationId) != ApplicationStatus.DRAFT) {
+        if (pendingLoanApplicationId == null || loanOriginationService.getApplicationStatus(pendingLoanApplicationId) != PendingLoanApplicationStatus.FINANCIAL_INFO_SUBMITTED) {
             return "redirect:/loan/credit/" + type + "/inquiry";
         }
 
@@ -124,7 +125,7 @@ public class OriginationCustomerController {
                                          @SessionAttribute(value = SessionConst.PENDING_LOAN_ID, required = false) Long pendingLoanApplicationId,
                                          Model model) {
 
-        if (pendingLoanApplicationId == null || loanOriginationService.getApplicationStatus(pendingLoanApplicationId) != ApplicationStatus.DRAFT) {
+        if (pendingLoanApplicationId == null || loanOriginationService.getApplicationStatus(pendingLoanApplicationId) != PendingLoanApplicationStatus.FINANCIAL_INFO_SUBMITTED) {
             return "redirect:/loan/credit/" + type + "/inquiry";
         }
 
@@ -137,7 +138,7 @@ public class OriginationCustomerController {
             return "loan/credit/apply-form";
         }
 
-        loanOriginationService.submitLoanApplication(pendingLoanApplicationId, request);
+        loanOriginationService.selectLoanTerms(pendingLoanApplicationId, request);
 
 
         LoanProductInfoResponse loanProductInfoResponse = creditLoanProductService.getLoanProductInfo(type);
@@ -154,7 +155,7 @@ public class OriginationCustomerController {
                                          @SessionAttribute(value = SessionConst.PENDING_LOAN_ID, required = false) Long pendingLoanApplicationId,
                                          Model model) {
 
-        if (pendingLoanApplicationId == null || loanOriginationService.getApplicationStatus(pendingLoanApplicationId) != ApplicationStatus.PRE_CHECKED) {
+        if (pendingLoanApplicationId == null || loanOriginationService.getApplicationStatus(pendingLoanApplicationId) != PendingLoanApplicationStatus.TERMS_SELECTED) {
             return "redirect:/loan/credit/" + type + "/inquiry";
         }
 
@@ -182,7 +183,7 @@ public class OriginationCustomerController {
                                      @SessionAttribute(value = SessionConst.PENDING_LOAN_ID, required = false) Long pendingLoanApplicationId,
                                      Model model) {
 
-        if (pendingLoanApplicationId == null || loanOriginationService.getApplicationStatus(pendingLoanApplicationId) != ApplicationStatus.PRE_CHECKED) {
+        if (pendingLoanApplicationId == null || loanOriginationService.getApplicationStatus(pendingLoanApplicationId) != PendingLoanApplicationStatus.TERMS_SELECTED) {
             return "redirect:/loan/credit/" + type + "/inquiry";
         }
 
@@ -198,7 +199,7 @@ public class OriginationCustomerController {
                                @SessionAttribute(value = SessionConst.PENDING_LOAN_ID, required = false) Long pendingLoanApplicationId,
                                Model model){
 
-        if (pendingLoanApplicationId == null || loanOriginationService.getApplicationStatus(pendingLoanApplicationId) != ApplicationStatus.PRE_CHECKED) {
+        if (pendingLoanApplicationId == null || loanOriginationService.getApplicationStatus(pendingLoanApplicationId) != PendingLoanApplicationStatus.TERMS_SELECTED) {
             return "redirect:/loan/credit/" + type + "/inquiry";
         }
 
@@ -216,9 +217,10 @@ public class OriginationCustomerController {
                                           BindingResult bindingResult,
                                           Model model){
 
-        if (pendingLoanApplicationId == null || loanOriginationService.getApplicationStatus(pendingLoanApplicationId) != ApplicationStatus.PRE_CHECKED) {
+        if (pendingLoanApplicationId == null || loanOriginationService.getApplicationStatus(pendingLoanApplicationId) != PendingLoanApplicationStatus.TERMS_SELECTED) {
             return "redirect:/loan/credit/" + type + "/inquiry";
         }
+
         if(bindingResult.hasErrors()){
             model.addAttribute("productSlug", type);
             return "loan/credit/loan-auth-form";
@@ -237,22 +239,6 @@ public class OriginationCustomerController {
         return "loan/credit/loan-auth-form";
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

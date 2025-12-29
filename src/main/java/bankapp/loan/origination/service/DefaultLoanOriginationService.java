@@ -2,9 +2,9 @@ package bankapp.loan.origination.service;
 
 import bankapp.loan.common.component.InterestRateCalculator;
 import bankapp.loan.exceptions.InvalidPendingLoan;
-import bankapp.loan.origination.model.ApplicationStatus;
 import bankapp.loan.origination.model.ExistingLoan;
 import bankapp.loan.origination.model.PendingLoanApplication;
+import bankapp.loan.origination.model.PendingLoanApplicationStatus;
 import bankapp.loan.origination.repository.PendingLoanApplicationRepository;
 import bankapp.loan.origination.web.request.ApplicationAuthRequest;
 import bankapp.loan.origination.web.request.CreditCheckRequest;
@@ -86,22 +86,23 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
         PendingLoanApplication draftApp = PendingLoanApplication.builder()
                 .member(member)
                 .loanProduct(loanProduct)
-                .status(ApplicationStatus.DRAFT)
+                .status(PendingLoanApplicationStatus.FINANCIAL_INFO_SUBMITTED)
                 .totalAssets(userInfoRequest.getTotalAssetsAmount())
                 .annualIncome(userInfoRequest.getAnnualIncomeAmount())
                 .fixedExpenses(userInfoRequest.getFixedExpensesAmount())
                 .build();
 
-        // 4. [핵심] 기존 대출 정보(DTO) -> 엔티티 변환 및 연관관계 설정
         if (allExistingLoans != null && !allExistingLoans.isEmpty()) {
             for (ExistingLoanResponse dto : allExistingLoans) {
 
                 ExistingLoan existingLoanEntity = ExistingLoan.builder()
                         .loanProductName(dto.getLoanProductName())
-                        .loanType(dto.getLoanType() != null ? dto.getLoanType() : "신용대출") // Null 방지
+                        .loanType(dto.getLoanType() != null ? dto.getLoanType() : "신용대출")
                         .loanAmount(dto.getLoanAmount())
+                        .remainingBalance(dto.getRemainingBalance())
                         .loanTerm(dto.getLoanTerm())
                         .repaymentMethodName(dto.getRepaymentMethodName())
+                        .interestRateTypeName(dto.getInterestRateTypeName())
                         .totalInterestRate(dto.getTotalInterestRate())
                         .isExternal(dto.isExternal())
                         .build();
@@ -117,7 +118,7 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
 
     @Override
     @Transactional
-    public void submitLoanApplication(Long pendingLoanApplicationId, ApplicationRequest request) {
+    public void selectLoanTerms(Long pendingLoanApplicationId, ApplicationRequest request) {
 
 
         PendingLoanApplication pendingApp = pendingLoanApplicationRepository.findById(pendingLoanApplicationId)
@@ -130,15 +131,13 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
         pendingApp.setRepaymentMethod(repaymentMethodService.findByMethodName(request.getRepaymentMethod()));
         pendingApp.setInterestRateType(interestRateTypeService.findByTypeName(request.getInterestRateType()));
 
-        pendingApp.setStatus(ApplicationStatus.PRE_CHECKED);
-
+        pendingApp.setStatus(PendingLoanApplicationStatus.TERMS_SELECTED);
 
     }
 
     @Override
     @Transactional
     public void completeOrigination(Long pendingLoanApplicationId , ApplicationAuthRequest applicationAuthRequest){
-
 
         // 1. 비밀번호 확인
         PendingLoanApplication pendingApp = pendingLoanApplicationRepository.findById(pendingLoanApplicationId)
@@ -148,22 +147,17 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
             throw new IncorrectPasswordException("비밀번호가 일치하지 않습니다.");
         }
 
-
         // 2. pendingLoanApplication 바탕으로 LoanApplication 만들기
         InterestRateInfoResponse interestRateInfoResponse = calculateInterestRate(pendingApp.getLoanProduct().getLoanProductSlug(),pendingLoanApplicationId);
         loanApplicationService.saveLoanApplication(pendingApp,interestRateInfoResponse);
 
         // 3. pendingLoanApplication 상태 신청 완료로 수정
-        // todo : 가심사를 위한 상태 따로 만드는게 낫겠다.
-        pendingApp.setStatus(ApplicationStatus.APPLIED);
+        pendingApp.setStatus(PendingLoanApplicationStatus.COMPLETED);
     }
-
-
-
 
     @Override
     @Transactional(readOnly = true)
-    public ApplicationStatus getApplicationStatus(Long pendingLoanApplicationId){
+    public PendingLoanApplicationStatus getApplicationStatus(Long pendingLoanApplicationId){
 
         PendingLoanApplication pendingApp = pendingLoanApplicationRepository.findById(pendingLoanApplicationId)
                 .orElseThrow(() -> new InvalidPendingLoan("신청 정보를 찾을 수 없습니다."));

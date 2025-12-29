@@ -29,13 +29,19 @@ public class ExistingLoan {
     private String loanType;
 
     @Column(nullable = false)
-    private BigDecimal loanAmount;
+    private BigDecimal loanAmount; // 대출 총액
+
+    @Column(nullable = false)
+    private BigDecimal remainingBalance; // 남은 대출금 (잔액)
 
     @Column(nullable = false)
     private Integer loanTerm;
 
     @Column(nullable = false)
     private String repaymentMethodName;
+
+    @Column(nullable = false)
+    private String interestRateTypeName;
 
     @Column(nullable = false)
     private BigDecimal totalInterestRate;

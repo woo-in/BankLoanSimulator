@@ -1,4 +1,4 @@
-package bankapp.loan.origination.model;
+package bankapp.loan.underwriting.model;
 
 public enum ContractStatus {
     ACTIVE,
