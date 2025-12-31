@@ -1,6 +1,6 @@
 package bankapp.loan.web.response;
 
-import bankapp.loan.origination.model.LoanApplication;
+import bankapp.loan.underwriting.model.LoanApplication;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -53,9 +53,9 @@ public class LoanApplicationCompleteResponse {
 
         response.setLoanAmount(application.getLoanAmount());
         response.setLoanTerm(application.getLoanTerm());
-        response.setAppliedBaseRate(application.getAppliedBaseRate());
-        response.setAppliedProductSpread(application.getAppliedProductSpread());
-        response.setAppliedCreditSpread(application.getAppliedCreditSpread());
+        response.setAppliedBaseRate(application.getBaseRate());
+        response.setAppliedProductSpread(application.getProductSpread());
+        response.setAppliedCreditSpread(application.getCreditSpread());
 
         if (application.getRepaymentMethod() != null) {
             response.setRepaymentMethodName(application.getRepaymentMethod().getMethodName());

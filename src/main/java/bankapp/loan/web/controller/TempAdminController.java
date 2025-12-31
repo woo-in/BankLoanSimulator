@@ -4,9 +4,9 @@ import bankapp.account.request.account.AccountTransactionRequest;
 import bankapp.account.request.open.OpenLoanAccountRequest;
 import bankapp.account.service.account.AccountService;
 import bankapp.account.service.check.AccountCheckService;
-import bankapp.loan.origination.model.LoanApplication;
+import bankapp.loan.underwriting.model.LoanApplication;
 import bankapp.loan.underwriting.model.LoanContract;
-import bankapp.loan.origination.service.LoanApplicationService;
+import bankapp.loan.underwriting.service.LoanApplicationService;
 import bankapp.loan.servicing.service.RepaymentBatchService;
 import bankapp.loan.origination.service.LoanContractService;
 import bankapp.loan.product.service.LoanProductService;
@@ -68,7 +68,7 @@ public class TempAdminController {
     public String rejectLoanApplication(@PathVariable("id") Long applicationId) {
 
         try {
-            loanApplicationService.rejectApplication(applicationId);
+//            loanApplicationService.rejectApplication(applicationId);
         } catch (Exception e) {
             log.error("대출 거절 처리 중 오류 발생", e);
             // 필요 시 에러 페이지나 플래시 메시지 처리

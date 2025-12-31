@@ -1,7 +1,6 @@
 package bankapp.loan.underwriting.model;
 
 import bankapp.account.model.account.LoanAccount;
-import bankapp.loan.origination.model.LoanApplication;
 import bankapp.loan.product.model.LoanProduct;
 import bankapp.loan.product.model.InterestRateType;
 import bankapp.loan.product.model.RepaymentMethod;

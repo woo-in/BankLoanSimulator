@@ -55,7 +55,7 @@ public class OriginationCustomerController {
 
     // todo : pendingLoan 이 대출 전반의 과정에 관여 하도록 리펙터링 (must refactor)
     // todo : 각 단계마다 , 고유의 상태로 관리해야 할듯 (같은 상태여도 뛰면 ?) - 가능
-
+    // todo : refactor : 계속 , interest_rate , loan_product 계산해서 넣어줌 (비효율적)
 
     @RequestMapping("/credit/{type}/inquiry")
     public String showLoanInquiryForm(@PathVariable("type") String type,
@@ -85,6 +85,8 @@ public class OriginationCustomerController {
         InterestRateInfoResponse interestRateInfoResponse = loanOriginationService.calculateInterestRate(type, userInfoRequest, allExistingLoans);
         LoanProductInfoResponse loanProductInfoResponse = creditLoanProductService.getLoanProductInfo(type);
 
+
+        // todo : 불편한점 : request DTO 를 인자로 보내는 점
 
         // todo : 새로 고침할 때마다 호출 , 멱등성 처리 필요할 수도 있음 (전체적으로 생각)
         Long savedApplicationId = loanOriginationService.startOrigination(loginMember,type , userInfoRequest ,allExistingLoans);
@@ -228,6 +230,9 @@ public class OriginationCustomerController {
 
 
         try {
+            // todo : rate -> dsr -> complete 가 무조건적 (필연)
+            loanOriginationService.setRate(pendingLoanApplicationId);
+            loanOriginationService.setDsr(pendingLoanApplicationId);
             loanOriginationService.completeOrigination(pendingLoanApplicationId ,applicationAuthRequest);
             return "loan/credit/application-complete";
         }catch(IncorrectPasswordException e){

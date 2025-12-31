@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -26,17 +27,15 @@ public class DsrCalculator {
     // 스트레스 DSR 적용 기준 금액 (1억 원)
     private static final BigDecimal STRESS_DSR_THRESHOLD = new BigDecimal("100000000");
 
+
+    // todo : 반드시 기존금리들이 모두 계산된 후 , pendingApp 에 저장된 후 호출
     /**
      * 스트레스 DSR 계산
      *
      * @param pendingApp  진행 중인 대출 신청 정보 (기존 대출 및 신청 조건 포함)
-     * @param newLoanRate 이번에 신청하는 대출의 확정(또는 예상) 금리
      * @return 계산된 DSR 값 (%)
      */
-
-    // 문제가 대출의 금리가 확정되어야 스트레스 Dsr 도 확정
-
-    public BigDecimal calculate(PendingLoanApplication pendingApp, BigDecimal newLoanRate) {
+    public BigDecimal calculate(PendingLoanApplication pendingApp) {
 
         BigDecimal annualIncome = pendingApp.getAnnualIncome();
         if (annualIncome.compareTo(BigDecimal.ZERO) == 0) {
@@ -44,7 +43,7 @@ public class DsrCalculator {
         }
 
         // 1. 총 신용대출 잔액 계산 (기존 신용대출 + 신규 신청금액)
-        BigDecimal totalCreditLoanBalance = calculateTotalCreditBalance(pendingApp);
+        BigDecimal totalCreditLoanBalance = calculateTotalBalance(pendingApp);
 
         // 2. 스트레스 금리 산출 (조건부 적용)
         BigDecimal stressRateToAdd = BigDecimal.ZERO;
@@ -63,9 +62,9 @@ public class DsrCalculator {
             totalAnnualPayment = totalAnnualPayment.add(calculateExistingAnnualPayment(loan));
         }
 
+
         // 3-2. 신규 대출 상환액 (스트레스 금리 반영)
-        // 실제 적용 금리 = 상품 금리 + 스트레스 가산 금리
-        BigDecimal effectiveRate = newLoanRate.add(stressRateToAdd);
+        BigDecimal effectiveRate = pendingApp.getFinalInterestRate().add(stressRateToAdd);
         BigDecimal newLoanPayment = calculateNewLoanAnnualPayment(pendingApp, effectiveRate);
 
         totalAnnualPayment = totalAnnualPayment.add(newLoanPayment);
@@ -77,16 +76,30 @@ public class DsrCalculator {
     }
 
     /**
-     * 총 신용대출 잔액 계산 (기존 신용대출 + 신청 금액)
+     * 총 대출 잔액 계산 (기존 대출 + 신청 금액)
      */
-    private BigDecimal calculateTotalCreditBalance(PendingLoanApplication app) {
-        BigDecimal existingCreditSum = app.getExistingLoans().stream()
-                // 타행/당행 구분 없이 '신용대출' 타입만 합산 (데이터에 따라 필터링 조건 조정 필요)
-                .filter(loan -> isCreditLoan(loan.getLoanType()))
-                .map(ExistingLoan::getLoanAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    private BigDecimal calculateTotalBalance(PendingLoanApplication app) {
+        BigDecimal totalBalance = BigDecimal.ZERO;
 
-        return existingCreditSum.add(app.getRequestLoanAmount());
+        if (app.getRequestLoanAmount() != null) {
+            totalBalance = totalBalance.add(app.getRequestLoanAmount());
+        }
+
+        List<ExistingLoan> existingLoans = app.getExistingLoans();
+
+        if (existingLoans != null) {
+            for (ExistingLoan loan : existingLoans) {
+                if (loan == null) {
+                    continue;
+                }
+                BigDecimal remainingBalance = loan.getRemainingBalance();
+                    if (remainingBalance != null) {
+                        totalBalance = totalBalance.add(remainingBalance);
+                    }
+                }
+            }
+
+        return totalBalance;
     }
 
     /**
@@ -172,10 +185,7 @@ public class DsrCalculator {
             return annualPrincipal.add(annualInterest);
         }
 
-        // 나머지 방식은 실제 상환액(또는 약식) 적용
-        // (구현 편의상 BriefDsrCalculator와 동일한 약식 로직 사용)
         return principal.multiply(rate).add(principal.divide(DEEMED_TERM_YEARS, 2, RoundingMode.HALF_UP));
-        // 실제로는 기존 대출의 잔여 만기 등을 고려해야 하나, 약식 계산기이므로 보수적으로 처리
     }
 
     // PMT 공식 (원리금균등 월 상환액)
@@ -192,12 +202,10 @@ public class DsrCalculator {
     // [Helper] 고정금리 여부 확인
     private boolean isFixedRate(PendingLoanApplication app) {
         if (app.getInterestRateType() == null) return false;
-        String typeName = app.getInterestRateType().getTypeName(); // 엔티티 구조에 맞춰 수정 필요
-        return typeName != null && (typeName.contains("FIXED") || typeName.contains("고정"));
+        String typeName = app.getInterestRateType().getTypeName();
+        String typeCode = app.getInterestRateType().getTypeCode();
+        return typeName != null && (typeCode.contains("BULLET") || typeName.contains("고정금리"));
     }
 
-    // [Helper] 신용대출 여부 확인
-    private boolean isCreditLoan(String loanType) {
-        return loanType != null && (loanType.contains("CREDIT") || loanType.contains("신용"));
-    }
+
 }

@@ -3,7 +3,7 @@ package bankapp.loan.origination.service;
 import bankapp.account.model.account.LoanAccount;
 import bankapp.account.request.open.OpenLoanAccountRequest;
 import bankapp.account.service.open.loan.OpenLoanAccountService;
-import bankapp.loan.origination.model.LoanApplication;
+import bankapp.loan.underwriting.model.LoanApplication;
 import bankapp.loan.underwriting.model.ContractStatus;
 import bankapp.loan.underwriting.model.LoanContract;
 import bankapp.loan.origination.repository.LoanContractRepository;
@@ -63,9 +63,9 @@ public class DefaultLoanContractService implements LoanContractService {
                 .loanApplication(application)
                 .member(application.getMember())
                 .loanProduct(application.getLoanProduct())
-                .contractBaseRate(application.getAppliedBaseRate())
-                .contractProductSpread(application.getAppliedProductSpread())
-                .contractCreditSpread(application.getAppliedCreditSpread())
+                .contractBaseRate(application.getBaseRate())
+                .contractProductSpread(application.getProductSpread())
+                .contractCreditSpread(application.getCreditSpread())
                 .repaymentMethod(application.getRepaymentMethod())
                 .interestRateType(application.getInterestRateType())
                 .loanAmount(application.getLoanAmount())

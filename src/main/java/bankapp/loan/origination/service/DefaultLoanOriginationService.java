@@ -2,6 +2,7 @@ package bankapp.loan.origination.service;
 
 import bankapp.loan.common.component.InterestRateCalculator;
 import bankapp.loan.exceptions.InvalidPendingLoan;
+import bankapp.loan.origination.component.DsrCalculator;
 import bankapp.loan.origination.model.ExistingLoan;
 import bankapp.loan.origination.model.PendingLoanApplication;
 import bankapp.loan.origination.model.PendingLoanApplicationStatus;
@@ -17,6 +18,7 @@ import bankapp.loan.origination.web.request.ApplicationRequest;
 import bankapp.loan.product.service.InterestRateTypeService;
 import bankapp.loan.product.service.LoanProductService;
 import bankapp.loan.product.service.RepaymentMethodService;
+import bankapp.loan.underwriting.service.LoanApplicationService;
 import bankapp.member.exceptions.IncorrectPasswordException;
 import bankapp.member.exceptions.MemberNotFoundException;
 import bankapp.member.model.Member;
@@ -38,6 +40,7 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
 
     // todo : refactor
 
+
     private final PendingLoanApplicationRepository pendingLoanApplicationRepository;
     private final LoanProductService loanProductService;
     private final RepaymentMethodService repaymentMethodService;
@@ -47,6 +50,7 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
     private final ObjectMapper objectMapper;
     private final InterestRateCalculator interestRateCalculator;
     private final LoanApplicationService loanApplicationService;
+    private final DsrCalculator dsrCalculator;
 
 
     @Autowired
@@ -57,7 +61,9 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
                                          LoanContractService loanContractService,
                                          PasswordEncoder passwordEncoder,
                                          ObjectMapper objectMapper,
-                                         InterestRateCalculator interestRateCalculator, LoanApplicationService loanApplicationService) {
+                                         InterestRateCalculator interestRateCalculator,
+                                         LoanApplicationService loanApplicationService,
+                                         DsrCalculator dsrCalculator) {
         this.pendingLoanApplicationRepository = pendingLoanApplicationRepository;
         this.loanProductService = loanProductService;
         this.repaymentMethodService = repaymentMethodService;
@@ -67,6 +73,7 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
         this.objectMapper = objectMapper;
         this.interestRateCalculator = interestRateCalculator;
         this.loanApplicationService = loanApplicationService;
+        this.dsrCalculator = dsrCalculator;
     }
 
 
@@ -148,8 +155,7 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
         }
 
         // 2. pendingLoanApplication 바탕으로 LoanApplication 만들기
-        InterestRateInfoResponse interestRateInfoResponse = calculateInterestRate(pendingApp.getLoanProduct().getLoanProductSlug(),pendingLoanApplicationId);
-        loanApplicationService.saveLoanApplication(pendingApp,interestRateInfoResponse);
+        loanApplicationService.saveLoanApplication(pendingApp);
 
         // 3. pendingLoanApplication 상태 신청 완료로 수정
         pendingApp.setStatus(PendingLoanApplicationStatus.COMPLETED);
@@ -247,7 +253,50 @@ public class DefaultLoanOriginationService implements LoanOriginationService{
 
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal getSelectionSpread(Long pendingLoanApplicationId){
+        PendingLoanApplication pendingApp = pendingLoanApplicationRepository.findById(pendingLoanApplicationId)
+                .orElseThrow(() -> new InvalidPendingLoan("진행 중인 대출 신청 정보를 찾을 수 없습니다. ID: " + pendingLoanApplicationId));
 
+        return interestRateCalculator.calculateSelectionSpread(pendingApp);
+    }
+
+    @Override
+    @Transactional
+    public void setRate(Long pendingLoanApplicationId){
+        PendingLoanApplication pendingApp = pendingLoanApplicationRepository.findById(pendingLoanApplicationId)
+                .orElseThrow(() -> new InvalidPendingLoan("진행 중인 대출 신청 정보를 찾을 수 없습니다. ID: " + pendingLoanApplicationId));
+
+        InterestRateInfoResponse interestRateInfoResponse = calculateInterestRate(pendingApp.getLoanProduct().getLoanProductSlug(),pendingLoanApplicationId);
+
+        BigDecimal selectionSpread = getSelectionSpread(pendingLoanApplicationId);
+        BigDecimal baseRate = interestRateInfoResponse.getBaseRate();
+        BigDecimal productSpread = interestRateInfoResponse.getProductSpread();
+        BigDecimal creditSpread = interestRateInfoResponse.getCreditSpread();
+        BigDecimal finalInterestRate = BigDecimal.ZERO.add(selectionSpread)
+                                                      .add(baseRate)
+                                                      .add(productSpread)
+                                                      .add(creditSpread);
+
+        pendingApp.setSelectionSpread(selectionSpread);
+        pendingApp.setBaseRate(baseRate);
+        pendingApp.setProductSpread(productSpread);
+        pendingApp.setCreditSpread(creditSpread);
+        pendingApp.setFinalInterestRate(finalInterestRate);
+
+        pendingLoanApplicationRepository.save(pendingApp);
+    }
+
+    @Override
+    @Transactional
+    public void setDsr(Long pendingLoanApplicationId){
+        PendingLoanApplication pendingApp = pendingLoanApplicationRepository.findById(pendingLoanApplicationId)
+                .orElseThrow(() -> new InvalidPendingLoan("진행 중인 대출 신청 정보를 찾을 수 없습니다. ID: " + pendingLoanApplicationId));
+
+        pendingApp.setDebtServiceRatio(dsrCalculator.calculate(pendingApp));
+        pendingLoanApplicationRepository.save(pendingApp);
+    }
 
 
 }

@@ -1,12 +1,9 @@
-package bankapp.loan.origination.service;
+package bankapp.loan.underwriting.service;
 
 import bankapp.loan.exceptions.InvalidLoanApplication;
-import bankapp.loan.origination.model.LoanApplication;
+import bankapp.loan.exceptions.LoanApplicationNotFoundException;
+import bankapp.loan.underwriting.model.LoanApplication;
 import bankapp.loan.origination.model.PendingLoanApplication;
-import bankapp.loan.origination.web.request.ApplicationRequest;
-import bankapp.loan.origination.web.response.InterestRateInfoResponse;
-import bankapp.loan.product.web.response.LoanProductInfoResponse;
-import bankapp.member.model.Member;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,32 +12,14 @@ import java.util.Optional;
  */
 public interface LoanApplicationService {
 
-    /**
-     * 고객의 대출 신청 정보를 접수하여 저장합니다.
-     * <p>
-     * 선택한 상품 정보, 산출된 금리 정보, 고객의 입력 정보를 결합하여
-     * 최종 대출 신청서(LoanApplication) 엔티티를 생성하고 '신청(APPLIED)' 상태로 저장합니다.
-     *
-     * @param applicationRequest   고객이 입력한 대출 신청 정보 (대출 금액, 기간, 상환 방식 등)
-     * @param loanProductInfoResponse  고객이 선택한 대출 상품의 상세 정보 (상품 규격 확인용)
-     * @param interestRateInfoResponse 사전에 산출된 금리 정보 (기준금리, 가산금리, 최종금리)
-     * @param loginMember              대출을 신청하는 로그인된 회원 엔티티
-     * @return DB에 저장된 대출 신청서 엔티티
-     */
-    LoanApplication saveLoanApplication(ApplicationRequest applicationRequest,
-                                        LoanProductInfoResponse loanProductInfoResponse,
-                                        InterestRateInfoResponse interestRateInfoResponse,
-                                        Member loginMember);
 
 
     /**
      * 고객의 대출 신청 정보를 접수하여 저장합니다.
      * 최종 대출 신청서(LoanApplication) 엔티티를 생성하고 '신청(APPLIED)' 상태로 저장합니다.
      * @param pendingLoanApplication   대출 신청 상태
-     * @param interestRateInfoResponse 현재 금리 정보
-     * @return DB에 저장된 대출 신청서 엔티티
      */
-    LoanApplication saveLoanApplication(PendingLoanApplication pendingLoanApplication , InterestRateInfoResponse interestRateInfoResponse);
+    void saveLoanApplication(PendingLoanApplication pendingLoanApplication);
 
 
 
@@ -55,12 +34,22 @@ public interface LoanApplicationService {
     List<LoanApplication> getAppliedApplications();
 
     /**
+     * 대출 신청 반환
+     * @param applicationId 대출 신청서의 고유 ID
+     * @return 심사 대기 중인 대출 신청서 리스트
+     * @throws LoanApplicationNotFoundException 대출신청서 없음
+     */
+    LoanApplication getLoanApplicationById(long applicationId) throws LoanApplicationNotFoundException;
+
+
+    /**
      * 특정 대출 신청 건을 '거절(REJECTED)' 처리합니다.
      * <p>
      * 해당 신청 건이 존재하지 않거나, 이미 처리된(승인/거절) 상태인 경우 예외가 발생할 수 있습니다.
      * @param applicationId 거절할 대출 신청서의 고유 ID
+     * @param reason 거절 이유
      */
-    void rejectApplication(Long applicationId) throws InvalidLoanApplication;
+    void rejectApplication(Long applicationId , String reason) throws InvalidLoanApplication;
 
     /**
      * 특정 대출 신청 건을 '승인(APPROVED)' 처리합니다.

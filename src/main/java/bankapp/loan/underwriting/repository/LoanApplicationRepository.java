@@ -1,7 +1,7 @@
-package bankapp.loan.origination.repository;
+package bankapp.loan.underwriting.repository;
 
-import bankapp.loan.origination.model.ApplicationStatus;
-import bankapp.loan.origination.model.LoanApplication;
+import bankapp.loan.underwriting.model.ApplicationStatus;
+import bankapp.loan.underwriting.model.LoanApplication;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 

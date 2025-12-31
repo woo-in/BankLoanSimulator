@@ -34,7 +34,7 @@ public interface LoanOriginationService {
 
 
     /**
-     * 사용자가 선택한 대출 조건(금액, 기간, 상환방식, 금리유형)을 반영하여 대출 신청을 제출합니다.
+     * 사용자가 선택한 대출 조건(금액, 기간, 상환방식, 금리유형)을 현재 대출 진행에 반영
      *
      * @param pendingLoanApplicationId 대출 진행 식별 키
      * @param request                  사용자가 입력한 확정 대출 조건 정보
@@ -116,6 +116,33 @@ public interface LoanOriginationService {
      * @return 신청 정보
      */
     ApplicationResponse getApplicationResponse(Long pendingLoanApplicationId) throws InvalidPendingLoan;
+
+
+    /**
+     * 키를 바탕으로 리스크 감면 금리 반환
+     * @param pendingLoanApplicationId 대출 진행 식별 키
+     * @throws InvalidPendingLoan 유효하지 않은 신청 ID일 경우 발생
+     * @return 리스크 감면 금리
+     */
+    BigDecimal getSelectionSpread(Long pendingLoanApplicationId) throws InvalidPendingLoan;
+
+
+
+    /**
+     * 키를 바탕으로 신청 당시 금리 정보 저장
+     * @param pendingLoanApplicationId 대출 진행 식별 키
+     * @throws InvalidPendingLoan 유효하지 않은 신청 ID일 경우 발생
+     */
+    void setRate(Long pendingLoanApplicationId) throws InvalidPendingLoan;
+
+
+    /**
+     * 키를 바탕으로 신청 당시 최종 Dsr 정보 저장
+     * @param pendingLoanApplicationId 대출 진행 식별 키
+     * @throws InvalidPendingLoan 유효하지 않은 신청 ID일 경우 발생
+     */
+    void setDsr(Long pendingLoanApplicationId)  throws InvalidPendingLoan;
+
 
 
 }

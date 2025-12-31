@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>대출 신청 관리 - 우인은행</title>
+    <style>
+        /* admin-home.html의 스타일 유지 */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+
+        /* 헤더 스타일 */
+        .header { padding: 10px 0; margin-bottom: 30px; background-color: #f0f2f5; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .logo { display: flex; align-items: center; font-size: 24px; font-weight: bold; color: #333; text-decoration: none;}
+        .admin-badge { background-color: #333; color: white; padding: 4px 8px; border-radius: 6px; font-size: 12px; margin-left: 10px; }
+
+        /* 테이블 스타일 */
+        .table-container {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .page-title { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 20px; }
+
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { color: #888; font-weight: 600; background-color: #fafafa; }
+
+        /* 행 클릭 시 효과 */
+        tr.clickable-row { cursor: pointer; transition: background-color 0.2s; }
+        tr.clickable-row:hover { background-color: #f8f9fa; }
+
+        /* 상태 배지 스타일 */
+        .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-APPLIED { background-color: #e3f2fd; color: #2196f3; }      /* 파란색 */
+        .status-APPROVED { background-color: #e8f5e9; color: #4caf50; }     /* 초록색 */
+        .status-REJECTED { background-color: #ffebee; color: #f44336; }     /* 빨간색 */
+        .status-CONTRACTED { background-color: #f3e5f5; color: #9c27b0; }   /* 보라색 */
+
+        /* 뒤로가기 링크 */
+        .back-link { display: inline-block; margin-bottom: 20px; color: #4a90e2; text-decoration: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-top">
+        <a href="/admin/home" class="logo">
+            우인은행 <span class="admin-badge">ADMIN</span>
+        </a>
+    </div>
+</header>
+
+<a href="/admin/home" class="back-link">← 관리자 홈으로</a>
+
+<div class="table-container">
+    <div class="page-title">📑 대출 신청 내역</div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>신청 ID</th>
+            <th>회원 (ID)</th>
+            <th>상품명</th>
+            <th>상품 타입</th>
+            <th>최종 금리</th>
+            <th>DSR</th>
+            <th>상태</th>
+            <th>신청일</th>
+            <th>최종 수정</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(briefAppliedLoanApplicationResponses)}">
+            <td colspan="9" style="text-align: center; padding: 30px; color: #999;">
+                아직 접수된 대출 신청이 없습니다.
+            </td>
+        </tr>
+
+        <tr th:each="app : ${briefAppliedLoanApplicationResponses}"
+            class="clickable-row"
+            th:onclick="|location.href='@{/admin/loan/loan-applications/{id}(id=${app.loanApplicationId})}'|">
+
+            <td th:text="'#' + ${app.loanApplicationId}">#1023</td>
+            <td>
+                <span th:text="${app.memberName}">홍길동</span>
+                <span style="color:#999; font-size:12px;" th:text="'(' + ${app.memberId} + ')'">(1)</span>
+            </td>
+
+            <td th:text="${app.loanProductName}">직장인 신용대출</td>
+
+            <td th:text="${app.loanProductType}">CreditLoan</td>
+
+            <td th:text="${app.finalInterestRate} + '%'">5.5%</td>
+            <td th:text="${app.debtServiceRatio} + '%'">30.0%</td>
+
+            <td>
+                <span class="status-badge"
+                      th:classappend="'status-' + ${app.applicationStatus}"
+                      th:text="${app.applicationStatus.description}">
+                    신청 완료
+                </span>
+            </td>
+
+            <td th:text="${#temporals.format(app.createdAt, 'yyyy-MM-dd HH:mm')}">2023-01-01</td>
+            <td th:text="${#temporals.format(app.updatedAt, 'yyyy-MM-dd HH:mm')}">2023-01-01</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

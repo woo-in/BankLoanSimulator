@@ -5,6 +5,8 @@ import bankapp.infra.client.bok.BokInterestRateDto;
 import bankapp.loan.exceptions.BaseRateFetchException;
 import bankapp.loan.exceptions.LoanProductNotFoundException;
 import bankapp.loan.origination.component.LoanInquiryScorer;
+import bankapp.loan.origination.component.SelectionSpreadCalculator;
+import bankapp.loan.origination.model.PendingLoanApplication;
 import bankapp.loan.product.service.CreditLoanProductService;
 import bankapp.loan.origination.web.request.CreditCheckRequest;
 import bankapp.loan.origination.web.response.InterestRateInfoResponse;
@@ -25,6 +27,7 @@ public class InterestRateCalculator {
     private final BokApiClient bokApiClient;
     private final CreditLoanProductService creditLoanProductService;
     private final LoanInquiryScorer loanInquiryScorer;
+    private final SelectionSpreadCalculator selectionSpreadCalculator;
 
     // todo : 임시 설정 입니다. 실제 (대출신청금/대출기간/상환방법/금리종류) 테이블을 등록하면 , 수치를 바꿔야 합니다.
     private static final BigDecimal MIN_SELECTION_SPREAD = new BigDecimal("0.00");
@@ -33,10 +36,12 @@ public class InterestRateCalculator {
     @Autowired
     public InterestRateCalculator(BokApiClient bokApiClient ,
                                   CreditLoanProductService creditLoanProductService,
-                                  LoanInquiryScorer loanInquiryScorer) {
+                                  LoanInquiryScorer loanInquiryScorer,
+                                  SelectionSpreadCalculator selectionSpreadCalculator) {
         this.bokApiClient = bokApiClient;
         this.creditLoanProductService = creditLoanProductService;
         this.loanInquiryScorer = loanInquiryScorer;
+        this.selectionSpreadCalculator = selectionSpreadCalculator;
     }
 
     /**
@@ -188,6 +193,14 @@ public class InterestRateCalculator {
     public BigDecimal calculateCreditSpread(CreditCheckRequest request) {
         return loanInquiryScorer.getCreditSpread(request);
     }
+
+    /**
+     * 리스크 감면 금리 반환
+     */
+    public BigDecimal calculateSelectionSpread(PendingLoanApplication pendingLoanApplication){
+        return selectionSpreadCalculator.calculate(pendingLoanApplication);
+    }
+
 
 
 

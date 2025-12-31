@@ -1,8 +1,8 @@
 package bankapp.loan.web.controller;
 
 import bankapp.loan.common.component.InterestRateCalculator;
-import bankapp.loan.origination.model.LoanApplication;
-import bankapp.loan.origination.service.LoanApplicationService;
+import bankapp.loan.underwriting.model.LoanApplication;
+import bankapp.loan.underwriting.service.LoanApplicationService;
 import bankapp.loan.product.service.CreditLoanProductService;
 import bankapp.loan.web.response.LoanApplicationCompleteResponse;
 import jakarta.servlet.http.HttpSession;

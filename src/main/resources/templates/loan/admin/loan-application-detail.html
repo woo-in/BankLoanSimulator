@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>대출 심사 상세 - 우인은행</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background-color: #f5f7fa; margin: 0; padding: 20px; color: #333; }
+
+    /* 레이아웃 & 카드 */
+    .container { max-width: 1000px; margin: 0 auto; }
+    .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .back-link { text-decoration: none; color: #555; font-size: 14px; font-weight: 600; padding: 8px 12px; background: white; border-radius: 6px; border: 1px solid #ddd; transition: all 0.2s; }
+    .back-link:hover { background-color: #f0f0f0; border-color: #bbb; }
+
+    .card { background: white; border-radius: 16px; padding: 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #eaecf0; }
+
+    /* 섹션 타이틀 */
+    .section-header { display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eaecf0; }
+    .section-icon { font-size: 20px; margin-right: 10px; }
+    .section-title { font-size: 18px; font-weight: 700; color: #1a1a1a; margin: 0; }
+
+    /* 그리드 시스템 */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+    .info-row { margin-bottom: 20px; }
+    .label { display: block; font-size: 13px; color: #667085; margin-bottom: 6px; font-weight: 500; }
+    .value { font-size: 16px; color: #101828; font-weight: 600; line-height: 1.5; }
+    .sub-text { font-size: 13px; color: #98a2b3; font-weight: 400; margin-left: 6px; }
+
+    /* 강조 텍스트 */
+    .highlight-value { font-size: 24px; font-weight: 800; color: #101828; letter-spacing: -0.5px; }
+    .unit { font-size: 16px; color: #667085; font-weight: 600; margin-left: 2px; }
+
+    /* 상태 배지 */
+    .status-badge { padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; }
+    .status-badge::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; background-color: currentColor; }
+
+    .status-APPLIED { background-color: #eff8ff; color: #175cd3; } /* 파랑 */
+    .status-APPROVED { background-color: #ecfdf3; color: #027a48; } /* 초록 */
+    .status-REJECTED { background-color: #fef3f2; color: #b42318; } /* 빨강 */
+    .status-CONTRACTED { background-color: #f9f5ff; color: #6941c6; } /* 보라 */
+    .status-UNKNOWN { background-color: #f2f4f7; color: #344054; } /* 회색 */
+
+    /* 금리 테이블 스타일 */
+    .rate-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #eaecf0; border-radius: 12px; overflow: hidden; }
+    .rate-table th, .rate-table td { padding: 12px 20px; text-align: left; }
+    .rate-table th { background-color: #f9fafb; font-weight: 600; color: #475467; font-size: 13px; border-bottom: 1px solid #eaecf0; }
+    .rate-table td { font-size: 14px; color: #344054; border-bottom: 1px solid #eaecf0; }
+    .rate-table tr:last-child td { border-bottom: none; }
+    .rate-table .total-row td { background-color: #fcfcfd; font-weight: 700; color: #101828; font-size: 16px; }
+
+    /* DSR 경고 박스 */
+    .dsr-safe { color: #027a48; }
+    .dsr-warning { color: #b42318; }
+    .alert-box { margin-top: 8px; font-size: 13px; padding: 10px; border-radius: 8px; display: flex; align-items: center; }
+    .alert-warning { background-color: #fef3f2; color: #b42318; border: 1px solid #fecdca; }
+
+    /* 버튼 영역 */
+    .action-area { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eaecf0; }
+    .btn { padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+
+    .btn-approve { background-color: #1570ef; color: white; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05); }
+    .btn-approve:hover { background-color: #175cd3; }
+
+    .btn-reject { background-color: white; color: #b42318; border-color: #fda29b; }
+    .btn-reject:hover { background-color: #fef3f2; border-color: #fda29b; }
+
+    .btn-cancel { background-color: white; color: #344054; border-color: #d0d5dd; }
+    .btn-cancel:hover { background-color: #f9fafb; }
+
+    /* 거절 폼 */
+    .reject-box { display: none; margin-top: 20px; background: #fffbfa; border: 1px solid #fecdca; border-radius: 12px; padding: 20px; }
+    .reject-textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #d0d5dd; border-radius: 8px; font-family: inherit; margin: 10px 0; resize: none; box-sizing: border-box; }
+    .reject-textarea:focus { outline: none; border-color: #b42318; box-shadow: 0 0 0 4px rgba(240, 68, 56, 0.24); }
+  </style>
+
+  <script>
+    function toggleRejectForm() {
+      const form = document.getElementById('rejectFormBox');
+      const btns = document.getElementById('mainActionBtns');
+
+      if(form.style.display === 'none' || form.style.display === '') {
+        form.style.display = 'block';
+        btns.style.display = 'none';
+      } else {
+        form.style.display = 'none';
+        btns.style.display = 'flex';
+      }
+    }
+  </script>
+</head>
+<body>
+
+<div class="container">
+  <div class="header-nav">
+    <a href="/admin/loan/loan-applications" class="back-link">← 목록으로</a>
+    <div style="font-size: 13px; color: #667085;">
+      데이터 기준: <span th:text="${#temporals.format(loanApplication.updatedAt, 'yyyy-MM-dd HH:mm:ss')}"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <h1 style="margin: 0; font-size: 24px; color: #101828;">대출 신청 상세</h1>
+        <div style="margin-top: 8px; color: #667085; font-size: 14px;">
+          신청번호 <span style="font-family: monospace; font-weight: 600; color: #344054;" th:text="'#' + ${loanApplication.loanApplicationId}">#1001</span>
+          <span style="margin: 0 8px;">•</span>
+          신청일시 <span th:text="${#temporals.format(loanApplication.createdAt, 'yyyy-MM-dd HH:mm')}">2023-01-01</span>
+        </div>
+      </div>
+
+      <div>
+        <span class="status-badge"
+              th:classappend="${loanApplication.applicationStatus != null} ? 'status-' + ${loanApplication.applicationStatus} : 'status-UNKNOWN'"
+              th:text="${loanApplication.applicationStatus?.description} ?: '상태 미정'">
+            심사 대기
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="section-header">
+        <span class="section-icon">👤</span>
+        <h3 class="section-title">신청인 정보</h3>
+      </div>
+
+      <div class="info-row">
+        <span class="label">고객명</span>
+        <span class="value">
+            <span th:text="${loanApplication.memberName}">홍길동</span>
+            <span class="sub-text" th:text="'(ID: ' + ${loanApplication.memberId} + ')'">(ID: 1)</span>
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="label">신청 상품</span>
+        <div class="value" th:text="${loanApplication.loanProductName}">직장인 신용대출</div>
+        <div class="sub-text" th:text="${loanApplication.loanProductType}">CREDIT</div>
+      </div>
+      <div class="info-row">
+        <span class="label">상환 및 금리 방식</span>
+        <span class="value">
+            <span th:text="${loanApplication.repaymentMethodName}">원리금균등</span>
+            <span style="color:#d0d5dd; margin:0 4px;">|</span>
+            <span th:text="${loanApplication.interestRateTypeName}">고정금리</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-header">
+        <span class="section-icon">💰</span>
+        <h3 class="section-title">대출 조건</h3>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <span class="label">신청 금액</span>
+          <span class="highlight-value" th:text="${#numbers.formatInteger(loanApplication.loanAmount, 0, 'COMMA')}">50,000,000</span>
+          <span class="unit">원</span>
+        </div>
+        <div>
+          <span class="label">대출 기간</span>
+          <span class="highlight-value" th:text="${loanApplication.loanTerm}">24</span>
+          <span class="unit">개월</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 25px;">
+        <span class="label">DSR (총부채원리금상환비율)</span>
+        <span class="value"
+              th:classappend="${loanApplication.debtServiceRatio > 40} ? 'dsr-warning' : 'dsr-safe'"
+              th:text="${loanApplication.debtServiceRatio} + '%'">
+            35.5%
+        </span>
+
+        <div th:if="${loanApplication.debtServiceRatio > 40}" class="alert-box alert-warning">
+          ⚠️ 규제 비율(40%)을 초과했습니다. 거절 사유에 해당합니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-header">
+      <span class="section-icon">📊</span>
+      <h3 class="section-title">금리 산출 내역</h3>
+    </div>
+
+    <table class="rate-table">
+      <thead>
+      <tr>
+        <th>구분</th>
+        <th style="text-align: right;">적용 비율</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td>기준 금리 (Base Rate)</td>
+        <td style="text-align: right;" th:text="${loanApplication.baseRate} + '%'">3.50%</td>
+      </tr>
+      <tr>
+        <td>상품 가산 금리 (Product Spread)</td>
+        <td style="text-align: right;" th:text="'+ ' + ${loanApplication.productSpread} + '%'">1.50%</td>
+      </tr>
+      <tr>
+        <td>신용 가산 금리 (Credit Spread)</td>
+        <td style="text-align: right;" th:text="'+ ' + ${loanApplication.creditSpread} + '%'">0.50%</td>
+      </tr>
+      <tr>
+        <td>우대/조정 금리 (Selection Spread)</td>
+        <td style="text-align: right;" th:text="${loanApplication.selectionSpread} + '%'">0.00%</td>
+      </tr>
+      <tr class="total-row">
+        <td>최종 적용 금리</td>
+        <td style="text-align: right; color: #1570ef;" th:text="${loanApplication.finalInterestRate} + '%'">5.50%</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" th:if="${loanApplication.applicationStatus != null and loanApplication.applicationStatus.name() == 'APPLIED'}">
+    <div class="section-header" style="border-bottom: none; margin-bottom: 0;">
+      <span class="section-icon">⚡</span>
+      <h3 class="section-title">심사 처리</h3>
+    </div>
+    <p style="color: #667085; font-size: 14px; margin-top: 5px;">
+      상기 정보를 검토한 후 승인 또는 거절 처리를 진행해주세요.
+    </p>
+
+    <div id="mainActionBtns" class="action-area">
+      <button type="button" class="btn btn-reject" onclick="toggleRejectForm()">거절 (Reject)</button>
+
+      <form th:action="@{/admin/loan/loan-applications/{id}/approve(id=${loanApplication.loanApplicationId})}" method="post"
+            onsubmit="return confirm('최종 승인하시겠습니까?');">
+        <button type="submit" class="btn btn-approve">승인 (Approve)</button>
+      </form>
+    </div>
+
+    <div id="rejectFormBox" class="reject-box">
+      <form th:action="@{/admin/loan/loan-applications/{id}/reject(id=${loanApplication.loanApplicationId})}" method="post">
+        <h4 style="margin: 0 0 10px 0; color: #b42318; font-size: 15px;">🚫 거절 사유 입력</h4>
+        <p style="font-size: 13px; color: #667085;">고객에게 안내될 구체적인 사유를 입력하세요.</p>
+
+        <textarea name="reason" class="reject-textarea" placeholder="예: DSR 기준 초과(45%) 및 최근 연체 이력 존재" required></textarea>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn btn-cancel" onclick="toggleRejectForm()">취소</button>
+          <button type="submit" class="btn btn-reject" style="background-color: #b42318; color: white;">거절 확정</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
