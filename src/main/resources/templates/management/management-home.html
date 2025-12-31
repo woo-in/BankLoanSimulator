@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>우인은행 - 관리</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* --- Header & Nav Style (loan-home.html과 동일) --- */
+        .header {
+            padding: 10px 0;
+            margin-bottom: 20px;
+            background-color: #f0f2f5;
+            position: sticky;
+            top: 0;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .logo { display: flex; align-items: center; }
+        .logo-shape-container { position: relative; width: 35px; height: 25px; margin-right: 10px; }
+        .circle-1, .circle-2 { position: absolute; width: 25px; height: 25px; border-radius: 50%; }
+        .circle-1 { background-color: #4a90e2; top: 0; left: 0; }
+        .circle-2 { background-color: #74ebd5; opacity: 0.8; top: 0; right: 0; }
+        .logo-text { font-size: 24px; font-weight: bold; color: #333; }
+        .logout-button { background: none; border: none; color: #555; font-weight: bold; font-size: 14px; cursor: pointer; padding: 8px; transition: color 0.2s; }
+        .logout-button:hover { color: #000; }
+
+        .main-nav { display: flex; justify-content: flex-start; align-items: center; border-bottom: 1px solid #ddd; }
+        .nav-tabs { display: flex; gap: 20px; }
+        .nav-item { font-size: 22px; font-weight: bold; color: #888; text-decoration: none; padding-bottom: 10px; border-bottom: 3px solid transparent; transition: color 0.2s; }
+        .nav-item:hover { color: #333; }
+
+        /* 활성화 상태 스타일 */
+        .nav-item.active { color: #333; border-bottom-color: #4a90e2; }
+
+
+        /* --- 관리 메뉴 카드 스타일 --- */
+        .management-card {
+            background-color: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-top: 20px;
+        }
+
+        .menu-header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 0;
+            margin-bottom: 30px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 제목 옆에 작은 포인트 바 */
+        .menu-header::before {
+            content: '';
+            display: inline-block;
+            width: 5px;
+            height: 24px;
+            background-color: #4a90e2;
+            margin-right: 12px;
+            border-radius: 3px;
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* 카드를 조금 더 넓게 잡음 */
+            gap: 20px;
+        }
+
+        .service-item {
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            border-radius: 16px;
+            background-color: #fff;
+            border: 1px solid #eef1f5; /* 옅은 테두리 추가 */
+            text-decoration: none;
+            color: #333;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .service-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.15); /* 파란색 틴트 그림자 */
+            border-color: #4a90e2;
+        }
+
+        .service-item-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .service-item-title {
+            font-size: 19px;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+            color: #2c3e50;
+        }
+
+        .service-item-desc {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* 상태 뱃지 (예: 진행중 1건) - 필요시 사용 */
+        .count-badge {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-top">
+        <div class="logo">
+            <div class="logo-shape-container">
+                <div class="circle-1"></div>
+                <div class="circle-2"></div>
+            </div>
+            <div class="logo-text" th:text="#{bankName}">우인은행</div>
+        </div>
+        <form th:action="@{/logout}" method="post" style="margin: 0;">
+            <button type="submit" class="logout-button">로그아웃</button>
+        </form>
+    </div>
+    <nav class="main-nav">
+        <div class="nav-tabs">
+            <a href="/" class="nav-item">통장</a>
+            <a href="/management" class="nav-item active">관리</a>
+            <a href="/product" class="nav-item">상품찾기</a>
+            <a href="/feature" class="nav-item">서비스</a>
+        </div>
+    </nav>
+</header>
+
+<main>
+    <section class="management-card">
+        <h2 class="menu-header">나의 대출 관리</h2>
+
+        <div class="service-grid">
+
+            <a href="/management/loan/applications" class="service-item">
+                <div class="service-item-icon">📋</div>
+                <h3 class="service-item-title">
+                    신청 내역 조회
+                </h3>
+                <p class="service-item-desc">현재 심사 중이거나 승인 대기 중인 대출 신청 내역을 확인합니다.</p>
+            </a>
+
+            <a href="/management/loan/contracts" class="service-item">
+                <div class="service-item-icon">📑</div>
+                <h3 class="service-item-title">계약 및 이용 관리</h3>
+                <p class="service-item-desc">이용 중인 대출 계좌의 상세 정보, 금리, 만기일을 조회합니다.</p>
+            </a>
+
+            <a href="/management/loan/repayments" class="service-item">
+                <div class="service-item-icon">💸</div>
+                <h3 class="service-item-title">대출금 상환</h3>
+                <p class="service-item-desc">원금 및 이자를 납부하거나, 중도 상환 예상 금액을 조회합니다.</p>
+            </a>
+
+            <a href="#" class="service-item" onclick="alert('준비 중인 기능입니다.'); return false;">
+                <div class="service-item-icon">🖨️</div>
+                <h3 class="service-item-title">증명서 발급</h3>
+                <p class="service-item-desc">금융거래확인서, 부채증명서 등 대출 관련 서류를 발급받습니다.</p>
+            </a>
+
+        </div>
+    </section>
+</main>
+</body>
+</html>

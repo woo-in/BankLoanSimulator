@@ -68,8 +68,10 @@
 
         .main-nav {
             display: flex;
-            justify-content: space-between;
+            /* 우측 버튼이 사라졌으므로 왼쪽 정렬 혹은 space-between 유지 */
+            justify-content: flex-start;
             align-items: center;
+            border-bottom: 1px solid #ddd; /* 탭 느낌을 살리기 위해 하단 라인 추가 */
         }
 
         .nav-tabs {
@@ -96,20 +98,7 @@
             border-bottom-color: #4a90e2;
         }
 
-        .nav-management {
-            font-size: 14px;
-            font-weight: bold;
-            background: linear-gradient(to right, #6a82fb, #fc5c7d);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            padding: 8px 16px;
-            text-decoration: none;
-            transition: opacity 0.2s;
-        }
-        .nav-management:hover {
-            opacity: 0.8;
-        }
+        /* 기존 nav-management 스타일은 HTML에서 요소가 삭제되었으므로 무시됩니다 */
 
         .account-card, .transaction-history {
             background-color: white;
@@ -117,6 +106,7 @@
             border-radius: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             margin-bottom: 20px;
+            margin-top: 20px; /* 네비게이션과 간격 확보 */
         }
 
         .account-info { font-size: 16px; color: #555; margin-bottom: 8px; }
@@ -128,19 +118,6 @@
         .btn-send { background-color: #4a90e2; color: white; }
         .btn-send:hover { background-color: #357ABD; }
         .history-header { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
-        .transaction-list { list-style: none; padding: 0; margin: 0; }
-        .transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 5px; border-bottom: 1px solid #f0f2f5; }
-        .transaction-item:last-child { border-bottom: none; }
-        .transaction-details { text-align: left; }
-        .transaction-desc { font-size: 16px; font-weight: 500; color: #333; margin: 0 0 4px 0; }
-        .transaction-meta { font-size: 13px; color: #888; }
-        .transaction-amount { text-align: right; }
-        .amount { font-size: 17px; font-weight: bold; }
-        .amount.credit { color: #4a90e2; }
-        .amount.debit { color: #333; }
-        .balance-after { font-size: 13px; color: #888; }
-
-
     </style>
 </head>
 <body>
@@ -158,14 +135,16 @@
             <button type="submit" class="logout-button">로그아웃</button>
         </form>
     </div>
+
     <nav class="main-nav">
         <div class="nav-tabs">
             <a href="/" class="nav-item active">통장</a>
-            <a href="/" class="nav-item">내 자산</a>
+
+            <a href="/management" class="nav-item">관리</a>
+
             <a href="/product" class="nav-item">상품찾기</a>
             <a href="/feature" class="nav-item">서비스</a>
         </div>
-        <a href="#" class="nav-management">관리</a>
     </nav>
 </header>
 
