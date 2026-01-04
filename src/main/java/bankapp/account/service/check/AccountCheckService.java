@@ -6,6 +6,8 @@ import bankapp.account.model.account.Account;
 import bankapp.account.model.account.PrimaryAccount;
 import bankapp.member.model.Member;
 
+import java.util.List;
+
 /**
  * 계좌 정보의 존재 여부를 확인하거나, 특정 조건에 맞는 계좌를 조회하는 비즈니스 로직 명세를 정의합니다.
  * 주로 다른 서비스에서 유효성 검증 목적으로 사용됩니다.
@@ -70,6 +72,13 @@ public interface AccountCheckService {
 
 
 
+    /**
+     * 입출금이 가능한 계좌 목록만 조회합니다.
+     *
+     * @param member 회원
+     * @return 입출금 가능한 계좌만 반환 합니다.
+     */
+    public List<Account> findDepositAccountsByMember(Member member);
 
 
 }

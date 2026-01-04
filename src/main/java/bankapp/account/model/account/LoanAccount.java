@@ -1,18 +1,11 @@
 package bankapp.account.model.account;
 
 
-import bankapp.account.request.open.OpenLoanAccountRequest;
-import bankapp.loan.underwriting.model.LoanContract;
-import bankapp.loan.servicing.model.LoanRepaymentTransaction;
-import bankapp.loan.servicing.model.OverdueRepaymentSchedule;
-import bankapp.loan.servicing.model.RepaymentSchedule;
+import bankapp.loan.underwriting.model.LoanApplication;
 import bankapp.member.model.Member;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 
 @Entity
@@ -24,89 +17,62 @@ import java.util.List;
 public class LoanAccount extends Account {
 
 
-    // todo : 상환 출금 계좌 바꾸기 기능 추가
+    // --- [필드 정의] ---
+
+    // 1. 상환 관련 변동 가능 정보
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "repayment_account_id", nullable = false)
-    private Account repaymentAccount;
+    private Account repaymentAccount; // 자동이체 출금 계좌 (변경 가능)
+
+    @Column(nullable = false)
+    private Integer paymentDay; // 매월 결제일 (변경 가능)
 
 
-    @OneToMany(
-            mappedBy = "loanAccount",
-            fetch = FetchType.LAZY
-    )
-    private List<LoanContract> loanContracts = new ArrayList<>();
+    // 2. 기록용 불변 정보
+    @Column(name = "disbursement_account_number")
+    private String disbursementAccountNumber; // 최초 입금받은 계좌번호 (기록용)
 
-    @OneToMany(
-            mappedBy = "loanAccount",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<RepaymentSchedule> repaymentSchedules = new ArrayList<>();
-
-    @OneToMany(
-            mappedBy = "loanAccount",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<OverdueRepaymentSchedule> overdueRepaymentSchedules = new ArrayList<>();
-
-    @OneToMany(
-            mappedBy = "loanAccount",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<LoanRepaymentTransaction> loanRepaymentTransactions = new ArrayList<>();
-
-
-
-
-
-
-
+    // 3. 대출 상태 관리
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private LoanStatus loanStatus;
+    private LoanStatus loanStatus; // NORMAL, OVERDUE, PAID_OFF 등
 
-
-    public LoanAccount(Account repaymentAccount, Member member, String accountNumber, BigDecimal balance, String nickname, AccountStatus status) {
-        super(member, accountNumber, balance, nickname, status);
+    // --- [생성자 (Builder 패턴 대용)] ---
+    @Builder
+    public LoanAccount(Member member, String accountNumber, BigDecimal balance, String nickname, AccountStatus status,
+                       Account repaymentAccount, Integer paymentDay, String disbursementAccountNumber, LoanStatus loanStatus) {
+        super(member, accountNumber, balance, nickname, status); // 부모(Account) 필드 초기화
         this.repaymentAccount = repaymentAccount;
-        // todo : 일단 생성하자마자 normal 로 세팅
-        this.loanStatus = LoanStatus.NORMAL;
+        this.paymentDay = paymentDay;
+        this.disbursementAccountNumber = disbursementAccountNumber;
+        this.loanStatus = loanStatus;
     }
 
-    public static LoanAccount from(OpenLoanAccountRequest openLoanAccountRequest,
-                                   Member member,
-                                   String accountNumber)  {
+    // --- [핵심: 정적 팩토리 메서드] ---
+    /**
+     * LoanApplication(신청서) 정보를 바탕으로 LoanAccount(계좌)를 생성합니다.
+     * @param application 승인된 대출 신청서
+     * @param newAccountNumber 생성된 계좌번호
+     */
+    public static LoanAccount createFrom(LoanApplication application, String newAccountNumber) {
+        return LoanAccount.builder()
+                .member(application.getMember())
+                .accountNumber(newAccountNumber)
+                // 대출 계좌의 잔액 = 대출 원금 (양수로 관리한다고 가정, 상환 시 줄어듦)
+                .balance(application.getApprovedLoanAmount())
+                .nickname(application.getLoanProduct().getLoanProductName()) // 상품명을 닉네임으로
+                .status(AccountStatus.ACTIVE) // 계좌 상태 활성
 
-        // 수정된 생성자를 호출
-        return new LoanAccount(
-                openLoanAccountRequest.getRepaymentAccount(),
-                member,
-                accountNumber,
-                openLoanAccountRequest.getBalance(),
-                openLoanAccountRequest.getNickname(),
-                AccountStatus.ACTIVE
-        );
+                // 가변 정보 매핑
+                .repaymentAccount(application.getRepaymentAccount())
+                .paymentDay(application.getPaymentDay())
+                .disbursementAccountNumber(application.getDisbursementAccount().getAccountNumber())
+
+                .loanStatus(LoanStatus.NORMAL) // 대출 상태 정상
+                .build();
     }
 
 
-//     미상환 이자
-//    @Column(nullable = false)
-//    private BigDecimal outstandingInterest = BigDecimal.ZERO;
 
-//    //
-//    @Column(nullable = false)
-//    private BigDecimal totalOverdueAmount = BigDecimal.ZERO;
 
-    // todo : 다음에 언제 갚을지 예정일
-//    @Column(nullable = false)
-//    private LocalDateTime nextPaymentDate;
-
-    // todo : 연속 연체 횟수
-//    @Column(nullable = false)
-//    private Integer consecutiveOverdueCount ;
 }

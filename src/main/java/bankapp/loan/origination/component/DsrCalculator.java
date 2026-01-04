@@ -3,6 +3,8 @@ package bankapp.loan.origination.component;
 import bankapp.loan.common.component.InterestRateCalculator;
 import bankapp.loan.origination.model.ExistingLoan;
 import bankapp.loan.origination.model.PendingLoanApplication;
+import bankapp.loan.underwriting.model.LoanApplication;
+import bankapp.loan.underwriting.web.request.ApprovedLoanApplicationDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,6 +30,7 @@ public class DsrCalculator {
     private static final BigDecimal STRESS_DSR_THRESHOLD = new BigDecimal("100000000");
 
 
+    // todo : 전용 입구 객체 만들어서 넘기는게 깔끔
     // todo : 반드시 기존금리들이 모두 계산된 후 , pendingApp 에 저장된 후 호출
     /**
      * 스트레스 DSR 계산
@@ -74,6 +77,147 @@ public class DsrCalculator {
                 .multiply(new BigDecimal("100"))
                 .setScale(2, RoundingMode.HALF_UP);
     }
+
+    /**
+     * [Overload] 최종 승인 단계용 스트레스 DSR 계산
+     * * @param loanApplication  심사 정보 (유저 소득, 기존 대출 목록, 상환 방식 등)
+     * @param approvedReq      최종 승인된 대출 조건 (승인 금액, 승인 금리, 승인 기간)
+     * @return 계산된 DSR 값 (%)
+     */
+    public BigDecimal calculate(LoanApplication loanApplication, ApprovedLoanApplicationDto approvedReq) {
+
+        BigDecimal annualIncome = loanApplication.getAnnualIncome();
+        if (annualIncome.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        // 1. 총 신용대출 잔액 계산 (기존 대출 잔액 합계 + 승인된 신규 대출 금액)
+        // totalDebt 필드가 없으므로 직접 계산
+        BigDecimal totalCreditLoanBalance = BigDecimal.ZERO;
+
+        // 1-a. 승인된 신규 대출 금액 합산
+        if (approvedReq.getApprovedLoanAmount() != null) {
+            totalCreditLoanBalance = totalCreditLoanBalance.add(approvedReq.getApprovedLoanAmount());
+        }
+
+        // 1-b. 기존 대출 잔액 합산 (ExistingLoan 리스트 순회)
+        List<ExistingLoan> existingLoans = loanApplication.getExistingLoans();
+        if (existingLoans != null) {
+            for (ExistingLoan loan : existingLoans) {
+                if (loan.getRemainingBalance() != null) {
+                    totalCreditLoanBalance = totalCreditLoanBalance.add(loan.getRemainingBalance());
+                }
+            }
+        }
+
+        // 2. 스트레스 금리 산출 (1억 원 초과 시 적용)
+        BigDecimal stressRateToAdd = BigDecimal.ZERO;
+        if (totalCreditLoanBalance.compareTo(STRESS_DSR_THRESHOLD) > 0) {
+            BigDecimal baseStressRate = interestRateCalculator.calculateStressRate();
+
+            // 승인된 대출 기간과 금리 타입(고정/변동)을 기준으로 가중치 적용
+            // (InterestRateType은 LoanApplication이나 Request 중 확실한 곳에서 가져옴)
+            String typeCode = (loanApplication.getInterestRateType() != null)
+                    ? loanApplication.getInterestRateType().getTypeCode() : "";
+
+            stressRateToAdd = applyStressRateRules(baseStressRate, approvedReq.getApprovedLoanTerm(), typeCode);
+        }
+
+        // 3. 연간 상환액 합계 계산
+        BigDecimal totalAnnualPayment = BigDecimal.ZERO;
+
+        // 3-1. 기존 대출 상환액
+        if (existingLoans != null) {
+            for (ExistingLoan loan : existingLoans) {
+                totalAnnualPayment = totalAnnualPayment.add(calculateExistingAnnualPayment(loan));
+            }
+        }
+
+        // 3-2. 승인된 신규 대출 상환액 (스트레스 금리 반영)
+        BigDecimal effectiveRate = approvedReq.getApprovedFinalInterestRate().add(stressRateToAdd);
+
+        // 상환 방식 명칭 추출
+        String repaymentMethodName = (loanApplication.getRepaymentMethod() != null)
+                ? loanApplication.getRepaymentMethod().getMethodName() : "";
+
+        BigDecimal newLoanPayment = calculateNewLoanAnnualPayment(
+                approvedReq.getApprovedLoanAmount(),
+                approvedReq.getApprovedLoanTerm(),
+                effectiveRate,
+                repaymentMethodName
+        );
+
+        totalAnnualPayment = totalAnnualPayment.add(newLoanPayment);
+
+        // 4. DSR 계산: (총 연상환액 / 연소득) * 100
+        return totalAnnualPayment.divide(annualIncome, 4, RoundingMode.HALF_UP)
+                .multiply(new BigDecimal("100"))
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    // =================================================================================
+    // [리팩터링] 기존 private 메서드들을 재사용하기 위해 값을 직접 받는 오버로딩 메서드 추가
+    // =================================================================================
+
+    /**
+     * [Helper Overload] 신규 대출 연 상환액 계산 (값을 직접 전달받음)
+     */
+    private BigDecimal calculateNewLoanAnnualPayment(BigDecimal principal, Integer termMonths, BigDecimal effectiveRate, String methodName) {
+        // 연이율 -> 월이율 변환
+        BigDecimal monthlyRate = effectiveRate.divide(new BigDecimal("100"), 8, RoundingMode.HALF_UP)
+                .divide(new BigDecimal("12"), 8, RoundingMode.HALF_UP);
+
+        // 1. 만기일시상환
+        if (methodName.contains("BULLET") || methodName.contains("만기")) {
+            BigDecimal annualPrincipal = principal.divide(DEEMED_TERM_YEARS, 2, RoundingMode.HALF_UP);
+            BigDecimal annualInterest = principal.multiply(effectiveRate.divide(new BigDecimal("100"), 8, RoundingMode.HALF_UP));
+            return annualPrincipal.add(annualInterest);
+        }
+
+        // 2. 원리금 균등 (PMT)
+        if (methodName.contains("EQUAL_PRINCIPAL_INTEREST") || methodName.contains("원리금")) {
+            return calculatePmt(principal, monthlyRate, termMonths).multiply(new BigDecimal("12"));
+        }
+
+        // 3. 원금 균등
+        if (methodName.contains("EQUAL_PRINCIPAL") || methodName.contains("원금")) {
+            BigDecimal termYears = new BigDecimal(termMonths).divide(new BigDecimal("12"), 4, RoundingMode.HALF_UP);
+            BigDecimal annualPrincipal = principal.divide(termYears, 2, RoundingMode.HALF_UP);
+            BigDecimal avgInterest = principal.multiply(effectiveRate.divide(new BigDecimal("100"), 8, RoundingMode.HALF_UP))
+                    .multiply(new BigDecimal("0.5"));
+            return annualPrincipal.add(avgInterest);
+        }
+
+        // 기본값 (만기일시)
+        BigDecimal annualPrincipal = principal.divide(DEEMED_TERM_YEARS, 2, RoundingMode.HALF_UP);
+        BigDecimal annualInterest = principal.multiply(effectiveRate.divide(new BigDecimal("100"), 8, RoundingMode.HALF_UP));
+        return annualPrincipal.add(annualInterest);
+    }
+
+    /**
+     * [Helper Overload] 스트레스 금리 적용 규칙 (값을 직접 전달받음)
+     */
+    private BigDecimal applyStressRateRules(BigDecimal baseStressRate, Integer termMonths, String typeCode) {
+        boolean isFixedRate = typeCode != null && (typeCode.contains("BULLET") || typeCode.contains("고정"));
+
+        // -> 만기 5년(60개월) 이상 고정 / 적용 안함 (0%)
+        if (isFixedRate && termMonths >= 60) {
+            return BigDecimal.ZERO;
+        }
+        // -> 만기 3~5년(36~59개월) 고정 / 60% 적용
+        else if (isFixedRate && termMonths >= 36) {
+            return baseStressRate.multiply(new BigDecimal("0.6"));
+        }
+        // -> 그 외 (변동금리 또는 3년 미만 고정) / 100% 적용
+        else {
+            return baseStressRate;
+        }
+    }
+
+
+
+
+
 
     /**
      * 총 대출 잔액 계산 (기존 대출 + 신청 금액)

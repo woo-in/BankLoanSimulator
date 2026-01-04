@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>심사 승인 확인 - 우인은행</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+        /* 헤더 */
+        .header { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .back-link { text-decoration: none; color: #666; font-size: 14px; font-weight: 600; display: inline-block; margin-bottom: 10px; }
+        .back-link:hover { color: #333; text-decoration: underline; }
+        .title-row { display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 800; color: #101828; margin: 0; }
+
+        /* 상태 배지 (승인 전용 스타일) */
+        .status-badge { padding: 8px 16px; border-radius: 24px; font-weight: 700; font-size: 14px; }
+        .status-APPROVED { background-color: #ecfdf3; color: #027a48; border: 1px solid #a5d6a7; }
+
+        /* 승인 안내 박스 (초록 테마) */
+        .info-box { background-color: #f6fef9; border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 30px; border: 1px solid #d1fadf; }
+        .info-icon { font-size: 40px; margin-bottom: 15px; display: block; }
+        .info-title { font-size: 20px; font-weight: 700; color: #039855; margin-bottom: 10px; }
+
+        /* 은행원 메시지 영역 */
+        .banker-message {
+            background: white; border: 1px dashed #6ce9a6; border-radius: 8px; padding: 15px;
+            color: #475467; font-size: 14px; line-height: 1.6; display: inline-block;
+            text-align: left; max-width: 90%; margin-top: 10px;
+        }
+
+        /* 비교 테이블 스타일 */
+        .compare-table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #eaecf0; border-radius: 12px; overflow: hidden; margin-bottom: 30px; }
+        .compare-table th, .compare-table td { padding: 15px 20px; text-align: center; border-bottom: 1px solid #eaecf0; vertical-align: middle; }
+
+        /* 헤더 스타일 */
+        .compare-table thead th { background-color: #f9fafb; font-weight: 600; color: #475467; font-size: 14px; }
+        .compare-table thead th.approved-col { background-color: #ecfdf3; color: #027a48; border-bottom: 2px solid #6ce9a6; }
+
+        /* 데이터 스타일 */
+        .item-col { text-align: left !important; background-color: #fcfcfd; font-weight: 600; width: 25%; }
+
+        /* [수정] 기본적으로 취소선 제거 */
+        .applied-val { color: #667085; font-size: 14px; }
+
+        /* [추가] 값이 다를 때만 적용할 취소선 클래스 */
+        .text-strike { text-decoration: line-through; opacity: 0.7; }
+
+        .approved-val { color: #027a48; font-weight: 800; font-size: 18px; }
+        .approved-cell { background-color: #f6fef9; }
+
+        /* 버튼 영역 */
+        .action-bar { display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+        .btn { padding: 14px 24px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; border: none; text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; }
+
+        /* 메인 액션: 약정 체결 */
+        .btn-contract { background-color: #1570ef; color: white; box-shadow: 0 4px 12px rgba(21, 112, 239, 0.2); }
+        .btn-contract:hover { background-color: #175cd3; transform: translateY(-2px); }
+
+        /* 서브 액션: 취소 */
+        .btn-cancel { background-color: white; color: #d92d20; border: 1px solid #d92d20; font-size: 14px; }
+        .btn-cancel:hover { background-color: #fef3f2; }
+
+        .btn-back { background-color: #f2f4f7; color: #344054; font-size: 14px; }
+        .btn-back:hover { background-color: #e4e7ec; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <a href="/management/loan/loan-applications" class="back-link">← 목록으로</a>
+        <div class="title-row">
+            <div>
+                <h1 class="page-title" th:text="${loanApplication.loanProductName}">신용대출</h1>
+                <span style="font-size: 14px; color: #666;" th:text="${loanApplication.loanProductType}">개인신용</span>
+            </div>
+
+            <span class="status-badge status-APPROVED">
+                심사 승인
+            </span>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <span class="info-icon">🎉</span>
+        <div class="info-title">축하합니다! 대출이 승인되었습니다</div>
+
+        <div class="banker-message" th:if="${loanApplication.messageToCustomer != null}">
+            <strong>[은행 안내]</strong><br>
+            <span th:text="${loanApplication.messageToCustomer}">고객님의 우수한 신용도를 반영하여 금리 우대 혜택을 적용해 드렸습니다.</span>
+        </div>
+    </div>
+
+    <h3 style="font-size: 18px; margin-bottom: 15px;">🔍 신청 vs 승인 조건 비교</h3>
+
+    <table class="compare-table">
+        <thead>
+        <tr>
+            <th class="item-col">항목</th>
+            <th>신청하신 조건 (Applied)</th>
+            <th class="approved-col">최종 승인 조건 (Approved)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td class="item-col">대출 한도</td>
+            <td>
+                <span class="applied-val"
+                      th:classappend="${loanApplication.appliedLoanAmount.compareTo(loanApplication.approvedLoanAmount) != 0} ? 'text-strike'"
+                      th:text="${#numbers.formatInteger(loanApplication.appliedLoanAmount, 0, 'COMMA')} + ' 원'">
+                    50,000,000 원
+                </span>
+            </td>
+            <td class="approved-cell">
+                <span class="approved-val" th:text="${#numbers.formatInteger(loanApplication.approvedLoanAmount, 0, 'COMMA')} + ' 원'">50,000,000 원</span>
+                <div th:if="${loanApplication.appliedLoanAmount.compareTo(loanApplication.approvedLoanAmount) > 0}" style="font-size: 12px; color: #d92d20; font-weight: bold;">
+                    (조정됨)
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="item-col">대출 기간</td>
+            <td>
+                <span class="applied-val"
+                      th:classappend="${!loanApplication.appliedLoanTerm.equals(loanApplication.approvedLoanTerm)} ? 'text-strike'"
+                      th:text="${loanApplication.appliedLoanTerm} + ' 개월'">
+                    24 개월
+                </span>
+            </td>
+            <td class="approved-cell">
+                <span class="approved-val" th:text="${loanApplication.approvedLoanTerm} + ' 개월'">24 개월</span>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="item-col">적용 금리</td>
+            <td>
+                <span style="color: #98a2b3; font-size: 13px;">(심사 후 확정)</span>
+            </td>
+            <td class="approved-cell">
+                <span class="approved-val" style="color: #1570ef; font-size: 20px;"
+                      th:text="${loanApplication.approvedFinalInterestRate} + '%'">5.50%</span>
+                <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                    <span th:text="${loanApplication.interestRateTypeName}">고정금리</span>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="item-col">상환 방식</td>
+            <td colspan="2" style="color: #333;" th:text="${loanApplication.repaymentMethodName}">원리금균등분할상환</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="action-bar">
+        <a href="/management/loan/loan-applications" class="btn btn-back">목록</a>
+
+        <form th:action="@{/management/loan/loan-applications/{id}/withdraw(id=${loanApplication.loanApplicationId})}" method="post">
+            <button type="submit" class="btn btn-cancel" onclick="return confirm('승인된 조건을 포기하고 신청을 취소하시겠습니까?');">
+                승인 취소하기
+            </button>
+        </form>
+
+        <a th:href="@{/management/loan/loan-applications/{id}/contract(id=${loanApplication.loanApplicationId})}"
+           class="btn btn-contract">
+            전자 약정 체결하기 (Contract) →
+        </a>
+    </div>
+
+</div>
+
+</body>
+</html>

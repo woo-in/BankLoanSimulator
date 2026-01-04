@@ -42,7 +42,9 @@ public enum ApplicationStatus {
 
     private final String description;
 
-
+    public String getDescription() {
+        return description;
+    }
 
 
 }

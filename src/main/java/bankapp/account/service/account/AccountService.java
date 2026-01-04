@@ -4,8 +4,6 @@ import bankapp.account.exceptions.AccountNotFoundException;
 import bankapp.account.exceptions.InsufficientBalanceException;
 import bankapp.account.request.account.AccountTransactionRequest;
 
-import java.math.BigDecimal;
-
 /**
  * 계좌(Account) 도메인과 관련된 핵심 비즈니스 로직을 처리
  * <p>
@@ -38,6 +36,9 @@ public interface AccountService {
      * @return ledger_id : 원장 기록 id
      */
     long credit(AccountTransactionRequest accountTransactionRequest) throws AccountNotFoundException;
+
+
+
 
 }
 

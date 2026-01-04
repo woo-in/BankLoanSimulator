@@ -1,6 +1,6 @@
 package bankapp.loan.origination.model;
 
-import bankapp.loan.origination.web.response.ExistingLoanResponse;
+import bankapp.loan.underwriting.model.LoanApplication; // [추가]
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -18,9 +18,15 @@ public class ExistingLoan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long existingLoanId;
 
+    // 기존: 신청서(Pending)와의 관계
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pending_loan_application_id")
     private PendingLoanApplication pendingLoanApplication;
+
+    // [추가] 심사서(LoanApplication)와의 관계
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "loan_application_id")
+    private LoanApplication loanApplication;
 
     @Column(nullable = false)
     private String loanProductName;
@@ -29,10 +35,10 @@ public class ExistingLoan {
     private String loanType;
 
     @Column(nullable = false)
-    private BigDecimal loanAmount; // 대출 총액
+    private BigDecimal loanAmount;
 
     @Column(nullable = false)
-    private BigDecimal remainingBalance; // 남은 대출금 (잔액)
+    private BigDecimal remainingBalance;
 
     @Column(nullable = false)
     private Integer loanTerm;
@@ -49,7 +55,7 @@ public class ExistingLoan {
     @Column(nullable = false)
     private boolean isExternal;
 
-
+    // Pending 연결 편의 메서드
     public void setPendingLoanApplication(PendingLoanApplication pendingLoanApplication) {
         if(this.pendingLoanApplication != null){
             this.pendingLoanApplication.getExistingLoans().remove(this);
@@ -58,9 +64,12 @@ public class ExistingLoan {
         this.pendingLoanApplication.getExistingLoans().add(this);
     }
 
-
-
-
-
-
+    // [추가] LoanApplication 연결 편의 메서드
+    public void setLoanApplication(LoanApplication loanApplication) {
+        if(this.loanApplication != null){
+            this.loanApplication.getExistingLoans().remove(this);
+        }
+        this.loanApplication = loanApplication;
+        this.loanApplication.getExistingLoans().add(this);
+    }
 }

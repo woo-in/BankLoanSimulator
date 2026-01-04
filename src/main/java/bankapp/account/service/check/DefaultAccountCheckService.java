@@ -7,8 +7,12 @@ import bankapp.account.model.account.PrimaryAccount;
 import bankapp.account.repository.AccountRepository;
 import bankapp.account.repository.PrimaryAccountRepository;
 import bankapp.member.model.Member;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static bankapp.core.common.BankCode.WOOIN_BANK;
 
@@ -21,6 +25,7 @@ import static bankapp.core.common.BankCode.WOOIN_BANK;
  */
 
 @Service
+@Transactional(readOnly = true)
 public class DefaultAccountCheckService implements AccountCheckService {
 
     private final AccountRepository accountRepository;
@@ -95,5 +100,14 @@ public class DefaultAccountCheckService implements AccountCheckService {
     }
 
 
+    @Override
+    public List<Account> findDepositAccountsByMember(Member member) {
+        List<Account> allAccounts = accountRepository.findAllByMember(member);
+
+        return allAccounts.stream()
+                // 엔티티의 메서드를 호출하여 필터링 (높은 응집도)
+                .filter(Account::isAvailableForTransaction)
+                .toList();
+    }
 
 }

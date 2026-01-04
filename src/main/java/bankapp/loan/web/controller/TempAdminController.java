@@ -8,7 +8,7 @@ import bankapp.loan.underwriting.model.LoanApplication;
 import bankapp.loan.underwriting.model.LoanContract;
 import bankapp.loan.underwriting.service.LoanApplicationService;
 import bankapp.loan.servicing.service.RepaymentBatchService;
-import bankapp.loan.origination.service.LoanContractService;
+import bankapp.loan.underwriting.service.LoanContractService;
 import bankapp.loan.product.service.LoanProductService;
 import bankapp.loan.product.service.InterestRateTypeService;
 import bankapp.loan.product.service.RepaymentMethodService;
@@ -86,7 +86,7 @@ public class TempAdminController {
             // todo : 일단은 분리해뒀는데 사실은 트랜잭션으로 묶여야 함 (승인-계약서작성,계좌개설-입금,스케줄러작성)
 
             // 1. 승인
-            loanApplicationService.approveApplication(applicationId);
+//            loanApplicationService.approveApplication(applicationId);
 
             // 2. 신청서 찾기
             LoanApplication loanApplication = loanApplicationService.findById(applicationId)

@@ -17,7 +17,6 @@ import java.math.BigDecimal;
 @Service
 public class DefaultAccountService implements AccountService {
 
-
     private final AccountRepository accountRepository;
     private final AccountLedgerRepository accountLedgerRepository;
 
@@ -49,6 +48,9 @@ public class DefaultAccountService implements AccountService {
         return applyTransaction(account, accountTransactionRequest, TransactionType.CREDIT).getLedgerId();
 
     }
+
+
+
 
     /**
      * 요청 DTO 자체의 유효성을 검증합니다. (예: 금액이 양수인지)

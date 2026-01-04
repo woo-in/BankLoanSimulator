@@ -1,4 +1,4 @@
-package bankapp.loan.origination.service;
+package bankapp.loan.underwriting.service;
 
 import bankapp.account.model.account.LoanAccount;
 import bankapp.account.request.open.OpenLoanAccountRequest;
@@ -31,6 +31,7 @@ public class DefaultLoanContractService implements LoanContractService {
         this.openLoanAccountService = openLoanAccountService;
     }
 
+    // legacy must remove
     @Override
     @Transactional
     public LoanContract saveLoanContract(OpenLoanAccountRequest openLoanAccountRequest,
@@ -39,6 +40,9 @@ public class DefaultLoanContractService implements LoanContractService {
         LoanContract loanContract = createLoanContractEntity(loanApplication, loanAccount);
         return loanContractRepository.save(loanContract);
     }
+
+
+
 
     @Override
     @Transactional(readOnly = true)

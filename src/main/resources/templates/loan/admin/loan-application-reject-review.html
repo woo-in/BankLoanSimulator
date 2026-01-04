@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>심사 거절 처리 - 우인은행</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #fef3f2; /* 연한 빨강 배경 */ margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 700px; margin: 0 auto; }
+        .card { background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #fecdca; text-align: center; }
+        .icon-area { font-size: 48px; margin-bottom: 20px; }
+        .page-title { font-size: 24px; font-weight: 800; color: #b42318; margin: 0 0 10px 0; }
+        .page-subtitle { color: #667085; font-size: 15px; line-height: 1.5; }
+        .info-box { background-color: #fffbfa; border: 1px solid #eaecf0; border-radius: 12px; padding: 20px; margin: 30px 0; text-align: left; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 12px; }
+        .info-label { color: #667085; font-size: 14px; font-weight: 500; }
+        .info-value { color: #101828; font-size: 15px; font-weight: 600; }
+
+        /* 거절 사유 입력 텍스트 영역 */
+        .reason-area { text-align: left; margin-bottom: 30px; }
+        .reason-label { display: block; font-weight: 700; color: #344054; margin-bottom: 8px; font-size: 14px; }
+        .reason-input {
+            width: 100%; height: 120px; padding: 15px; border: 1px solid #d0d5dd; border-radius: 8px;
+            font-family: inherit; font-size: 14px; line-height: 1.6; resize: none; box-sizing: border-box;
+            background-color: white;
+        }
+        .reason-input:focus { outline: none; border-color: #b42318; box-shadow: 0 0 0 3px rgba(254, 228, 226, 0.5); }
+
+        .btn-group { display: flex; justify-content: center; gap: 15px; margin-top: 30px; }
+        .btn { padding: 12px 30px; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+        .btn-back { background-color: white; color: #344054; border-color: #d0d5dd; }
+        .btn-reject { background-color: #b42318; color: white; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05); }
+        .btn-reject:hover { background-color: #912018; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <div class="icon-area">🚫</div>
+        <h1 class="page-title">심사 거절 처리 (Reject)</h1>
+        <p class="page-subtitle">
+            해당 대출 신청 건을 거절 처리합니다.<br>
+            아래에 <strong>거절 사유</strong>를 입력한 후 확정 버튼을 눌러주세요.
+        </p>
+
+        <div class="info-box">
+            <div class="info-row">
+                <span class="info-label">신청 고객</span>
+                <span class="info-value">
+                    [[${loanApplication.member.name}]] (ID: [[${loanApplication.member.memberId}]])
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">대출 신청 상품</span>
+                <span class="info-value">[[${loanApplication.loanProduct.loanProductName}]]</span>
+            </div>
+            <div class="info-row" style="margin-bottom: 0;">
+                <span class="info-label">신청 금액</span>
+                <span class="info-value" th:text="${#numbers.formatInteger(loanApplication.loanAmount, 0, 'COMMA')} + ' 원'">
+                    50,000,000 원
+                </span>
+            </div>
+        </div>
+
+        <form th:action="@{/admin/loan/loan-applications/{id}/reject/complete(id=${loanApplication.loanApplicationId})}"
+              th:object="${request}" method="post">
+
+            <div class="reason-area">
+                <label class="reason-label" for="reason">거절 사유 입력 (필수)</label>
+                <textarea id="reason" th:field="*{messageToCustomer}" class="reason-input"
+                          placeholder="고객에게 안내될 구체적인 사유를 입력하세요. (예: DSR 기준 초과, 신용 점수 미달 등)" required></textarea>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-back" onclick="history.back()">← 취소</button>
+                <button type="submit" class="btn btn-reject" onclick="return confirm('작성된 사유로 대출 심사를 최종 거절하시겠습니까?');">
+                    거절 확정 (Confirm Reject)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

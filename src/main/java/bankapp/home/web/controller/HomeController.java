@@ -41,6 +41,12 @@ public class HomeController {
         return "home/product-home";
     }
 
+    @GetMapping("management")
+    public String showManagement(){
+        return "home/management-home";
+    }
+
+
     private void prepareHomeDetailsViewModel(Model model , Member loginMember){
         AccountResponse accountResponse = AccountResponse.from(accountCheckService.findPrimaryAccountByMember(loginMember));
         model.addAttribute("accountResponse", accountResponse);

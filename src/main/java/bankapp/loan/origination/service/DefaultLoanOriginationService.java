@@ -19,6 +19,7 @@ import bankapp.loan.product.service.InterestRateTypeService;
 import bankapp.loan.product.service.LoanProductService;
 import bankapp.loan.product.service.RepaymentMethodService;
 import bankapp.loan.underwriting.service.LoanApplicationService;
+import bankapp.loan.underwriting.service.LoanContractService;
 import bankapp.member.exceptions.IncorrectPasswordException;
 import bankapp.member.exceptions.MemberNotFoundException;
 import bankapp.member.model.Member;

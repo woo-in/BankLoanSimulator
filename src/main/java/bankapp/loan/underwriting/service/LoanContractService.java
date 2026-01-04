@@ -1,4 +1,4 @@
-package bankapp.loan.origination.service;
+package bankapp.loan.underwriting.service;
 
 import bankapp.account.request.open.OpenLoanAccountRequest;
 import bankapp.loan.underwriting.model.LoanApplication;
@@ -23,6 +23,8 @@ public interface LoanContractService {
     LoanContract saveLoanContract(OpenLoanAccountRequest openLoanAccountRequest,
                                   LoanApplication loanApplication);
 
+
+    LoanContract saveLoanContract(LoanApplication loanApplication);
 
 
     /**

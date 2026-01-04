@@ -1,5 +1,6 @@
 package bankapp.loan.underwriting.web.response;
 
+import bankapp.loan.origination.model.ExistingLoan;
 import bankapp.loan.underwriting.model.ApplicationStatus;
 import bankapp.loan.underwriting.model.LoanApplication;
 import lombok.Data;
@@ -17,6 +18,11 @@ public class AppliedLoanApplicationResponse {
     private Long memberId;
     private String memberName;
 
+    // 유저 재무 정보
+    private BigDecimal totalAssets;
+    private BigDecimal annualIncome;
+    private BigDecimal fixedExpenses;
+    private BigDecimal totalRemainingBalance;
 
     // 상품 정보
     private String loanProductName;
@@ -51,6 +57,15 @@ public class AppliedLoanApplicationResponse {
 
         response.setMemberId(app.getMember().getMemberId());
         response.setMemberName(app.getMember().getName());
+
+        response.setTotalAssets(app.getTotalAssets());
+        response.setAnnualIncome(app.getAnnualIncome());
+        response.setFixedExpenses(app.getFixedExpenses());
+        BigDecimal totalRemainingBalance = BigDecimal.ZERO;
+        for(ExistingLoan existingLoan : app.getExistingLoans()) {
+            totalRemainingBalance = totalRemainingBalance.add(existingLoan.getRemainingBalance());
+        }
+        response.setTotalRemainingBalance(totalRemainingBalance);
 
         response.setLoanProductName(app.getLoanProduct().getLoanProductName());
         response.setLoanProductType(app.getLoanProduct().getLoanType());

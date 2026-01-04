@@ -4,7 +4,7 @@ package bankapp.loan.origination.web.controller;
 import bankapp.core.common.SessionConst;
 import bankapp.loan.origination.component.BriefDsrCalculator;
 import bankapp.loan.origination.model.PendingLoanApplicationStatus;
-import bankapp.loan.origination.service.LoanContractService;
+import bankapp.loan.underwriting.service.LoanContractService;
 import bankapp.loan.origination.service.LoanOriginationService;
 import bankapp.loan.origination.web.request.ApplicationAuthRequest;
 import bankapp.loan.origination.web.request.FinancialInfoRequest;

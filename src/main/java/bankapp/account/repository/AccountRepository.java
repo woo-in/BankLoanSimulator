@@ -1,12 +1,14 @@
 package bankapp.account.repository;
 
 import bankapp.account.model.account.Account;
+import bankapp.member.model.Member;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
@@ -15,6 +17,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     boolean existsByAccountNumber(String accountNumber);
     Optional<Account> findByAccountNumber(String accountNumber);
 
+
+    List<Account> findAllByMember(Member member);
 
 
     /**

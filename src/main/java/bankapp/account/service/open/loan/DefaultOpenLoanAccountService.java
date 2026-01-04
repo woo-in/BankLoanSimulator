@@ -6,6 +6,8 @@ import bankapp.account.repository.AccountRepository;
 import bankapp.account.request.open.OpenLoanAccountRequest;
 import bankapp.account.service.open.component.AccountNumberGenerator;
 import bankapp.account.service.open.component.AccountOpeningValidator;
+import bankapp.loan.exceptions.InvalidLoanApplication;
+import bankapp.loan.underwriting.model.LoanApplication;
 import bankapp.member.exceptions.MemberNotFoundException;
 import bankapp.member.model.Member;
 import bankapp.member.repository.MemberRepository;
@@ -33,21 +35,22 @@ public class DefaultOpenLoanAccountService implements OpenLoanAccountService{
         this.accountNumberGenerator = accountNumberGenerator;
     }
 
+
+
     @Override
     @Transactional
-    public LoanAccount openLoanAccount(OpenLoanAccountRequest openLoanAccountRequest){
+    public LoanAccount openLoanAccount(LoanApplication loanApplication){
 
-        validator.validate(openLoanAccountRequest);
+        if (loanApplication == null) {
+            throw new InvalidLoanApplication("대출 신청서 정보가 없습니다.");
+        }
+        String newAccountNumber = accountNumberGenerator.generate();
+        LoanAccount newLoanAccount = LoanAccount.createFrom(loanApplication, newAccountNumber);
+        return accountRepository.save(newLoanAccount);
 
-        Member member = memberRepository.findById(openLoanAccountRequest.getMemberId())
-                .orElseThrow(() -> new MemberNotFoundException("회원을 찾을 수 없습니다: " + openLoanAccountRequest.getMemberId()));
 
-
-        String accountNumber = accountNumberGenerator.generate();
-        LoanAccount newAccount = LoanAccount.from(openLoanAccountRequest,member,accountNumber);
-
-        return accountRepository.save(newAccount);
     }
+
 
 
 

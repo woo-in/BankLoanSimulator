@@ -43,6 +43,20 @@ public abstract class Account {
     private String accountType;
 
 
+    public boolean isAvailableForTransaction(){
+
+        if (this.status != AccountStatus.ACTIVE) {
+            return false;
+        }
+
+        if ("LOAN".equals(this.accountType)) {
+            return false;
+        }
+
+        return true;
+    }
+
+
     protected Account(Member member, String accountNumber, BigDecimal balance, String nickname, AccountStatus status) {
         this.member = member;
         this.accountNumber = accountNumber;

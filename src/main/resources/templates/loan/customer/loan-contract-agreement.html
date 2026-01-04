@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>전자 약정 체결 - 우인은행</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 700px; margin: 0 auto; background: white; padding: 50px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+    /* 헤더 */
+    .page-header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+    .page-title { font-size: 26px; font-weight: 800; margin: 0; color: #101828; }
+    .page-sub { font-size: 14px; color: #666; margin-top: 8px; }
+
+    /* 섹션 타이틀 */
+    .section-title { font-size: 18px; font-weight: 700; margin: 30px 0 15px 0; border-left: 4px solid #1570ef; padding-left: 10px; color: #101828; }
+
+    /* 핵심 요약 테이블 */
+    .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .summary-table th, .summary-table td { padding: 12px 15px; border-bottom: 1px solid #eaecf0; font-size: 15px; }
+    .summary-table th { background-color: #f9fafb; color: #475467; text-align: left; width: 35%; font-weight: 600; }
+    .summary-table td { color: #101828; font-weight: 600; text-align: right; }
+    .highlight-text { color: #1570ef; font-weight: 800; }
+
+    /* 약관 박스 (내용이 길어져서 스크롤이 자연스럽게 발생합니다) */
+    .terms-box {
+      background-color: #f8f9fa; border: 1px solid #eaecf0; border-radius: 8px;
+      padding: 20px; height: 200px; /* 높이를 조금 더 확보 */
+      overflow-y: scroll; font-size: 13px; color: #555;
+      line-height: 1.7; margin-bottom: 15px; text-align: justify;
+    }
+    .terms-title { font-weight: 700; color: #333; margin: 15px 0 5px 0; display: block; font-size: 14px; }
+    .terms-title:first-child { margin-top: 0; }
+
+    /* 체크박스 영역 */
+    .check-area { background-color: #fff; padding: 15px 0; border-bottom: 1px solid #eee; }
+    .check-label { display: flex; align-items: center; cursor: pointer; font-size: 15px; color: #333; user-select: none; }
+    .check-input { width: 20px; height: 20px; margin-right: 12px; accent-color: #1570ef; cursor: pointer; }
+    .required-mark { color: #d92d20; font-size: 12px; font-weight: 700; margin-left: 6px; }
+
+    /* 전체 동의 박스 */
+    .all-agree-box { background-color: #f0f9ff; border: 1px solid #b9e6fe; padding: 20px; border-radius: 8px; margin-top: 30px; display: flex; align-items: center; }
+    .all-agree-label { font-weight: 700; font-size: 16px; color: #026aa2; }
+
+    /* 버튼 */
+    .btn-group { margin-top: 40px; display: flex; gap: 15px; }
+    .btn { flex: 1; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-cancel { background-color: #fff; border: 1px solid #d0d5dd; color: #344054; }
+    .btn-cancel:hover { background-color: #f9fafb; }
+    .btn-submit { background-color: #1570ef; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .btn-submit:hover { background-color: #175cd3; transform: translateY(-2px); }
+    .btn-submit:disabled { background-color: #b2ddff; cursor: not-allowed; transform: none; box-shadow: none; }
+  </style>
+
+  <script>
+    // 전체 동의 로직
+    function toggleAll(source) {
+      const checkboxes = document.querySelectorAll('.term-check');
+      checkboxes.forEach(cb => cb.checked = source.checked);
+      checkSubmitButton();
+    }
+
+    // 개별 체크 시 버튼 활성화 확인
+    function checkSubmitButton() {
+      const requiredChecks = document.querySelectorAll('.required-term');
+      let allChecked = true;
+      requiredChecks.forEach(cb => {
+        if (!cb.checked) allChecked = false;
+      });
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = !allChecked;
+
+      // 전체 동의 체크박스 상태 동기화
+      const allCheck = document.getElementById('allCheck');
+      const totalChecks = document.querySelectorAll('.term-check');
+      let totalCheckedCount = 0;
+      totalChecks.forEach(cb => { if(cb.checked) totalCheckedCount++; });
+      allCheck.checked = (totalChecks.length === totalCheckedCount);
+    }
+  </script>
+</head>
+<body>
+
+<div class="container">
+  <div class="page-header">
+    <h1 class="page-title">여신거래약정서 (개인용)</h1>
+    <p class="page-sub">
+      귀하와 우인은행 간의 대출 거래에 대하여 다음과 같이 약정합니다.
+    </p>
+  </div>
+
+  <div class="section-title">1. 대출 계약 조건</div>
+  <table class="summary-table">
+    <tr>
+      <th>계약자명</th>
+      <td th:text="${memberName}">홍길동</td>
+    </tr>
+    <tr>
+      <th>대출 상품</th>
+      <td th:text="${loanApplication.loanProductName}">직장인 신용대출</td>
+    </tr>
+    <tr>
+      <th>대출 약정 금액</th>
+      <td class="highlight-text" th:text="${#numbers.formatInteger(loanApplication.approvedLoanAmount, 0, 'COMMA')} + ' 원'">
+        10,000,000 원
+      </td>
+    </tr>
+    <tr>
+      <th>약정 기간</th>
+      <td th:text="${loanApplication.approvedLoanTerm} + ' 개월'">12 개월</td>
+    </tr>
+    <tr>
+      <th>적용 금리</th>
+      <td class="highlight-text" th:text="${loanApplication.approvedFinalInterestRate} + '%'">
+        8.02%
+      </td>
+    </tr>
+    <tr>
+      <th>상환 방식</th>
+      <td th:text="${loanApplication.repaymentMethodName}">원금만기일시상환</td>
+    </tr>
+    <tr>
+      <th>인지세 부담</th>
+      <td>없음 (5천만원 이하 비과세)</td>
+    </tr>
+  </table>
+
+  <div class="section-title">2. 약관 및 동의사항</div>
+
+  <div class="all-agree-box">
+    <label class="check-label all-agree-label">
+      <input type="checkbox" id="allCheck" class="check-input" onclick="toggleAll(this)">
+      아래 약관 및 계약 내용에 모두 동의합니다.
+    </label>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <div class="check-area">
+      <label class="check-label">
+        <input type="checkbox" class="check-input term-check required-term" onclick="checkSubmitButton()">
+        [필수] 은행여신거래기본약관 (가계용) 승인
+        <span class="required-mark">(필수)</span>
+      </label>
+    </div>
+    <div class="terms-box">
+      <span class="terms-title">제1조 (목적)</span>
+      이 약관은 여신거래처(이하 "채무자"라 합니다)와 우인은행(이하 "은행"이라 합니다) 간의 상호신뢰를 바탕으로 여신거래의 원활하고 공정한 처리를 위하여 만들어진 것입니다. 은행은 이 약관을 모든 영업점 및 전자금융매체에 비치·게시하고, 채무자는 이를 열람하거나 교부받을 수 있습니다.
+
+      <span class="terms-title">제2조 (적용범위)</span>
+      ① 이 약관은 가계자금대출, 가계지급보증, 가계카드대출 등 은행과 채무자 사이의 모든 가계용 여신에 적용됩니다.<br>
+      ② 이 약관은 채무자가 발행·배서·인수·보증한 어음(수표를 포함합니다. 이하 같습니다)을 은행이 제3자와의 여신거래에 의하여 취득한 경우에 그 채무의 이행에 관하여도 적용됩니다.
+
+      <span class="terms-title">제3조 (이자 및 지연배상금)</span>
+      ① 이자, 할인료, 보증료, 수수료 등(이하 "이자 등"이라 합니다)의 율, 계산방법, 지급시기 및 방법에 관하여는 법령이 허용하는 한도 내에서 은행이 정하는 바에 따르며, "채무자"에게 이를 안내합니다.<br>
+      ② 이자 등의 율은 변동될 수 있으며, 변동된 경우 변동일로부터 적용됩니다. 채무자가 이자 등을 지급하기로 한 때에 지급하지 아니한 경우, 지급하기로 한 날의 다음날부터 지연배상금을 지급하여야 합니다.
+
+      <span class="terms-title">제7조 (기한전의 채무변제의무)</span>
+      ① 채무자에 관하여 다음 각 호의 사유 중 하나라도 발생한 경우에는, 은행으로부터의 독촉, 통지 등이 없어도, 채무자는 당연히 은행에 대한 모든 채무의 기한의 이익을 상실하여(지급보증거래에 있어서는 사전구상채무 발생을 포함합니다), 곧 이를 변제(또는 이행)할 의무를 집니다.<br>
+      1. 가압류, 압류, 경매 등의 강제집행 개시<br>
+      2. 파산, 개인회생절차 개시의 신청<br>
+      3. 조세공과에 의한 체납처분 압류 통지 발송
+
+      <span class="terms-title">제11조 (상계)</span>
+      은행은 채무자가 채무를 이행하여야 하는 경우에, 채무자의 예금 기타 은행에 대한 채권과 채무자의 은행에 대한 채무를 그 기한의 도래 여부를 불문하고 대등액에서 상계할 수 있습니다.
+    </div>
+
+    <div class="check-area">
+      <label class="check-label">
+        <input type="checkbox" class="check-input term-check required-term" onclick="checkSubmitButton()">
+        [필수] 대출상품설명서 및 핵심설명서 확인
+        <span class="required-mark">(필수)</span>
+      </label>
+    </div>
+    <div class="terms-box">
+      <span class="terms-title">1. 상품 개요</span>
+      본 상품은 개인신용평점에 따라 대출한도 및 금리가 차등 적용되는 신용대출 상품입니다. 고객의 신용상태가 변동될 경우 금리인하요구권을 행사할 수 있으나, 은행의 심사 결과에 따라 수용되지 않을 수 있습니다.
+
+      <span class="terms-title">2. 금리 및 상환</span>
+      ① 대출 금리는 [기준금리 + 가산금리 - 우대금리]로 결정되며, 기준금리 변동 주기에 따라 대출금리가 변동될 수 있습니다.<br>
+      ② 원리금 납입일이 영업일이 아닌 경우 다음 영업일에 납입하며, 납입일이 경과하면 연체이자가 발생합니다.<br>
+      ③ 원금만기일시상환 방식의 경우, 매월 이자만 납부하고 만기에 원금 전액을 상환합니다.
+
+      <span class="terms-title">3. 계약 철회권</span>
+      금융소비자는 계약 체결일로부터 14일 이내에 계약에 대한 청약을 철회할 수 있습니다. 단, 이미 지급받은 대출금과 이에 대한 이자 및 부대비용을 반환하여야 합니다.
+
+      <span class="terms-title">4. 인지세</span>
+      대출금액이 5천만원을 초과하는 경우 인지세법에 따라 인지세가 부과되며, 고객과 은행이 각 50%씩 부담합니다. 본 계약 건(5천만원 이하)은 비과세 대상입니다.
+
+      <span class="terms-title">5. 불법계약의 해지</span>
+      금융회사가 금융소비자보호법을 위반하여 계약을 체결한 경우, 금융소비자는 해당 계약을 해지할 수 있습니다.
+    </div>
+
+    <div class="check-area" style="border-bottom: none;">
+      <label class="check-label">
+        <input type="checkbox" class="check-input term-check required-term" onclick="checkSubmitButton()">
+        [필수] 개인(신용)정보 필수적 제공 및 조회 동의
+        <span class="required-mark">(필수)</span>
+      </label>
+    </div>
+    <div class="terms-box">
+      <span class="terms-title">1. 수집·이용 목적</span>
+      귀하의 개인(신용)정보는 대출계약의 체결·유지·이행·관리, 금융사고 조사, 분쟁 해결, 법령상 의무 이행을 위하여 수집·이용됩니다.
+
+      <span class="terms-title">2. 수집·이용 항목</span>
+      ① 고유식별정보: 주민등록번호, 여권번호, 운전면허번호, 외국인등록번호<br>
+      ② 개인식별정보: 성명, 주소, 연락처, 직업, 이메일 등<br>
+      ③ 신용거래정보: 대출 현황, 채무보증 현황, 신용카드 발급 및 해지 사실, 연체정보 등<br>
+      ④ 신용능력정보: 재산, 채무, 소득의 총액, 납세실적 등
+
+      <span class="terms-title">3. 보유 및 이용 기간</span>
+      거래 종료일로부터 5년까지 보유·이용됩니다. 단, 거래 종료 후에는 금융사고 조사, 분쟁 해결, 민원 처리, 법령상 의무 이행을 위해서만 보유·이용됩니다.
+
+      <span class="terms-title">4. 제공 동의</span>
+      본인은 우인은행이 신용정보집중기관(한국신용정보원 등), 신용조회회사(NICE평가정보, KCB 등)로부터 본인의 신용정보를 조회하는 것에 동의합니다.
+
+      <span class="terms-title">5. 동의 거부 권리</span>
+      귀하는 개인(신용)정보 수집·이용·제공 및 조회에 관한 동의를 거부하실 수 있으나, 본 동의는 대출 계약 체결을 위해 필수적이므로 동의하지 않으실 경우 대출 거래가 불가능합니다.
+    </div>
+  </div>
+
+  <form th:action="@{/management/loan/loan-applications/{id}/contract/execution-info(id=${loanApplication.loanApplicationId})}" method="get">
+    <div class="btn-group">
+      <button type="button" class="btn btn-cancel" onclick="history.back()">이전</button>
+      <button type="submit" id="submitBtn" class="btn btn-submit" disabled>
+        약관 동의 및 서명 진행
+      </button>
+    </div>
+  </form>
+
+</div>
+
+</body>
+</html>

@@ -9,6 +9,7 @@ import bankapp.loan.origination.web.request.FinancialInfoRequest;
 import bankapp.loan.origination.web.response.ApplicationResponse;
 import bankapp.loan.origination.web.response.ExistingLoanResponse;
 import bankapp.loan.origination.web.response.InterestRateInfoResponse;
+import bankapp.loan.underwriting.service.LoanContractService;
 import bankapp.member.exceptions.IncorrectPasswordException;
 import bankapp.member.exceptions.MemberNotFoundException;
 import bankapp.member.model.Member;
@@ -74,7 +75,7 @@ public interface LoanOriginationService {
      * @param member  대출을 신청하는 회원 (내부 대출 조회 기준)
      * @param request 사용자가 입력한 재무 정보 요청 객체 (타행 대출 JSON 포함)
      * @return 내부 대출과 외부 대출이 합쳐진 통합 대출 목록 {@code List<ExistingLoanResponse>}
-     * @see bankapp.loan.origination.service.LoanContractService#findAllContractResponsesByMember(Member)
+     * @see LoanContractService#findAllContractResponsesByMember(Member)
      */
     List<ExistingLoanResponse> getIntegratedLoanList(Member member, FinancialInfoRequest request);
 
