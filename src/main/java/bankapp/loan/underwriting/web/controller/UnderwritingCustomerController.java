@@ -189,6 +189,7 @@ public class UnderwritingCustomerController {
     @PostMapping("/loan-applications/{id}/contract/sign")
     public String completeContractSign(@PathVariable Long id,
                                        @Validated @ModelAttribute ContractAuthRequest request,
+                                       @SessionAttribute(value = SessionConst.LOGIN_MEMBER) Member loginMember,
                                        BindingResult bindingResult,
                                        Model model,
                                        RedirectAttributes redirectAttributes) {
@@ -199,9 +200,7 @@ public class UnderwritingCustomerController {
         }
 
         try {
-            // [서비스 호출] signContract 메서드 (구현 필요)
-//            loanApplicationService.signContract(id, loginMember, request.getPassword());
-
+            loanApplicationService.signContract(id , loginMember , request);
             redirectAttributes.addFlashAttribute("message", "전자 약정이 성공적으로 체결되었습니다. 대출금이 곧 입금됩니다.");
             return "redirect:/management/loan/loan-applications";
 

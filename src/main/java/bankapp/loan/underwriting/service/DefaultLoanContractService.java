@@ -1,10 +1,7 @@
 package bankapp.loan.underwriting.service;
 
 import bankapp.account.model.account.LoanAccount;
-import bankapp.account.request.open.OpenLoanAccountRequest;
-import bankapp.account.service.open.loan.OpenLoanAccountService;
 import bankapp.loan.underwriting.model.LoanApplication;
-import bankapp.loan.underwriting.model.ContractStatus;
 import bankapp.loan.underwriting.model.LoanContract;
 import bankapp.loan.origination.repository.LoanContractRepository;
 import bankapp.loan.origination.web.response.ExistingLoanResponse;
@@ -13,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,27 +18,19 @@ import java.util.stream.Collectors;
 public class DefaultLoanContractService implements LoanContractService {
 
     private final LoanContractRepository loanContractRepository;
-    private final OpenLoanAccountService openLoanAccountService;
 
     @Autowired
-    public DefaultLoanContractService(LoanContractRepository loanContractRepository,
-                                      OpenLoanAccountService openLoanAccountService) {
+    public DefaultLoanContractService(LoanContractRepository loanContractRepository) {
         this.loanContractRepository = loanContractRepository;
-        this.openLoanAccountService = openLoanAccountService;
     }
 
-    // legacy must remove
+
     @Override
     @Transactional
-    public LoanContract saveLoanContract(OpenLoanAccountRequest openLoanAccountRequest,
-                                         LoanApplication loanApplication) {
-        LoanAccount loanAccount = openLoanAccountService.openLoanAccount(openLoanAccountRequest);
-        LoanContract loanContract = createLoanContractEntity(loanApplication, loanAccount);
+    public LoanContract saveLoanContract(LoanApplication loanApplication, LoanAccount loanAccount) {
+         LoanContract loanContract = LoanContract.from(loanApplication , loanAccount);
         return loanContractRepository.save(loanContract);
     }
-
-
-
 
     @Override
     @Transactional(readOnly = true)
@@ -56,36 +44,6 @@ public class DefaultLoanContractService implements LoanContractService {
         return loanContractRepository.findAllByMember(member).stream()
                 .map(ExistingLoanResponse::from)
                 .collect(Collectors.toList());
-    }
-
-
-    private LoanContract createLoanContractEntity(LoanApplication application, LoanAccount account) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime maturityDate = calculateMaturityDate(now, application.getLoanTerm());
-
-        LoanContract contract = LoanContract.builder()
-                .loanApplication(application)
-                .member(application.getMember())
-                .loanProduct(application.getLoanProduct())
-                .contractBaseRate(application.getBaseRate())
-                .contractProductSpread(application.getProductSpread())
-                .contractCreditSpread(application.getCreditSpread())
-                .repaymentMethod(application.getRepaymentMethod())
-                .interestRateType(application.getInterestRateType())
-                .loanAmount(application.getLoanAmount())
-                .loanTerm(application.getLoanTerm())
-                .contractDate(now)
-                .maturityDate(maturityDate)
-                .status(ContractStatus.ACTIVE)
-                .contractVersion(1)
-                .build();
-
-        contract.setLoanAccount(account);
-
-        return contract;
-    }
-    private LocalDateTime calculateMaturityDate(LocalDateTime startDate, Integer termMonths) {
-        return startDate.plusMonths(termMonths);
     }
 
 }

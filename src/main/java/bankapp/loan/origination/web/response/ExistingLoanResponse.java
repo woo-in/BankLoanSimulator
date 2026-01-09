@@ -26,9 +26,8 @@ public class ExistingLoanResponse {
 
     public static ExistingLoanResponse from(LoanContract contract) {
 
-        BigDecimal totalRate = contract.getContractBaseRate()
-                .add(contract.getContractProductSpread())
-                .add(contract.getContractCreditSpread());
+        // todo : 일단 고정 금리 적용
+        BigDecimal totalRate = contract.getFinalInterestRate();
 
         return ExistingLoanResponse.builder()
                 .loanProductName(contract.getLoanProduct().getLoanProductName())

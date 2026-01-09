@@ -2,6 +2,7 @@ package bankapp.loan.servicing.model;
 
 
 import bankapp.account.model.account.LoanAccount;
+import bankapp.loan.underwriting.model.LoanContract;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,29 +24,29 @@ public class RepaymentSchedule {
     @Column(name = "repayment_schedule_id")
     private Long repaymentScheduleId;
 
+    // 계좌 , 계약 정보
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "account_id", nullable = false)
     private LoanAccount loanAccount;
 
-    @Column(nullable = false , updatable = false)
-    private LocalDate repaymentDate;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "loan_contract_id", nullable = false)
+    private LoanContract loanContract;
 
-
-    @Column(nullable = false , updatable = false)
-    private BigDecimal principalAmount; // 상환 원금
-
-
-    @Column(nullable = false , updatable = false)
-    private BigDecimal interestAmount; // 상환 이자
+    // 스케줄 금액
+    private BigDecimal totalAmount;
+    private BigDecimal interestAmount; // 이자
+    private BigDecimal principalAmount; // 원금
+    private BigDecimal delinquentAmount; // DELINQUENT 연체이자
+    private BigDecimal accelerationPenaltyAmount; // ACCELERATION , ACCELERATION_NOTICE 연체이자
 
     @Column(nullable = false)
-    private Integer repaymentSequence;
+    private LocalDate dueDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private RepaymentStatus status; // 상환 상태 (PENDING, PAID, OVERDUE)
-
-    private LocalDateTime paidDate; // 실제 납입 완료 일시 (PAID 상태일 때)
+    private RepaymentStatus status; // 상환 상태
 
     @CreationTimestamp
     private LocalDateTime createdAt; // 레코드 생성일
@@ -54,8 +55,6 @@ public class RepaymentSchedule {
     private LocalDateTime updatedAt; // 레코드 수정일
 
 
-//
-//
 //    // (빌더 패턴이나 정적 팩토리 메소드를 사용하여 객체 생성을 관리하는 것을 추천합니다)
 //    public static RepaymentSchedule create(LoanAccount loanAccount, LocalDate repaymentDate, BigDecimal principal, BigDecimal interest, int sequence) {
 //        RepaymentSchedule schedule = new RepaymentSchedule();
@@ -75,8 +74,22 @@ public class RepaymentSchedule {
                 this.loanAccount.getRepaymentSchedules().remove(this);
         }
         this.loanAccount = loanAccount;
-        this.loanAccount.getRepaymentSchedules().add(this);
+        if (loanAccount != null && !loanAccount.getRepaymentSchedules().contains(this)) {
+            loanAccount.getRepaymentSchedules().add(this);
+        }
     }
+
+    public void setLoanContract(LoanContract loanContract) {
+        if (this.loanContract != null) {
+            this.loanContract.getRepaymentSchedules().remove(this);
+        }
+        this.loanContract = loanContract;
+        if (loanContract != null && !loanContract.getRepaymentSchedules().contains(this)) {
+            loanContract.getRepaymentSchedules().add(this);
+        }
+    }
+
+
 
 }
 

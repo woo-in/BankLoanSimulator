@@ -24,9 +24,6 @@ public class PrimaryAccount extends Account {
         super(member, accountNumber, balance, nickname,status);
     }
 
-    public PrimaryAccount(Member member, String accountNumber, BigDecimal balance, AccountStatus status) {
-        super(member, accountNumber, balance, status);
-    }
 
     public static PrimaryAccount from(OpenPrimaryAccountRequest openPrimaryAccountRequest, Member member,String accountNumber)  {
          return new PrimaryAccount(member , accountNumber , openPrimaryAccountRequest.getBalance() , openPrimaryAccountRequest.getNickname() , AccountStatus.ACTIVE);

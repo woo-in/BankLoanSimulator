@@ -1,14 +1,16 @@
 package bankapp.loan.underwriting.service;
 
+import bankapp.account.model.account.LoanAccount;
 import bankapp.account.request.account.AccountTransactionRequest;
 import bankapp.account.service.account.AccountService;
 import bankapp.account.service.check.AccountCheckService;
-import bankapp.loan.exceptions.InvalidLoanApplication;
-import bankapp.loan.exceptions.InvalidPendingLoan;
+import bankapp.account.service.open.loan.OpenLoanAccountService;
 import bankapp.loan.exceptions.LoanApplicationNotFoundException;
+import bankapp.loan.servicing.service.LoanRepaymentService;
 import bankapp.loan.underwriting.model.ApplicationStatus;
 import bankapp.loan.underwriting.model.LoanApplication;
 import bankapp.loan.origination.model.PendingLoanApplication;
+import bankapp.loan.underwriting.model.LoanContract;
 import bankapp.loan.underwriting.repository.LoanApplicationRepository;
 import bankapp.loan.underwriting.web.customerdto.ContractAuthRequest;
 import bankapp.loan.underwriting.web.customerdto.ExecutionInfoRequest;
@@ -29,16 +31,25 @@ public class DefaultLoanApplicationService implements LoanApplicationService {
     private final LoanApplicationRepository loanApplicationRepository;
     private final AccountService accountService;
     private final AccountCheckService accountCheckService;
+    private final OpenLoanAccountService openLoanAccountService;
+    private final LoanContractService loanContractService;
+    private final LoanRepaymentService loanRepaymentService;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public DefaultLoanApplicationService(LoanApplicationRepository loanApplicationRepository,
                                          AccountCheckService accountCheckService,
                                          AccountService accountService,
-                                         PasswordEncoder passwordEncoder) {
+                                         OpenLoanAccountService openLoanAccountService,
+                                         LoanContractService loanContractService,
+                                         PasswordEncoder passwordEncoder,
+                                         LoanRepaymentService loanRepaymentService) {
         this.loanApplicationRepository = loanApplicationRepository;
         this.accountCheckService = accountCheckService;
         this.accountService = accountService;
+        this.openLoanAccountService = openLoanAccountService;
+        this.loanContractService = loanContractService;
+        this.loanRepaymentService = loanRepaymentService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -127,12 +138,14 @@ public class DefaultLoanApplicationService implements LoanApplicationService {
             throw new IncorrectPasswordException("비밀번호가 일치하지 않습니다.");
         }
 
-
         // 대출계좌 생성
+        LoanAccount loanAccount = openLoanAccountService.openLoanAccount(application);
 
         // 대출계약서 작성
+        LoanContract loanContract = loanContractService.saveLoanContract(application , loanAccount);
 
         // 스케줄러 작성
+        loanRepaymentService.saveRepaymentSchedule(loanAccount , loanContract);
 
         // 대출금 입금 진행
         AccountTransactionRequest debitTransaction =

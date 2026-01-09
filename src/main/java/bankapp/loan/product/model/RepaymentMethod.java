@@ -1,5 +1,6 @@
 package bankapp.loan.product.model;
 
+import bankapp.loan.product.enums.RepaymentMethodEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,5 +37,12 @@ public class RepaymentMethod {
     @Builder.Default
     private List<LoanProductRepaymentOption> loanProductRepaymentOptions = new ArrayList<>();
 
+    public RepaymentMethodEnum getMethodEnum() {
+        try {
+            return RepaymentMethodEnum.valueOf(this.methodCode);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new IllegalStateException("지원하지 않는 상환 방식 코드입니다: " + this.methodCode);
+        }
+    }
 
 }

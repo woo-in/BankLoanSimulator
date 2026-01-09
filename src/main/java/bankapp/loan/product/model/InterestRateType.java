@@ -1,11 +1,11 @@
 package bankapp.loan.product.model;
 
+import bankapp.loan.product.enums.InterestRateTypeEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +32,14 @@ public class InterestRateType {
 
     @OneToMany(mappedBy = "interestRateType")
     private List<LoanProductInterestRateTypeOption> interestRateTypeOptions = new ArrayList<>();
+
+    public InterestRateTypeEnum getTypeEnum() {
+        try {
+            return InterestRateTypeEnum.valueOf(this.typeCode);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new IllegalStateException("지원하지 않는 이자 종류 코드입니다: " + this.typeCode);
+        }
+    }
 
 
 }

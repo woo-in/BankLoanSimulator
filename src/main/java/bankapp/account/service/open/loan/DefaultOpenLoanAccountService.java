@@ -3,13 +3,10 @@ package bankapp.account.service.open.loan;
 
 import bankapp.account.model.account.LoanAccount;
 import bankapp.account.repository.AccountRepository;
-import bankapp.account.request.open.OpenLoanAccountRequest;
 import bankapp.account.service.open.component.AccountNumberGenerator;
 import bankapp.account.service.open.component.AccountOpeningValidator;
 import bankapp.loan.exceptions.InvalidLoanApplication;
 import bankapp.loan.underwriting.model.LoanApplication;
-import bankapp.member.exceptions.MemberNotFoundException;
-import bankapp.member.model.Member;
 import bankapp.member.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,9 +42,8 @@ public class DefaultOpenLoanAccountService implements OpenLoanAccountService{
             throw new InvalidLoanApplication("대출 신청서 정보가 없습니다.");
         }
         String newAccountNumber = accountNumberGenerator.generate();
-        LoanAccount newLoanAccount = LoanAccount.createFrom(loanApplication, newAccountNumber);
+        LoanAccount newLoanAccount = LoanAccount.from(loanApplication, newAccountNumber);
         return accountRepository.save(newLoanAccount);
-
 
     }
 

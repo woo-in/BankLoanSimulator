@@ -2,8 +2,8 @@ package bankapp.account.model.account;
 
 public enum LoanStatus {
     NORMAL, // 활성
-    DELINQUENT, // 1차 체납
-    EOD_DEFAULT, // EOD
-    FULLY_PAID, // 다 갚음
-    INACTIVE // 비활성
+    DELINQUENT, // 단순 연체
+    ACCELERATION_NOTICE, // EOD 예정
+    ACCELERATION, // EOD 확정
+    TERMINATED // 완제,해지
 }

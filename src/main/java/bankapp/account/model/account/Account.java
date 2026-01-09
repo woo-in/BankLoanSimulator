@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -36,8 +38,10 @@ public abstract class Account {
     private AccountStatus status;
 
     @CreationTimestamp
-    @Column(updatable = false, nullable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt; // 레코드 생성일
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt; // 레코드 수정일
 
     @Column(name = "account_type", insertable = false, updatable = false)
     private String accountType;
