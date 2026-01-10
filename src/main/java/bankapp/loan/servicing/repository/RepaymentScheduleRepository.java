@@ -8,4 +8,5 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface RepaymentScheduleRepository extends JpaRepository<RepaymentSchedule, Long> {
+    List<RepaymentSchedule> findByStatusAndDueDateLessThanEqual(RepaymentStatus status, LocalDate date);
 }

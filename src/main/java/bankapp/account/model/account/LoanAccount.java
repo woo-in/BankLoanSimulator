@@ -1,7 +1,6 @@
 package bankapp.account.model.account;
 
 
-import bankapp.account.request.open.OpenLoanAccountRequest;
 import bankapp.loan.servicing.model.LoanRepaymentTransaction;
 import bankapp.loan.servicing.model.LoanStatusHistory;
 import bankapp.loan.servicing.model.RepaymentSchedule;
@@ -9,6 +8,7 @@ import bankapp.loan.underwriting.model.LoanApplication;
 import bankapp.loan.underwriting.model.LoanContract;
 import jakarta.persistence.*;
 import lombok.*;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,14 +28,21 @@ public class LoanAccount extends Account {
     @Column(nullable = false)
     private Integer paymentDay;
 
+    // 연체와 관련 없는 정보
+
+    // 회차
     @Column(nullable = false)
-    private Integer remainingLoanTerm;
+    private Integer currentInstallmentNumber;
+
+    // 예상 원금
+    @Column(nullable = false)
+    private BigDecimal outstandingPrincipal;
+
+    //
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LoanStatus loanStatus;
-
-
 
     @OneToMany(mappedBy = "loanAccount", cascade = CascadeType.ALL)
     private List<LoanContract> loanContracts = new ArrayList<>();
@@ -96,7 +103,8 @@ public class LoanAccount extends Account {
         account.setStatus(AccountStatus.ACTIVE);
         account.setRepaymentAccount(loanApplication.getRepaymentAccount());
         account.setPaymentDay(loanApplication.getPaymentDay());
-        account.setRemainingLoanTerm(loanApplication.getLoanTerm());
+        account.setCurrentInstallmentNumber(1);
+        account.setOutstandingPrincipal(loanApplication.getApprovedLoanAmount());
         account.setLoanStatus(LoanStatus.NORMAL);
 
         return account;
