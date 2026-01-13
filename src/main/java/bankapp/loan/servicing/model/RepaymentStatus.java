@@ -7,3 +7,5 @@ public enum RepaymentStatus {
     COMPLETE, // 완료
     MERGED // 병합됨
 }
+
+

@@ -1,4 +1,4 @@
-package bankapp.loan.servicing.service;
+package bankapp.loan.servicing.service.core;
 
 import bankapp.loan.exceptions.InvalidRepaymentStatusException;
 import bankapp.loan.servicing.dto.RepaymentAllocationInfo;

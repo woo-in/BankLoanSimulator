@@ -1,4 +1,4 @@
-package bankapp.loan.servicing.service;
+package bankapp.loan.servicing.service.core;
 
 import bankapp.loan.servicing.model.LoanAccount;
 import bankapp.loan.servicing.model.LoanStatus;
@@ -60,6 +60,7 @@ public class DefaultLoanAccountService implements LoanAccountService {
         return newBalance;
     }
 
+    // todo : 상태 변화는 다른 서비스 로직에게 위임했는데 , 여기 있다면 ?
     /**
      * 대출 계좌 상태 변경
      *
@@ -69,17 +70,7 @@ public class DefaultLoanAccountService implements LoanAccountService {
      */
     @Transactional
     public LoanAccount updateLoanStatus(LoanAccount loanAccount, LoanStatus targetStatus) {
-        LoanStatus currentStatus = loanAccount.getLoanStatus();
-
-        // 2. 변경할 필요가 없는 경우 (이미 같은 상태임)
-        if (currentStatus == targetStatus) {
-            return loanAccount;
-        }
-
-        // 3. 상태 변경 유효성 검증 (비즈니스 규칙에 따라 추가)
-        validateStatusTransition(currentStatus, targetStatus);
         loanAccount.setLoanStatus(targetStatus);
-
         return loanAccount;
     }
 
@@ -196,19 +187,6 @@ public class DefaultLoanAccountService implements LoanAccountService {
         loanStatusHistoryRepository.save(newHistory);
     }
 
-    /**
-     * 상태 변경이 유효한지 검증하는 내부 메서드
-     * (비즈니스 규칙이 복잡해지면 별도 Validator 클래스로 분리 가능)
-     */
-    private void validateStatusTransition(LoanStatus current, LoanStatus target) {
-        // 예시: 이미 해지된(TERMINATED) 계좌는 상태를 바꿀 수 없다.
-        if (current == LoanStatus.TERMINATED) {
-            throw new IllegalStateException("이미 종결된 대출 계좌는 상태를 변경할 수 없습니다.");
-        }
-
-        // todo : 추가적인 전이 규칙 작성
-
-    }
 
     /**
      * 내부 헬퍼 메서드: 활성 상태의 대출 계약 조회

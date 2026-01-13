@@ -1,4 +1,4 @@
-package bankapp.loan.servicing.service;
+package bankapp.loan.servicing.service.core;
 
 import bankapp.loan.servicing.model.LoanAccount;
 import bankapp.loan.exceptions.ActiveLoanContractNotFoundException;
@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Comparator;
 
 @Service
-public class DefaultRepaymentTransactionService implements RepaymentTransactionService{
+public class DefaultRepaymentTransactionService implements RepaymentTransactionService {
 
     private final RepaymentTransactionRepository repaymentTransactionRepository;
 
