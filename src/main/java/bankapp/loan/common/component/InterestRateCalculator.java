@@ -7,6 +7,7 @@ import bankapp.loan.exceptions.LoanProductNotFoundException;
 import bankapp.loan.origination.component.LoanInquiryScorer;
 import bankapp.loan.origination.component.SelectionSpreadCalculator;
 import bankapp.loan.origination.model.PendingLoanApplication;
+import bankapp.loan.product.model.RepaymentMethod;
 import bankapp.loan.product.service.CreditLoanProductService;
 import bankapp.loan.origination.web.request.CreditCheckRequest;
 import bankapp.loan.origination.web.response.InterestRateInfoResponse;
@@ -29,6 +30,12 @@ public class InterestRateCalculator {
     private final LoanInquiryScorer loanInquiryScorer;
     private final SelectionSpreadCalculator selectionSpreadCalculator;
 
+
+    // 연체 가산 금리 (현재 정책: 2.0%)
+    private static final BigDecimal DELINQUENCY_PENALTY_SPREAD = new BigDecimal("2.0");
+    // 법정 최고 금리 제한 (현재 정책: 15.0%)
+    private static final BigDecimal MAX_LEGAL_INTEREST_RATE = new BigDecimal("15.0");
+// ---------------------------------------------------------
     // todo : 임시 설정 입니다. 실제 (대출신청금/대출기간/상환방법/금리종류) 테이블을 등록하면 , 수치를 바꿔야 합니다.
     private static final BigDecimal MIN_SELECTION_SPREAD = new BigDecimal("0.00");
     private static final BigDecimal MAX_SELECTION_SPREAD = new BigDecimal("0.50");
@@ -201,6 +208,30 @@ public class InterestRateCalculator {
         return selectionSpreadCalculator.calculate(pendingLoanApplication);
     }
 
+    /**
+     * 1차 연체 금리를 계산하여 반환합니다.
+     * 공식: 약정 금리(Applied Rate) + 연체 가산 금리(Penalty Spread)
+     * 단, 최종 금리는 법정 최고 금리(15%)를 초과할 수 없습니다.
+     *
+     * @param appliedRate 약정 금리 (단위: %, 예: 5.4)
+     * @return 연체 적용 금리 (단위: %, 예: 7.4)
+     */
+    public BigDecimal calculatePenaltyRate(BigDecimal appliedRate) {
+        if (appliedRate == null) {
+            return BigDecimal.ZERO;
+        }
+
+        // 1. 연체 금리 계산 (약정 금리 + 가산 금리 2%)
+        BigDecimal calculatedRate = appliedRate.add(DELINQUENCY_PENALTY_SPREAD);
+
+        // 2. 법정 최고 금리(15%) 초과 여부 확인 (Clamping)
+        // calculatedRate가 MAX 보다 크면(1), MAX를 반환하고 아니면 calculatedRate 반환
+        if (calculatedRate.compareTo(MAX_LEGAL_INTEREST_RATE) > 0) {
+            return MAX_LEGAL_INTEREST_RATE;
+        }
+
+        return calculatedRate;
+    }
 
 
 

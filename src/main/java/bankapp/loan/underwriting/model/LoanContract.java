@@ -1,11 +1,11 @@
 package bankapp.loan.underwriting.model;
 
 import bankapp.account.model.account.Account;
-import bankapp.account.model.account.LoanAccount;
+import bankapp.loan.servicing.model.LoanAccount;
 import bankapp.loan.product.model.LoanProduct;
 import bankapp.loan.product.model.InterestRateType;
 import bankapp.loan.product.model.RepaymentMethod;
-import bankapp.loan.servicing.model.LoanRepaymentTransaction;
+import bankapp.loan.servicing.model.RepaymentTransaction;
 import bankapp.loan.servicing.model.LoanStatusHistory;
 import bankapp.loan.servicing.model.RepaymentSchedule;
 import bankapp.member.model.Member;
@@ -115,7 +115,7 @@ public class LoanContract {
     private List<RepaymentSchedule> repaymentSchedules = new ArrayList<>();
 
     @OneToMany(mappedBy = "loanContract", cascade = CascadeType.ALL)
-    private List<LoanRepaymentTransaction> loanRepaymentTransactions = new ArrayList<>();
+    private List<RepaymentTransaction> repaymentTransactions = new ArrayList<>();
 
     @OneToMany(mappedBy = "loanContract", cascade = CascadeType.ALL)
     private List<LoanStatusHistory> loanStatusHistories = new ArrayList<>();
@@ -136,8 +136,8 @@ public class LoanContract {
         }
     }
 
-    public void addLoanRepaymentTransaction(LoanRepaymentTransaction transaction) {
-        this.loanRepaymentTransactions.add(transaction);
+    public void addLoanRepaymentTransaction(RepaymentTransaction transaction) {
+        this.repaymentTransactions.add(transaction);
         if (transaction.getLoanContract() != this) {
             transaction.setLoanContract(this);
         }

@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface RepaymentScheduleRepository extends JpaRepository<RepaymentSchedule, Long> {
     List<RepaymentSchedule> findByStatusAndDueDateLessThanEqual(RepaymentStatus status, LocalDate date);
+    List<RepaymentSchedule> findByLoanAccount_AccountIdAndStatusOrderByDueDateAsc(Long accountId, RepaymentStatus status);
 }

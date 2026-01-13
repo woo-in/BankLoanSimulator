@@ -1,7 +1,6 @@
 package bankapp.loan.servicing.model;
 
 
-import bankapp.account.model.account.LoanAccount;
 import bankapp.loan.underwriting.model.LoanContract;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -40,6 +39,7 @@ public class RepaymentSchedule {
     private BigDecimal principalAmount; // 원금
     private BigDecimal delinquentAmount; // DELINQUENT 연체이자
     private BigDecimal accelerationPenaltyAmount; // ACCELERATION , ACCELERATION_NOTICE 연체이자
+    private BigDecimal appliedInterestRate; // 적용된 금리 정보 (확정)
 
     @Column(nullable = false)
     private LocalDate dueDate;

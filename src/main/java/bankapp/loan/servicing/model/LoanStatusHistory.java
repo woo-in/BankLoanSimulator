@@ -1,7 +1,5 @@
 package bankapp.loan.servicing.model;
 
-import bankapp.account.model.account.LoanAccount;
-import bankapp.account.model.account.LoanStatus;
 import bankapp.loan.underwriting.model.LoanContract;
 import jakarta.persistence.*;
 import lombok.*;

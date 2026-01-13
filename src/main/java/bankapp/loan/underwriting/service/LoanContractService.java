@@ -1,7 +1,6 @@
 package bankapp.loan.underwriting.service;
 
-import bankapp.account.model.account.LoanAccount;
-import bankapp.account.request.open.OpenLoanAccountRequest;
+import bankapp.loan.servicing.model.LoanAccount;
 import bankapp.loan.underwriting.model.LoanApplication;
 import bankapp.loan.underwriting.model.LoanContract;
 import bankapp.loan.origination.web.response.ExistingLoanResponse;

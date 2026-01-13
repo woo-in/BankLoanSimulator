@@ -1,6 +1,5 @@
 package bankapp.loan.servicing.model;
 
-import bankapp.account.model.account.LoanAccount;
 import bankapp.loan.underwriting.model.LoanContract;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,7 +15,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LoanRepaymentTransaction {
+public class RepaymentTransaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,13 +56,13 @@ public class LoanRepaymentTransaction {
     public void setLoanAccount(LoanAccount loanAccount) {
         // 1. 기존 관계 제거 (필요 시)
         if (this.loanAccount != null) {
-            this.loanAccount.getLoanRepaymentTransactions().remove(this);
+            this.loanAccount.getRepaymentTransactions().remove(this);
         }
         // 2. 새로운 관계 설정
         this.loanAccount = loanAccount;
         // 3. 반대쪽 리스트에 추가 (무한루프 방지 체크)
-        if (loanAccount != null && !loanAccount.getLoanRepaymentTransactions().contains(this)) {
-            loanAccount.getLoanRepaymentTransactions().add(this);
+        if (loanAccount != null && !loanAccount.getRepaymentTransactions().contains(this)) {
+            loanAccount.getRepaymentTransactions().add(this);
         }
     }
 
@@ -73,13 +72,13 @@ public class LoanRepaymentTransaction {
     public void setLoanContract(LoanContract loanContract) {
         // 1. 기존 관계 제거
         if (this.loanContract != null) {
-            this.loanContract.getLoanRepaymentTransactions().remove(this);
+            this.loanContract.getRepaymentTransactions().remove(this);
         }
         // 2. 새로운 관계 설정
         this.loanContract = loanContract;
         // 3. 반대쪽 리스트에 추가
-        if (loanContract != null && !loanContract.getLoanRepaymentTransactions().contains(this)) {
-            loanContract.getLoanRepaymentTransactions().add(this);
+        if (loanContract != null && !loanContract.getRepaymentTransactions().contains(this)) {
+            loanContract.getRepaymentTransactions().add(this);
         }
     }
 

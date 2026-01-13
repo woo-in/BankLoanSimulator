@@ -1,9 +1,8 @@
-package bankapp.account.model.account;
+package bankapp.loan.servicing.model;
 
 
-import bankapp.loan.servicing.model.LoanRepaymentTransaction;
-import bankapp.loan.servicing.model.LoanStatusHistory;
-import bankapp.loan.servicing.model.RepaymentSchedule;
+import bankapp.account.model.account.Account;
+import bankapp.account.model.account.AccountStatus;
 import bankapp.loan.underwriting.model.LoanApplication;
 import bankapp.loan.underwriting.model.LoanContract;
 import jakarta.persistence.*;
@@ -51,7 +50,7 @@ public class LoanAccount extends Account {
     private List<RepaymentSchedule> repaymentSchedules = new ArrayList<>();
 
     @OneToMany(mappedBy = "loanAccount", cascade = CascadeType.ALL)
-    private List<LoanRepaymentTransaction> loanRepaymentTransactions = new ArrayList<>();
+    private List<RepaymentTransaction> repaymentTransactions = new ArrayList<>();
 
     @OneToMany(mappedBy = "loanAccount", cascade = CascadeType.ALL)
     private List<LoanStatusHistory> loanStatusHistories = new ArrayList<>();
@@ -71,8 +70,8 @@ public class LoanAccount extends Account {
         }
     }
 
-    public void addLoanRepaymentTransaction(LoanRepaymentTransaction transaction) {
-        this.loanRepaymentTransactions.add(transaction);
+    public void addLoanRepaymentTransaction(RepaymentTransaction transaction) {
+        this.repaymentTransactions.add(transaction);
         if (transaction.getLoanAccount() != this) {
             transaction.setLoanAccount(this);
         }

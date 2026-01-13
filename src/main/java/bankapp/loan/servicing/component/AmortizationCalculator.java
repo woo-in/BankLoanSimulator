@@ -1,6 +1,6 @@
 package bankapp.loan.servicing.component;
 
-import bankapp.account.model.account.LoanAccount;
+import bankapp.loan.servicing.model.LoanAccount;
 import bankapp.loan.common.component.InterestRateCalculator;
 import bankapp.loan.underwriting.model.LoanContract;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,14 +37,8 @@ public class AmortizationCalculator {
     public List<RepaymentDetail> getPlannedRepaymentDetails(LoanContract loanContract , LoanAccount loanAccount) {
 
 
-        BigDecimal totalAppliedRate = loanContract.getCreditSpread()
-                .add(loanContract.getProductSpread())
-                .add(loanContract.getSelectionSpread())
-                .add(loanContract.getBaseRate());
-        // 연이율을 백분율에서 소수점으로 변환
-        BigDecimal decimalRate = totalAppliedRate.divide(BigDecimal.valueOf(100), MC);
-        // 월 이율 계산 (소수점으로 변환한 연이율 / 12)
-        BigDecimal monthlyRate = decimalRate.divide(BigDecimal.valueOf(12), MC);
+        BigDecimal appliedRate = calculateAppliedRate(loanContract);
+
 
         BigDecimal principal = loanContract.getLoanAmount();
         int term = loanContract.getLoanTerm();
@@ -54,9 +48,9 @@ public class AmortizationCalculator {
 
         // 3. 상환 방식에 따라 다른 계산 전략 선택
         return switch (loanContract.getRepaymentMethod().getMethodEnum()) {
-            case EQUAL_PRINCIPAL_INTEREST -> calculateEqualInstallment(principal, monthlyRate, term , startDate , paymentDay);
-            case EQUAL_PRINCIPAL -> calculateEqualPrincipal(principal, monthlyRate, term , startDate ,paymentDay);
-            case BULLET -> calculateBulletPayment(principal, monthlyRate, term , startDate , paymentDay);
+            case EQUAL_PRINCIPAL_INTEREST -> calculateEqualInstallment(principal, appliedRate, term , startDate , paymentDay);
+            case EQUAL_PRINCIPAL -> calculateEqualPrincipal(principal, appliedRate, term , startDate ,paymentDay);
+            case BULLET -> calculateBulletPayment(principal, appliedRate, term , startDate , paymentDay);
         };
     }
 
@@ -73,6 +67,7 @@ public class AmortizationCalculator {
             case BULLET -> calculateSingleBulletPayment(loanContract , loanAccount);
         };
     }
+
 
 
 
@@ -134,13 +129,16 @@ public class AmortizationCalculator {
     }
 
 
+
     /**
      * 1. 원리금균등상환 (Equal Installment)
      * M = P * (r * (1+r)^n) / ((1+r)^n - 1)
      */
-    private List<RepaymentDetail> calculateEqualInstallment(BigDecimal principal, BigDecimal monthlyRate, int term, LocalDate startDate, int paymentDay) {
+    private List<RepaymentDetail> calculateEqualInstallment(BigDecimal principal, BigDecimal appliedRate, int term, LocalDate startDate, int paymentDay) {
         List<RepaymentDetail> details = new ArrayList<>();
         BigDecimal remainingPrincipal = principal;
+
+        BigDecimal monthlyRate = calculateMonthlyRate(appliedRate);
 
         // 월 상환금(PMT) 계산
         BigDecimal onePlusRate = BigDecimal.ONE.add(monthlyRate);
@@ -164,7 +162,7 @@ public class AmortizationCalculator {
 
             // 날짜 계산 및 리스트 추가
             LocalDate dueDate = calculateDueDate(startDate, i, paymentDay);
-            details.add(new RepaymentDetail(dueDate, principalPayment, interest));
+            details.add(new RepaymentDetail(dueDate, principalPayment, interest , appliedRate));
         }
         return details;
     }
@@ -172,7 +170,10 @@ public class AmortizationCalculator {
     /**
      * 2. 원금균등상환 (Equal Principal)
      */
-    private List<RepaymentDetail> calculateEqualPrincipal(BigDecimal principal, BigDecimal monthlyRate, int term, LocalDate startDate, int paymentDay) {
+    private List<RepaymentDetail> calculateEqualPrincipal(BigDecimal principal, BigDecimal appliedRate, int term, LocalDate startDate, int paymentDay) {
+
+        BigDecimal monthlyRate = calculateMonthlyRate(appliedRate);
+
         List<RepaymentDetail> details = new ArrayList<>();
 
         BigDecimal principalPayment = principal.divide(BigDecimal.valueOf(term), 0, ROUNDING_MODE);
@@ -188,7 +189,7 @@ public class AmortizationCalculator {
             remainingPrincipal = remainingPrincipal.subtract(principalPayment);
 
             LocalDate dueDate = calculateDueDate(startDate, i, paymentDay);
-            details.add(new RepaymentDetail(dueDate, principalPayment, interest));
+            details.add(new RepaymentDetail(dueDate, principalPayment, interest , appliedRate));
         }
         return details;
     }
@@ -196,7 +197,11 @@ public class AmortizationCalculator {
     /**
      * 3. 원금만기일시상환 (Bullet Payment)
      */
-    private List<RepaymentDetail> calculateBulletPayment(BigDecimal principal, BigDecimal monthlyRate, int term, LocalDate startDate, int paymentDay) {
+    private List<RepaymentDetail> calculateBulletPayment(BigDecimal principal, BigDecimal appliedRate, int term, LocalDate startDate, int paymentDay) {
+
+        BigDecimal monthlyRate = calculateMonthlyRate(appliedRate);
+
+
         List<RepaymentDetail> details = new ArrayList<>();
 
         BigDecimal interest = principal.multiply(monthlyRate).setScale(0, ROUNDING_MODE);
@@ -205,9 +210,9 @@ public class AmortizationCalculator {
             LocalDate dueDate = calculateDueDate(startDate, i, paymentDay);
 
             if (i < term) {
-                details.add(new RepaymentDetail(dueDate, BigDecimal.ZERO, interest));
+                details.add(new RepaymentDetail(dueDate, BigDecimal.ZERO, interest,appliedRate));
             } else {
-                details.add(new RepaymentDetail(dueDate, principal, interest));
+                details.add(new RepaymentDetail(dueDate, principal, interest,appliedRate));
             }
         }
         return details;
@@ -218,7 +223,8 @@ public class AmortizationCalculator {
      */
     private RepaymentDetail calculateSingleEqualInstallment(LoanContract loanContract, LoanAccount loanAccount) {
         // 1. 변동 금리(월이율) 계산
-        BigDecimal monthlyRate = calculateCurrentMonthlyRate(loanContract);
+        BigDecimal appliedRate = calculateAppliedRate(loanContract);
+        BigDecimal monthlyRate = calculateMonthlyRate(appliedRate);
 
         // 2. 변수 준비
         BigDecimal remainingBalance = loanAccount.getOutstandingPrincipal();
@@ -227,7 +233,7 @@ public class AmortizationCalculator {
 
         // 방어 로직
         if (remainingTerm <= 0 || remainingBalance.compareTo(BigDecimal.ZERO) <= 0) {
-            return new RepaymentDetail(LocalDate.now(), BigDecimal.ZERO, BigDecimal.ZERO);
+            return new RepaymentDetail(LocalDate.now(), BigDecimal.ZERO, BigDecimal.ZERO,appliedRate);
         }
 
         // 3. PMT 재산정
@@ -244,10 +250,10 @@ public class AmortizationCalculator {
 
         // 5. 마지막 회차 보정
         if (currentSequence == loanContract.getLoanTerm()) {
-            principal = remainingBalance;
+            principal = loanAccount.getBalance();
         }
 
-        return createRepaymentDetail(loanContract, loanAccount, principal, interest);
+        return createRepaymentDetail(loanContract, loanAccount, principal, interest,appliedRate);
     }
 
     /**
@@ -255,7 +261,8 @@ public class AmortizationCalculator {
      */
     private RepaymentDetail calculateSingleEqualPrincipal(LoanContract loanContract, LoanAccount loanAccount) {
         // 1. 변동 금리 계산
-        BigDecimal monthlyRate = calculateCurrentMonthlyRate(loanContract);
+        BigDecimal appliedRate = calculateAppliedRate(loanContract);
+        BigDecimal monthlyRate = calculateMonthlyRate(appliedRate);
 
         // 2. 이자 계산 (현재 잔액 기준)
         BigDecimal remainingBalance = loanAccount.getOutstandingPrincipal();
@@ -264,13 +271,13 @@ public class AmortizationCalculator {
         // 3. 원금 계산 (총 원금 / 총 기간) -> 불변
         BigDecimal principal;
         if (Objects.equals(loanAccount.getCurrentInstallmentNumber(), loanContract.getLoanTerm())) {
-            principal = remainingBalance; // 마지막 회차 잔액 털기
+            principal = loanAccount.getBalance();
         } else {
             principal = loanContract.getLoanAmount()
                     .divide(BigDecimal.valueOf(loanContract.getLoanTerm()), 0, ROUNDING_MODE);
         }
 
-        return createRepaymentDetail(loanContract, loanAccount, principal, interest);
+        return createRepaymentDetail(loanContract, loanAccount, principal, interest,appliedRate);
     }
 
     /**
@@ -278,7 +285,8 @@ public class AmortizationCalculator {
      */
     private RepaymentDetail calculateSingleBulletPayment(LoanContract loanContract, LoanAccount loanAccount) {
         // 1. 변동 금리 계산
-        BigDecimal monthlyRate = calculateCurrentMonthlyRate(loanContract);
+        BigDecimal appliedRate = calculateAppliedRate(loanContract);
+        BigDecimal monthlyRate = calculateMonthlyRate(appliedRate);
 
         // 2. 이자 및 원금 계산
         BigDecimal interest = loanAccount.getOutstandingPrincipal()
@@ -289,8 +297,9 @@ public class AmortizationCalculator {
             principal = loanAccount.getOutstandingPrincipal();
         }
 
-        return createRepaymentDetail(loanContract, loanAccount, principal, interest);
+        return createRepaymentDetail(loanContract, loanAccount, principal, interest,appliedRate);
     }
+
 
 
 
@@ -317,23 +326,26 @@ public class AmortizationCalculator {
     /**
      * 현재 시점의 변동 금리를 반영하여 '월 이율'을 반환
      */
-    private BigDecimal calculateCurrentMonthlyRate(LoanContract loanContract) {
-        BigDecimal totalAppliedRate = loanContract.getCreditSpread()
+    private BigDecimal calculateAppliedRate(LoanContract loanContract){
+        return loanContract.getCreditSpread()
                 .add(loanContract.getProductSpread())
                 .add(loanContract.getSelectionSpread())
-                .add(interestRateCalculator.calculateBaseRate()); // ★ 현재 외부 금리 가져오기
+                .add(interestRateCalculator.calculateBaseRate());
+    }
 
+    private BigDecimal calculateMonthlyRate(BigDecimal appliedRate){
         // 연이율 -> 소수점 -> 월이율
-        return totalAppliedRate
+        return appliedRate
                 .divide(BigDecimal.valueOf(100), MC)
                 .divide(BigDecimal.valueOf(12), MC);
     }
+
 
     /**
      * 날짜 계산을 포함하여 RepaymentDetail 객체 생성
      */
     private RepaymentDetail createRepaymentDetail(LoanContract loanContract, LoanAccount loanAccount,
-                                                  BigDecimal principal, BigDecimal interest) {
+                                                  BigDecimal principal, BigDecimal interest , BigDecimal appliedRate) {
         LocalDate baseDate = loanContract.getContractDate() != null ?
                 loanContract.getContractDate().toLocalDate() : LocalDate.now();
 
@@ -343,7 +355,7 @@ public class AmortizationCalculator {
                 loanAccount.getPaymentDay()
         );
 
-        return new RepaymentDetail(dueDate, principal, interest);
+        return new RepaymentDetail(dueDate, principal, interest,appliedRate);
     }
 
 }

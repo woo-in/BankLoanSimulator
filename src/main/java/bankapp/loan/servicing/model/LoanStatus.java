@@ -1,4 +1,4 @@
-package bankapp.account.model.account;
+package bankapp.loan.servicing.model;
 
 public enum LoanStatus {
     NORMAL, // 활성

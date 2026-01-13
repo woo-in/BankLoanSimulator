@@ -1,7 +1,7 @@
 package bankapp.account.service.open.loan;
 
 
-import bankapp.account.model.account.LoanAccount;
+import bankapp.loan.servicing.model.LoanAccount;
 import bankapp.account.repository.AccountRepository;
 import bankapp.account.service.open.component.AccountNumberGenerator;
 import bankapp.account.service.open.component.AccountOpeningValidator;

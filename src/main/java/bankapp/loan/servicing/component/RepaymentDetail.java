@@ -14,4 +14,5 @@ public class RepaymentDetail {
     private LocalDate dueDate; // 납부 예정일
     private BigDecimal principal;  // 계산된 원금
     private BigDecimal interest;    // 계산된 이자
+    private BigDecimal appliedInterestRate; // 적용 금리 (Ex: 0.05 = 5%)
 }

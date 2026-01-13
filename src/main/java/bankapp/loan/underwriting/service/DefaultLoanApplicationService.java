@@ -1,6 +1,6 @@
 package bankapp.loan.underwriting.service;
 
-import bankapp.account.model.account.LoanAccount;
+import bankapp.loan.servicing.model.LoanAccount;
 import bankapp.account.request.account.AccountTransactionRequest;
 import bankapp.account.service.account.AccountService;
 import bankapp.account.service.check.AccountCheckService;
