@@ -21,9 +21,10 @@ public class DefaultRepaymentStatusService implements RepaymentStatusService {
         this.repaymentScheduleService = repaymentScheduleService;
     }
 
-//    PLANNED, // 계획 , 먼 미래
-//    PENDING, // 대기
-//    COMPLETE, // 완료
+//    PLANNED // 계획 , 먼 미래
+//    PENDING // 대기
+//    COMPLETE // 완료
+//    OVERDUE // 만기
 //    MERGED // 병합됨
 
     @Override
@@ -42,6 +43,9 @@ public class DefaultRepaymentStatusService implements RepaymentStatusService {
         }
         else if(targetStatus == RepaymentStatus.MERGED){
             changeRepaymentStatusToMerge(schedule);
+        }
+        else if(targetStatus == RepaymentStatus.OVERDUE){
+            changeRepaymentStatusToOverdue(schedule);
         }
         else{
             throw new InvalidRepaymentScheduleException("스케줄이 올바르지 않아 , 상태를 바꿀 수 없습니다.");
@@ -65,6 +69,12 @@ public class DefaultRepaymentStatusService implements RepaymentStatusService {
         }
         repaymentScheduleService.updateRepaymentStatus(schedule , RepaymentStatus.PENDING);
 
+    }
+
+
+    private void changeRepaymentStatusToOverdue(RepaymentSchedule schedule){
+        // todo : 적절한 필터 추가 가능
+        repaymentScheduleService.updateRepaymentStatus(schedule , RepaymentStatus.OVERDUE);
     }
 
     private void changeRepaymentStatusToMerge(RepaymentSchedule schedule){

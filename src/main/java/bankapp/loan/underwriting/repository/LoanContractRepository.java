@@ -1,4 +1,4 @@
-package bankapp.loan.origination.repository;
+package bankapp.loan.underwriting.repository;
 
 import bankapp.loan.underwriting.model.LoanContract;
 import bankapp.member.model.Member;

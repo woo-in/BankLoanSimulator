@@ -51,10 +51,6 @@ public class DefaultRepaymentScheduleService implements RepaymentScheduleService
             return;
         }
 
-        // 2. 상태 전이 유효성 검사 (필요 시 추가)
-        // 예: 이미 COMPLETE 된 건을 PENDING 으로 되돌릴 수 없다 등
-        validateStatusTransition(schedule.getStatus(), targetStatus);
-
         // 3. 상태 변경 (JPA Dirty Checking 으로 자동 저장됨)
         schedule.setStatus(targetStatus);
     }
@@ -238,18 +234,6 @@ public class DefaultRepaymentScheduleService implements RepaymentScheduleService
     }
 
 
-
-    // ==========================================
-    //  Private Helpers
-    // ==========================================
-
-    private void validateStatusTransition(RepaymentStatus current, RepaymentStatus target) {
-        // 비즈니스 규칙에 따라 구현
-        // 예시: 완료된 스케줄은 다시 대기로 못 돌린다.
-        if (current == RepaymentStatus.COMPLETE && target == RepaymentStatus.PENDING) {
-            throw new IllegalStateException("이미 상환 완료된 스케줄은 대기 상태로 변경할 수 없습니다.");
-        }
-    }
 
     /**
      * 특정 컴포넌트(원금, 이자 등)에서 갚을 수 있는 금액 계산

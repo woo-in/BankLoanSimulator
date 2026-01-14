@@ -3,7 +3,7 @@ package bankapp.loan.underwriting.service;
 import bankapp.loan.servicing.model.LoanAccount;
 import bankapp.loan.underwriting.model.LoanApplication;
 import bankapp.loan.underwriting.model.LoanContract;
-import bankapp.loan.origination.repository.LoanContractRepository;
+import bankapp.loan.underwriting.repository.LoanContractRepository;
 import bankapp.loan.origination.web.response.ExistingLoanResponse;
 import bankapp.member.model.Member;
 import org.springframework.beans.factory.annotation.Autowired;
