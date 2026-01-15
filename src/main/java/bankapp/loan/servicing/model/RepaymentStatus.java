@@ -1,12 +1,15 @@
 package bankapp.loan.servicing.model;
 
 public enum RepaymentStatus {
+    PLANNED,            // 미래
+    PENDING,            // 임박 (5일 전)
+    COMPLETE,           // 상환 완료
+    MERGED,              //  ACCELERATED로 통합된
 
-    PLANNED, // 계획 , 먼 미래 (5일보다 먼 미래)
-    PENDING, // 대기 (5일 ~ 도달)
-    COMPLETE, // 완료 (도달이후 , 상환)
-    OVERDUE, // 연체 (도달이후 , 미상환)
-    MERGED // 병합됨 - ACCELERATION 상황
+    OVERDUE,            // DELINQUENT 시 추가금 쌓임 / ACC_NOTICE 시 그대로
+    CRITICAL_OVERDUE,   // ACC_NOTICE 시 추가금 쌓임
+    ACCELERATED         // ACC 시 추가금 쌓임 / = CRITICAL + OVERDUE + 나머지 PLANNED
+
 }
 
 

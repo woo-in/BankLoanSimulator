@@ -2,9 +2,11 @@ package bankapp.loan.servicing.service.core;
 
 import bankapp.loan.exceptions.InvalidRepaymentStatusException;
 import bankapp.loan.servicing.dto.RepaymentAllocationInfo;
+import bankapp.loan.servicing.model.LoanStatus;
 import bankapp.loan.servicing.model.RepaymentSchedule;
 import bankapp.loan.servicing.model.RepaymentStatus;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -86,4 +88,55 @@ public interface RepaymentScheduleService {
      */
     void updateDailyAcceleration(RepaymentSchedule schedule);
 
+    /**
+     * 상환 스케줄의 예정 금액(원금, 이자)을 최신 기준으로 재계산하여 갱신합니다.
+     * <p>
+     * 주로 <b>변동 금리(Variable Interest Rate)</b> 대출 상품에 사용되는 로직입니다.<br>
+     * 현재 시점의 금리와 대출 잔액을 기준으로 상환금 계산기를 통해 원금과 이자를 다시 산출하고,
+     * 변경된 내역(원금, 이자, 총 상환액)을 해당 스케줄 엔티티에 반영합니다.
+     * </p>
+     *
+     * @param schedule 금액을 갱신할 대상 상환 스케줄 엔티티
+     */
+    void updateAmount(RepaymentSchedule schedule);
+
+    /**
+     * 특정 상태이면서, 기한이 지정된 날짜보다 같거나 이전인 스케줄을 조회합니다.
+     * <p>
+     * 주로 배치 작업에서 상태 전이 대상을 찾을 때 사용됩니다.<br>
+     * 예: 기한 도래(PLANNED -> PENDING) 또는 연체 진입(PENDING -> OVERDUE) 대상 조회.
+     * </p>
+     *
+     * @param status     검색할 스케줄 상태 (예: PLANNED, PENDING)
+     * @param targetDate 기준 날짜 (이 날짜를 포함하여 과거의 스케줄을 조회)
+     * @return 조건에 부합하는 상환 스케줄 리스트
+     */
+    List<RepaymentSchedule> findSchedulesByStatusAndDueDate(RepaymentStatus status, LocalDate targetDate);
+
+    /**
+     * 대출 계좌 상태와 스케줄 상태가 모두 일치하는 스케줄을 조회합니다.
+     * <p>
+     * 주로 연체 이자 및 위약금 갱신 대상(Daily Batch)을 찾을 때 사용됩니다.<br>
+     * 예: 대출이 '단순 연체(DELINQUENT)' 상태이면서, 스케줄이 '연체(OVERDUE)'인 건 조회.
+     * </p>
+     *
+     * @param loanStatus      대출 계좌의 상태 (예: DELINQUENT, ACCELERATION_NOTICE)
+     * @param repaymentStatus 스케줄의 상태 (예: OVERDUE, CRITICAL_OVERDUE)
+     * @return 조건에 부합하는 상환 스케줄 리스트
+     */
+    List<RepaymentSchedule> findSchedulesByLoanAndRepaymentStatus(LoanStatus loanStatus, RepaymentStatus repaymentStatus);
+
+    /**
+     * [LoanAgingService 전용] 대출 계좌 상태, 스케줄 상태, 기한 조건을 모두 만족하는 스케줄을 조회합니다.
+     * <p>
+     * 주로 <b>복합 조건의 상태 전이 대상</b>을 찾을 때 사용됩니다.<br>
+     * 예: '정상(NORMAL)' 대출이면서 '대기(PENDING)' 스케줄의 납입 기한이 지났을 때 연체로 전환하기 위해 조회.
+     * </p>
+     *
+     * @param loanStatus      대출 계좌의 상태 (예: NORMAL)
+     * @param repaymentStatus 스케줄의 상태 (예: PENDING)
+     * @param targetDate      기준 날짜 (이 날짜를 포함하여 과거의 스케줄을 조회)
+     * @return 조건에 부합하는 상환 스케줄 리스트
+     */
+    List<RepaymentSchedule> findSchedulesByLoanStatusAndRepaymentStatusAndDueDate(LoanStatus loanStatus, RepaymentStatus repaymentStatus, LocalDate targetDate);
 }

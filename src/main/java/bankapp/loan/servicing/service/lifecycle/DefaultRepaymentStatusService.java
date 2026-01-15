@@ -47,6 +47,12 @@ public class DefaultRepaymentStatusService implements RepaymentStatusService {
         else if(targetStatus == RepaymentStatus.OVERDUE){
             changeRepaymentStatusToOverdue(schedule);
         }
+        else if(targetStatus == RepaymentStatus.CRITICAL_OVERDUE){
+            changeRepaymentStatusToCriticalOverdue(schedule);
+        }
+        else if(targetStatus == RepaymentStatus.ACCELERATED){
+            changeRepaymentStatusToAccelerated(schedule);
+        }
         else{
             throw new InvalidRepaymentScheduleException("스케줄이 올바르지 않아 , 상태를 바꿀 수 없습니다.");
         }
@@ -61,7 +67,6 @@ public class DefaultRepaymentStatusService implements RepaymentStatusService {
         repaymentScheduleService.updateRepaymentStatus(schedule , RepaymentStatus.COMPLETE);
 
     }
-
     private void changeRepaymentStatusToPending(RepaymentSchedule schedule){
         // todo : 적절한 필터 추가 가능
         if(schedule.getStatus() != RepaymentStatus.PLANNED){
@@ -70,19 +75,21 @@ public class DefaultRepaymentStatusService implements RepaymentStatusService {
         repaymentScheduleService.updateRepaymentStatus(schedule , RepaymentStatus.PENDING);
 
     }
-
-
     private void changeRepaymentStatusToOverdue(RepaymentSchedule schedule){
         // todo : 적절한 필터 추가 가능
         repaymentScheduleService.updateRepaymentStatus(schedule , RepaymentStatus.OVERDUE);
     }
-
     private void changeRepaymentStatusToMerge(RepaymentSchedule schedule){
         // todo : 적절한 필터 추가 가능
         repaymentScheduleService.updateRepaymentStatus(schedule , RepaymentStatus.MERGED);
     }
-
-
+    private void changeRepaymentStatusToCriticalOverdue(RepaymentSchedule schedule){
+        // todo : 적절한 필터 추가 가능
+        repaymentScheduleService.updateRepaymentStatus(schedule , RepaymentStatus.CRITICAL_OVERDUE);
+    }
+    private void changeRepaymentStatusToAccelerated(RepaymentSchedule schedule){
+        repaymentScheduleService.updateRepaymentStatus(schedule , RepaymentStatus.ACCELERATED);
+    }
 
 
 

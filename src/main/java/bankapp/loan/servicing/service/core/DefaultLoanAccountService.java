@@ -74,9 +74,9 @@ public class DefaultLoanAccountService implements LoanAccountService {
         return loanAccount;
     }
 
+
     /**
      *  대출 상태 업데이트 (회차 증가 및 예상 잔여 원금 갱신)
-     *
      * 1. 회차(CurrentInstallmentNumber)는 자동으로 1 증가
      * 2. 예상 잔여 원금(OutstandingPrincipal)은 인자로 받은 값으로 설정
      *
@@ -115,6 +115,11 @@ public class DefaultLoanAccountService implements LoanAccountService {
 
         return loanAccount;
     }
+
+
+
+
+
 
     /**
      * - 신규: 이력 생성

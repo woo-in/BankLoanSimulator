@@ -3,9 +3,13 @@ package bankapp.loan.servicing.service.core;
 import bankapp.loan.common.component.InterestRateCalculator;
 import bankapp.loan.exceptions.ActiveLoanContractNotFoundException;
 import bankapp.loan.exceptions.InvalidRepaymentStatusException;
+import bankapp.loan.product.enums.InterestRateTypeEnum;
 import bankapp.loan.product.enums.RepaymentMethodEnum;
+import bankapp.loan.servicing.component.AmortizationCalculator;
+import bankapp.loan.servicing.component.RepaymentDetail;
 import bankapp.loan.servicing.dto.RepaymentAllocationInfo;
 import bankapp.loan.servicing.model.LoanAccount;
+import bankapp.loan.servicing.model.LoanStatus;
 import bankapp.loan.servicing.model.RepaymentSchedule;
 import bankapp.loan.servicing.model.RepaymentStatus;
 import bankapp.loan.servicing.repository.RepaymentScheduleRepository;
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -26,14 +31,19 @@ public class DefaultRepaymentScheduleService implements RepaymentScheduleService
 
     private final RepaymentScheduleRepository repaymentScheduleRepository;
     private final InterestRateCalculator interestRateCalculator;
+    private final AmortizationCalculator  amortizationCalculator;
 
     @Autowired
     public DefaultRepaymentScheduleService(RepaymentScheduleRepository repaymentScheduleRepository,
-                                           InterestRateCalculator interestRateCalculator){
+                                           InterestRateCalculator interestRateCalculator,
+                                           AmortizationCalculator  amortizationCalculator) {
         this.repaymentScheduleRepository = repaymentScheduleRepository;
         this.interestRateCalculator = interestRateCalculator;
+        this.amortizationCalculator = amortizationCalculator;
     }
 
+
+    @Override
     @Transactional(readOnly = true)
     public List<RepaymentSchedule> getRepaymentSchedules(Long loanAccountId, RepaymentStatus status) {
         if (status == null) throw new InvalidRepaymentStatusException("잘못된 상태 정보");
@@ -44,6 +54,7 @@ public class DefaultRepaymentScheduleService implements RepaymentScheduleService
      *  스케줄 상태 변경 (Entity 기반)
      * - 상환 처리 로직 등에서 이미 조회된 객체를 다룰 때 사용
      */
+    @Override
     @Transactional
     public void updateRepaymentStatus(RepaymentSchedule schedule, RepaymentStatus targetStatus) {
         // 1. 방어 로직: 이미 해당 상태라면 변경하지 않음 (DB Update 쿼리 방지)
@@ -64,6 +75,7 @@ public class DefaultRepaymentScheduleService implements RepaymentScheduleService
      * @param paymentAmount 사용 가능한 상환 금액 (잔액)
      * @return 이 스케줄에서 실제로 처리된 상세 내역 (DTO)
      */
+    @Override
     @Transactional
     public RepaymentAllocationInfo applyPaymentToSchedule(RepaymentSchedule schedule, BigDecimal paymentAmount) {
 
@@ -133,6 +145,7 @@ public class DefaultRepaymentScheduleService implements RepaymentScheduleService
 
     /** 하루 단순 연체 이자 계산 및 업데이트
      */
+    @Override
     @Transactional
     public void updateDailyDelinquent(RepaymentSchedule schedule){
 
@@ -191,6 +204,7 @@ public class DefaultRepaymentScheduleService implements RepaymentScheduleService
     /** 하루 EOD 연체 이자 계산 및 업데이트
      * todo : 대출 원금 계약금 5000 만원 이하는 부과 금지 (예외처리할지 , 아니면 상위에서 로직으로 ?)
      */
+    @Override
     @Transactional
     public void updateDailyAcceleration(RepaymentSchedule schedule){
 
@@ -233,7 +247,59 @@ public class DefaultRepaymentScheduleService implements RepaymentScheduleService
         schedule.setTotalAmount(totalAmount);
     }
 
+    /**
+     * 특정 상태(status)이면서, 기한(dueDate)이 기준 날짜(targetDate)보다 같거나 과거인 스케줄 조회
+     * * 용도:
+     * 1. activateDueSchedules: (PLANNED, 오늘) -> 기한 도래한 것 찾기
+     * 2. transitionToDelinquent 등: (PENDING, 어제) -> 납부 기한 지겨서 연체된 것 찾기
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<RepaymentSchedule> findSchedulesByStatusAndDueDate(RepaymentStatus status, LocalDate targetDate) {
+        return repaymentScheduleRepository.findByStatusAndDueDateLessThanEqual(status, targetDate);
+    }
 
+    /**
+     * 대출 계좌의 상태(LoanStatus)와 스케줄의 상태(RepaymentStatus)가 모두 일치하는 스케줄 조회
+     * * 용도:
+     * 1. updateBalanceForDelinquent: (DELINQUENT, OVERDUE) -> 이자 갱신 대상
+     * 2. updateBalanceForAccelerationNotice: (ACC_NOTICE, CRITICAL_OVERDUE) -> 이자 갱신 대상
+     * 3. updateBalanceForAcceleration: (ACCELERATION, ACCELERATED) -> 위약금 갱신 대상
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<RepaymentSchedule> findSchedulesByLoanAndRepaymentStatus(LoanStatus loanStatus, RepaymentStatus repaymentStatus) {
+        return repaymentScheduleRepository.findByLoanAccount_LoanStatusAndStatus(loanStatus, repaymentStatus);
+    }
+
+    /**
+     * 대출 계좌 상태, 스케줄 상태, 기한 조건을 모두 만족하는 스케줄 조회
+     * * 용도:
+     * 1. transitionToDelinquent: (NORMAL, PENDING, targetDate) -> 정상 대출 중 연체 발생 건 조회
+     * 2. transitionToAccelerationNotice: (DELINQUENT, OVERDUE, targetDate) -> 연체 지속으로 인한 독촉 대상 조회
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<RepaymentSchedule> findSchedulesByLoanStatusAndRepaymentStatusAndDueDate(LoanStatus loanStatus, RepaymentStatus repaymentStatus, LocalDate targetDate) {
+        return repaymentScheduleRepository.findByLoanAccount_LoanStatusAndStatusAndDueDateLessThanEqual(loanStatus, repaymentStatus, targetDate);
+    }
+
+    @Override
+    @Transactional
+    public void updateAmount(RepaymentSchedule schedule) {
+        LoanContract contract = schedule.getLoanContract();
+        LoanAccount account = schedule.getLoanAccount();
+
+        if (contract.getInterestRateType().getTypeEnum() == InterestRateTypeEnum.VARIABLE) {
+            // Calculator를 통해 현재 기준(금리, 잔액)으로 다시 계산된 상세 정보 획득
+            RepaymentDetail newDetail = amortizationCalculator.getNextRepaymentDetail(contract, account);
+            // 계산된 금액으로 스케줄 업데이트
+            schedule.setInterestAmount(newDetail.getInterest());
+            schedule.setPrincipalAmount(newDetail.getPrincipal());
+            schedule.setTotalAmount(newDetail.getPrincipal().add(newDetail.getInterest()));
+
+        }
+    }
 
     /**
      * 특정 컴포넌트(원금, 이자 등)에서 갚을 수 있는 금액 계산
