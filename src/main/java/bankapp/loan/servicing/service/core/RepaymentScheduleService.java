@@ -2,9 +2,12 @@ package bankapp.loan.servicing.service.core;
 
 import bankapp.loan.exceptions.InvalidRepaymentStatusException;
 import bankapp.loan.servicing.dto.RepaymentAllocationInfo;
+import bankapp.loan.servicing.model.LoanAccount;
 import bankapp.loan.servicing.model.LoanStatus;
 import bankapp.loan.servicing.model.RepaymentSchedule;
 import bankapp.loan.servicing.model.RepaymentStatus;
+import bankapp.loan.underwriting.model.LoanContract;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -18,6 +21,9 @@ import java.util.List;
 public interface RepaymentScheduleService {
 
 
+
+    // 상환 스케줄 초기 저장
+    void saveRepaymentSchedule(LoanAccount loanAccount , LoanContract loanContract);
 
     /**
      * 특정 대출 계좌의 상환 스케줄 목록을 조회합니다.

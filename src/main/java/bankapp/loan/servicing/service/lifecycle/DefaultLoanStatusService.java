@@ -154,4 +154,6 @@ public class DefaultLoanStatusService implements LoanStatusService {
         loanAccountService.closeStatusHistory(loanAccount,LocalDateTime.now());
         loanAccountService.updateLoanStatus(loanAccount , LoanStatus.TERMINATED);
     }
+
+    // compelete
 }

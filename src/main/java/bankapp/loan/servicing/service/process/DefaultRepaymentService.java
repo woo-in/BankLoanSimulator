@@ -132,7 +132,7 @@ public class DefaultRepaymentService implements RepaymentService {
         }
 
         // todo : 대출 계좌 상태가 혹시 종료 상태로 바꿀 수 있는지 체크 (가능 -> 바꾸고 대출 종료 / 불가능 -> 예외 throw)
-        loanStatusService.changeLoanStatus(loanAccount, LoanStatus.TERMINATED);
+        loanStatusService.changeLoanStatusToTerminated(loanAccount);
     }
 
     /**
@@ -159,11 +159,11 @@ public class DefaultRepaymentService implements RepaymentService {
         else{
             // <전체 상환>
             processFullRepayment(loanAccount, schedule);
-            loanStatusService.changeLoanStatus(loanAccount, LoanStatus.NORMAL);
+            loanStatusService.changeLoanStatusToNormal(loanAccount);
         }
 
         // todo : 대출 계좌 상태가 혹시 종료 상태로 바꿀 수 있는지 체크 (가능 -> 바꾸고 대출 종료 / 불가능 -> 예외 throw)
-        loanStatusService.changeLoanStatus(loanAccount, LoanStatus.TERMINATED);
+        loanStatusService.changeLoanStatusToTerminated(loanAccount);
 
     }
 
@@ -192,7 +192,7 @@ public class DefaultRepaymentService implements RepaymentService {
         else{
             // <전체 상환>
             processFullRepayment(loanAccount, schedule);
-            loanStatusService.changeLoanStatus(loanAccount, LoanStatus.DELINQUENT);
+            loanStatusService.changeLoanStatusToDelinquent(loanAccount);
         }
 
 
@@ -225,7 +225,7 @@ public class DefaultRepaymentService implements RepaymentService {
         else{
             // <전체 상환>
             processFullRepayment(loanAccount, schedule);
-            loanStatusService.changeLoanStatus(loanAccount, LoanStatus.TERMINATED);
+            loanStatusService.changeLoanStatusToTerminated(loanAccount);
         }
 
 
@@ -251,7 +251,8 @@ public class DefaultRepaymentService implements RepaymentService {
         executeRepaymentCommon(loanAccount, schedule, fullAmount);
 
         // 3. [전체 상환만의 추가 로직] 스케줄 상태를 COMPLETE로 변경
-        repaymentStatusService.changeRepaymentStatus(schedule, RepaymentStatus.COMPLETE);
+        repaymentStatusService.changeRepaymentStatusToComplete(schedule);
+
     }
 
     /**

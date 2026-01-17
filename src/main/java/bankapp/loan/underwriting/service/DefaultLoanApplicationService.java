@@ -6,7 +6,7 @@ import bankapp.account.service.account.AccountService;
 import bankapp.account.service.check.AccountCheckService;
 import bankapp.account.service.open.loan.OpenLoanAccountService;
 import bankapp.loan.exceptions.LoanApplicationNotFoundException;
-import bankapp.loan.servicing.service.LoanRepaymentService;
+import bankapp.loan.servicing.service.core.RepaymentScheduleService;
 import bankapp.loan.underwriting.model.ApplicationStatus;
 import bankapp.loan.underwriting.model.LoanApplication;
 import bankapp.loan.origination.model.PendingLoanApplication;
@@ -33,7 +33,7 @@ public class DefaultLoanApplicationService implements LoanApplicationService {
     private final AccountCheckService accountCheckService;
     private final OpenLoanAccountService openLoanAccountService;
     private final LoanContractService loanContractService;
-    private final LoanRepaymentService loanRepaymentService;
+    private final RepaymentScheduleService repaymentScheduleService;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -43,13 +43,13 @@ public class DefaultLoanApplicationService implements LoanApplicationService {
                                          OpenLoanAccountService openLoanAccountService,
                                          LoanContractService loanContractService,
                                          PasswordEncoder passwordEncoder,
-                                         LoanRepaymentService loanRepaymentService) {
+                                         RepaymentScheduleService repaymentScheduleService) {
         this.loanApplicationRepository = loanApplicationRepository;
         this.accountCheckService = accountCheckService;
         this.accountService = accountService;
         this.openLoanAccountService = openLoanAccountService;
         this.loanContractService = loanContractService;
-        this.loanRepaymentService = loanRepaymentService;
+        this.repaymentScheduleService = repaymentScheduleService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -145,7 +145,7 @@ public class DefaultLoanApplicationService implements LoanApplicationService {
         LoanContract loanContract = loanContractService.saveLoanContract(application , loanAccount);
 
         // 스케줄러 작성
-        loanRepaymentService.saveRepaymentSchedule(loanAccount , loanContract);
+        repaymentScheduleService.saveRepaymentSchedule(loanAccount , loanContract);
 
         // 대출금 입금 진행
         AccountTransactionRequest debitTransaction =

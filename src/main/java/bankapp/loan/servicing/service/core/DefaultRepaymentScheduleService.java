@@ -43,7 +43,29 @@ public class DefaultRepaymentScheduleService implements RepaymentScheduleService
     }
 
 
+    @Override
+    @Transactional
+    public void saveRepaymentSchedule(LoanAccount loanAccount , LoanContract loanContract){
+        List<RepaymentDetail> calculationDetails = amortizationCalculator.getPlannedRepaymentDetails(loanContract ,loanAccount);
 
+        for(RepaymentDetail detail : calculationDetails){
+            RepaymentSchedule schedule = new RepaymentSchedule();
+
+            schedule.setLoanAccount(loanAccount);
+            schedule.setLoanContract(loanContract);
+            schedule.setTotalAmount(detail.getInterest().add(detail.getPrincipal()));
+            schedule.setInterestAmount(detail.getInterest());
+            schedule.setPrincipalAmount(detail.getPrincipal());
+            schedule.setDelinquentAmount(BigDecimal.ZERO);
+            schedule.setAccelerationPenaltyAmount(BigDecimal.ZERO);
+            //appliedInterestRate
+            schedule.setDueDate(detail.getDueDate());
+            schedule.setStatus(RepaymentStatus.PLANNED);
+
+            repaymentScheduleRepository.save(schedule);
+        }
+
+    }
 
 
     @Override
