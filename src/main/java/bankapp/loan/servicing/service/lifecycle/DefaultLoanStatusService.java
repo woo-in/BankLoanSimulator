@@ -11,9 +11,7 @@ import bankapp.loan.servicing.service.core.RepaymentScheduleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,101 +30,73 @@ public class DefaultLoanStatusService implements LoanStatusService {
         this.repaymentScheduleService = repaymentScheduleService;
     }
 
+
+    @Override
     @Transactional
-    public void changeLoanStatus(LoanAccount loanAccount, LoanStatus targetStatus) {
+    public void changeLoanStatusToNormal(LoanAccount loanAccount) {
 
-        if (loanAccount == null) {
-            throw new InvalidLoanAccountException("대출 계좌가 올바르지 않아 상태를 바꿀 수 없습니다.");
-        }
-
-
-        if (targetStatus == LoanStatus.NORMAL) {
-            changeLoanStatusToNormal(loanAccount);
-        } else if (targetStatus == LoanStatus.DELINQUENT) {
-            changeLoanStatusToDelinquent(loanAccount);
-        } else if (targetStatus == LoanStatus.ACCELERATION_NOTICE) {
-            changeLoanStatusToAccelerationNotice(loanAccount);
-        } else if (targetStatus == LoanStatus.ACCELERATION) {
-            changeLoanStatusToAcceleration(loanAccount);
-        } else if (targetStatus == LoanStatus.TERMINATED) {
-            changeLoanStatusToTerminated(loanAccount);
-        } else {
-            throw new InvalidLoanAccountException("대출 계좌가 올바르지 않아 상태를 바꿀 수 없습니다.");
-        }
-
-        loanAccountService.updateLoanStatus(loanAccount, targetStatus);
-
-    }
-
-    private void changeLoanStatusToNormal(LoanAccount loanAccount) {
-
-        // -- normal 조건
-
-        // 대출 원금이 양수
         if (loanAccount.getBalance().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidLoanAccountException("대출 계좌가 올바르지 않아 상태를 바꿀 수 없습니다(잔여 원금이 있어야 합니다.");
         }
 
-        // 스케줄에 MERGE 0 개 , OVERDUE 0개
+//        List<RepaymentSchedule> pendingRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.PENDING);
+//        List<RepaymentSchedule> plannedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.PLANNED);
         List<RepaymentSchedule> mergedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.MERGED);
         List<RepaymentSchedule> overdueRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.OVERDUE);
+        List<RepaymentSchedule> criticalOverdueRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.CRITICAL_OVERDUE);
+        List<RepaymentSchedule> acceleratedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.ACCELERATED);
 
-        if (!mergedRepaymentSchedules.isEmpty() || !overdueRepaymentSchedules.isEmpty())
-            throw new InvalidRepaymentScheduleException("병합 스케줄 , 연체 스케줄이 존재하지 않아야 delinquent 상태로 바꿀 수 있습니다.");
-
-        // -------------------
+        if (!mergedRepaymentSchedules.isEmpty() || !overdueRepaymentSchedules.isEmpty() || !criticalOverdueRepaymentSchedules.isEmpty() || !acceleratedRepaymentSchedules.isEmpty()) {
+            throw new InvalidRepaymentScheduleException("Normal 상태로 바꿀 수 없습니다.");
+        }
 
         loanAccountService.registerStatusHistory(loanAccount ,LoanStatus.NORMAL ,LocalDateTime.now());
         loanAccountService.updateLoanStatus(loanAccount ,LoanStatus.NORMAL);
     }
 
-    private void changeLoanStatusToDelinquent(LoanAccount loanAccount) {
+    @Override
+    @Transactional
+    public void changeLoanStatusToDelinquent(LoanAccount loanAccount) {
 
-        // -- delinquent 조건
-
-        // 대출 원금이 양수
         if (loanAccount.getBalance().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidLoanAccountException("대출 계좌가 올바르지 않아 상태를 바꿀 수 없습니다(잔여 원금이 있어야 합니다.");
         }
 
-        // 스케줄에 MERGE 0 개 , OVERDUE 1개
+        // List<RepaymentSchedule> pendingRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.PENDING);
+        // List<RepaymentSchedule> plannedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.PLANNED);
         List<RepaymentSchedule> mergedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.MERGED);
         List<RepaymentSchedule> overdueRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.OVERDUE);
+        List<RepaymentSchedule> criticalOverdueRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.CRITICAL_OVERDUE);
+        List<RepaymentSchedule> acceleratedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.ACCELERATED);
 
-        if (!mergedRepaymentSchedules.isEmpty())
-            throw new InvalidRepaymentScheduleException("병합 스케줄이 존재하지 않아야 delinquent 상태로 바꿀 수 있습니다.");
-
-        if(overdueRepaymentSchedules.size()!=1) {
-            throw new InvalidRepaymentScheduleException("연체 스케줄이 1개 여야 delinquent 상태로 바꿀 수 있습니다.");
+        if (!mergedRepaymentSchedules.isEmpty() || overdueRepaymentSchedules.size()!=1 || !criticalOverdueRepaymentSchedules.isEmpty() || !acceleratedRepaymentSchedules.isEmpty()) {
+            throw new InvalidRepaymentScheduleException("Delinquent 상태로 바꿀 수 없습니다.");
         }
-
-
-        // -------------------
 
         loanAccountService.registerStatusHistory(loanAccount ,LoanStatus.DELINQUENT ,LocalDateTime.now());
         loanAccountService.updateLoanStatus(loanAccount ,LoanStatus.DELINQUENT);
 
     }
 
-    private void changeLoanStatusToAccelerationNotice(LoanAccount loanAccount) {
-        // -- acceleration_notice 조건
+    @Override
+    @Transactional
+    public void changeLoanStatusToAccelerationNotice(LoanAccount loanAccount) {
 
-        // 대출 원금이 양수
         if (loanAccount.getBalance().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidLoanAccountException("대출 계좌가 올바르지 않아 상태를 바꿀 수 없습니다(잔여 원금이 있어야 합니다.");
         }
 
-        // 스케줄에 MERGE 0 개 , OVERDUE 2개
+        //        List<RepaymentSchedule> pendingRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.PENDING);
+        //        List<RepaymentSchedule> plannedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.PLANNED);
         List<RepaymentSchedule> mergedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.MERGED);
         List<RepaymentSchedule> overdueRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.OVERDUE);
+        List<RepaymentSchedule> criticalOverdueRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.CRITICAL_OVERDUE);
+        List<RepaymentSchedule> acceleratedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.ACCELERATED);
 
-        if (!mergedRepaymentSchedules.isEmpty())
-            throw new InvalidRepaymentScheduleException("병합 스케줄이 존재하지 않아야 acceleration_notice 상태로 바꿀 수 있습니다.");
 
-        if(overdueRepaymentSchedules.size()!=2) {
-            throw new InvalidRepaymentScheduleException("연체 스케줄이 2개 여야 acceleration_notice 상태로 바꿀 수 있습니다.");
+        if (!mergedRepaymentSchedules.isEmpty() || overdueRepaymentSchedules.size()!= 1 || criticalOverdueRepaymentSchedules.size()!=1 || acceleratedRepaymentSchedules.isEmpty()) {
+            throw new InvalidRepaymentScheduleException("Delinquent 상태로 바꿀 수 없습니다.");
         }
-
 
     // -------------------
 
@@ -134,55 +104,48 @@ public class DefaultLoanStatusService implements LoanStatusService {
         loanAccountService.updateLoanStatus(loanAccount ,LoanStatus.ACCELERATION_NOTICE);
 }
 
-    private void changeLoanStatusToAcceleration(LoanAccount loanAccount) {
+    @Override
+    @Transactional
+    public void changeLoanStatusToAcceleration(LoanAccount loanAccount) {
 
-        // -- acceleration 조건
-
-        // 대출 원금이 양수
         if(loanAccount.getBalance().compareTo(BigDecimal.ZERO) <= 0){
             throw new InvalidLoanAccountException("대출 계좌가 올바르지 않아 상태를 바꿀 수 없습니다(잔여 원금이 있어야 합니다.");
         }
 
-        // 스케줄에 PLANNED , PENDING , OVERDUE 없어야 함
-        List<RepaymentSchedule> pendingRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId() , RepaymentStatus.PENDING);
-        List<RepaymentSchedule> plannedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId() , RepaymentStatus.PLANNED);
-        List<RepaymentSchedule> mergedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId() , RepaymentStatus.MERGED);
-        List<RepaymentSchedule> overdueRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId() , RepaymentStatus.OVERDUE);
+        List<RepaymentSchedule> pendingRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.PENDING);
+        List<RepaymentSchedule> plannedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.PLANNED);
+//        List<RepaymentSchedule> mergedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.MERGED);
+        List<RepaymentSchedule> overdueRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.OVERDUE);
+        List<RepaymentSchedule> criticalOverdueRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.CRITICAL_OVERDUE);
+        List<RepaymentSchedule> acceleratedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.ACCELERATED);
 
-        if(!pendingRepaymentSchedules.isEmpty() || !plannedRepaymentSchedules.isEmpty() || !overdueRepaymentSchedules.isEmpty()){
+
+
+        if(!pendingRepaymentSchedules.isEmpty() || !plannedRepaymentSchedules.isEmpty() || !overdueRepaymentSchedules.isEmpty() || !criticalOverdueRepaymentSchedules.isEmpty() || acceleratedRepaymentSchedules.size() != 1) {
             throw new InvalidRepaymentScheduleException("완료되지 않은 대출 스케줄이 있어 상태를 바꿀 수 없습니다.");
         }
 
-        // 스케줄에 MERGED 는 오직 1개 존재
-        if(mergedRepaymentSchedules.size() != 1){
-            throw new InvalidRepaymentScheduleException("병합 스케줄이 1개 존재해야 acceleration 상태로 바꿀 수 있습니다.");
-        }
-
-
-        // -------------------
-
         loanAccountService.registerStatusHistory(loanAccount , LoanStatus.ACCELERATION , LocalDateTime.now());
         loanAccountService.updateLoanStatus(loanAccount , LoanStatus.ACCELERATION);
-
-
     }
 
-    private void changeLoanStatusToTerminated(LoanAccount loanAccount){
-        // -- terminated 조건
+    @Override
+    @Transactional
+    public void changeLoanStatusToTerminated(LoanAccount loanAccount){
 
-        // 상환 원금이 0 이하
         if(loanAccount.getBalance().compareTo(BigDecimal.ZERO) > 0){
             throw new InvalidLoanAccountException("대출 계좌가 올바르지 않아 상태를 바꿀 수 없습니다(잔여 원금이 있습니다.)");
         }
 
+        List<RepaymentSchedule> pendingRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.PENDING);
+        List<RepaymentSchedule> plannedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.PLANNED);
+//        List<RepaymentSchedule> mergedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.MERGED);
+        List<RepaymentSchedule> overdueRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.OVERDUE);
+        List<RepaymentSchedule> criticalOverdueRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.CRITICAL_OVERDUE);
+        List<RepaymentSchedule> acceleratedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId(), RepaymentStatus.ACCELERATED);
 
-        // 계획 , 대기 , 완료 , 연체 존재 X
-        List<RepaymentSchedule> pendingRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId() , RepaymentStatus.PENDING);
-        List<RepaymentSchedule> plannedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId() , RepaymentStatus.PLANNED);
-        List<RepaymentSchedule> mergedRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId() , RepaymentStatus.MERGED);
-        List<RepaymentSchedule> overdueRepaymentSchedules = repaymentScheduleService.getRepaymentSchedules(loanAccount.getAccountId() , RepaymentStatus.OVERDUE);
 
-        if(!pendingRepaymentSchedules.isEmpty() || !plannedRepaymentSchedules.isEmpty() || !mergedRepaymentSchedules.isEmpty() || !overdueRepaymentSchedules.isEmpty()){
+        if(!pendingRepaymentSchedules.isEmpty() || !plannedRepaymentSchedules.isEmpty() || !overdueRepaymentSchedules.isEmpty() || !criticalOverdueRepaymentSchedules.isEmpty() || !acceleratedRepaymentSchedules.isEmpty()) {
             throw new InvalidRepaymentScheduleException("완료되지 않은 대출 스케줄이 있어 상태를 바꿀 수 없습니다.");
         }
 

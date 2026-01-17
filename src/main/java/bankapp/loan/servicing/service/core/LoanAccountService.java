@@ -6,6 +6,7 @@ import bankapp.loan.servicing.model.LoanStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 대출 계좌 관리 서비스 인터페이스
@@ -63,6 +64,21 @@ public interface LoanAccountService {
      * @throws InvalidInstallmentException     다음 회차가 대출 계약 기간을 초과하는 경우
      */
     LoanAccount updateLoanProgress(LoanAccount loanAccount, BigDecimal newOutstandingPrincipal) throws InvalidPrincipalException, ActiveLoanContractNotFoundException, InvalidInstallmentException;
+
+
+    /**
+     * 특정 상태(targetStatus)로 변경되어야 할 조건을 만족하는 대출 계좌 후보 목록을 조회합니다.
+     * <p>
+     * 조건:
+     * 1. 해당 상태가 요구하는 스케줄 조건(RepaymentSchedule Status)을 충족해야 합니다.
+     * 2. 현재 이미 해당 상태(targetStatus)인 계좌는 제외됩니다.
+     * </p>
+     *
+     * @param targetStatus 변경 목표 상태 (예: DELINQUENT, NORMAL 등)
+     * @return 상태 변경 대상 후보 계좌 리스트 (없으면 빈 리스트 반환)
+     */
+    List<LoanAccount> findCandidateAccountsForStatus(LoanStatus targetStatus);
+
 
     /**
      * 대출 상태 변경 이력을 등록합니다.

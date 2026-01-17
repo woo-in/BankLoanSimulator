@@ -17,6 +17,8 @@ import java.util.List;
  */
 public interface RepaymentScheduleService {
 
+
+
     /**
      * 특정 대출 계좌의 상환 스케줄 목록을 조회합니다.
      * <p>
@@ -29,6 +31,18 @@ public interface RepaymentScheduleService {
      * @throws InvalidRepaymentStatusException 상태 정보가 null인 경우
      */
     List<RepaymentSchedule> getRepaymentSchedules(Long loanAccountId, RepaymentStatus status) throws InvalidRepaymentStatusException;
+
+    /**
+     * 특정 대출 계좌의 상환 스케줄 목록을 조회합니다.
+     * <p>
+     * 상환 예정일(Due Date) 오름차순으로 정렬하여 반환합니다.
+     * </p>
+     *
+     * @param status        조회할 스케줄 상태 (예: PENDING, OVERDUE 등)
+     * @return 조건에 맞는 상환 스케줄 리스트
+     * @throws InvalidRepaymentStatusException 상태 정보가 null인 경우
+     */
+    List<RepaymentSchedule> getRepaymentSchedules(RepaymentStatus status) throws  InvalidRepaymentStatusException;
 
     /**
      * 상환 스케줄의 상태를 변경합니다.
@@ -88,6 +102,9 @@ public interface RepaymentScheduleService {
      */
     void updateDailyAcceleration(RepaymentSchedule schedule);
 
+    // 스케줄 병합
+    void mergeBalance(RepaymentSchedule mergeSchedule , List<RepaymentSchedule> mergedSchedules);
+
     /**
      * 상환 스케줄의 예정 금액(원금, 이자)을 최신 기준으로 재계산하여 갱신합니다.
      * <p>
@@ -139,4 +156,27 @@ public interface RepaymentScheduleService {
      * @return 조건에 부합하는 상환 스케줄 리스트
      */
     List<RepaymentSchedule> findSchedulesByLoanStatusAndRepaymentStatusAndDueDate(LoanStatus loanStatus, RepaymentStatus repaymentStatus, LocalDate targetDate);
+
+    // ... 기존 코드 아래에 추가 ...
+
+    /**
+     * [배치 최적화용] 여러 대출 상태(OR 조건) 중 하나에 해당하고,
+     * 특정 스케줄 상태(AND)이며, 기한이 지난(AND) 스케줄을 조회합니다.
+     *
+     * <p>
+     * 용도:
+     * 1. Pending 전환: (NORMAL or DELINQUENT or ACC_NOTICE) + PLANNED + 5일 전
+     * 2. Overdue 전환: (NORMAL or DELINQUENT) + PENDING + 오늘
+     * </p>
+     *
+     * @param loanStatuses    허용되는 대출 계좌 상태 목록 (OR 조건)
+     * @param repaymentStatus 검색할 스케줄 상태 (AND 조건)
+     * @param targetDate      기준 날짜 (이 날짜를 포함하여 과거의 스케줄 조회)
+     * @return 조건에 부합하는 상환 스케줄 리스트
+     */
+    List<RepaymentSchedule> findSchedulesByLoanStatusesAndRepaymentStatusAndDueDate(
+            List<LoanStatus> loanStatuses,
+            RepaymentStatus repaymentStatus,
+            LocalDate targetDate
+    );
 }

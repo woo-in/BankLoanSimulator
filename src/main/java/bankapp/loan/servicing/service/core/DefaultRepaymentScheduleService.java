@@ -43,12 +43,23 @@ public class DefaultRepaymentScheduleService implements RepaymentScheduleService
     }
 
 
+
+
+
     @Override
     @Transactional(readOnly = true)
     public List<RepaymentSchedule> getRepaymentSchedules(Long loanAccountId, RepaymentStatus status) {
         if (status == null) throw new InvalidRepaymentStatusException("잘못된 상태 정보");
         return repaymentScheduleRepository.findByLoanAccount_AccountIdAndStatusOrderByDueDateAsc(loanAccountId, status);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RepaymentSchedule> getRepaymentSchedules(RepaymentStatus status){
+        if (status == null) throw new InvalidRepaymentStatusException("잘못된 상태 정보");
+        return repaymentScheduleRepository.findByStatus(status);
+    }
+
 
     /**
      *  스케줄 상태 변경 (Entity 기반)
@@ -247,6 +258,27 @@ public class DefaultRepaymentScheduleService implements RepaymentScheduleService
         schedule.setTotalAmount(totalAmount);
     }
 
+    /** 스케줄 병합
+     */
+    @Override
+    @Transactional
+    public void mergeBalance(RepaymentSchedule mergeSchedule , List<RepaymentSchedule> mergedSchedules){
+        for(RepaymentSchedule mergedSchedule : mergedSchedules){
+            mergeSchedule.setTotalAmount(mergeSchedule.getTotalAmount().add(mergedSchedule.getTotalAmount()));
+            mergeSchedule.setInterestAmount(mergeSchedule.getInterestAmount().add(mergedSchedule.getInterestAmount()));
+            mergeSchedule.setPrincipalAmount(mergeSchedule.getPrincipalAmount().add(mergedSchedule.getPrincipalAmount()));
+            mergeSchedule.setDelinquentAmount(mergeSchedule.getDelinquentAmount().add(mergedSchedule.getDelinquentAmount()));
+            mergeSchedule.setAccelerationPenaltyAmount(mergeSchedule.getAccelerationPenaltyAmount().add(mergedSchedule.getAccelerationPenaltyAmount()));
+
+            mergedSchedule.setTotalAmount(BigDecimal.ZERO);
+            mergedSchedule.setInterestAmount(BigDecimal.ZERO);
+            mergedSchedule.setPrincipalAmount(BigDecimal.ZERO);
+            mergedSchedule.setDelinquentAmount(BigDecimal.ZERO);
+            mergedSchedule.setAccelerationPenaltyAmount(BigDecimal.ZERO);
+        }
+    }
+
+
     /**
      * 특정 상태(status)이면서, 기한(dueDate)이 기준 날짜(targetDate)보다 같거나 과거인 스케줄 조회
      * * 용도:
@@ -282,6 +314,18 @@ public class DefaultRepaymentScheduleService implements RepaymentScheduleService
     @Transactional(readOnly = true)
     public List<RepaymentSchedule> findSchedulesByLoanStatusAndRepaymentStatusAndDueDate(LoanStatus loanStatus, RepaymentStatus repaymentStatus, LocalDate targetDate) {
         return repaymentScheduleRepository.findByLoanAccount_LoanStatusAndStatusAndDueDateLessThanEqual(loanStatus, repaymentStatus, targetDate);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RepaymentSchedule> findSchedulesByLoanStatusesAndRepaymentStatusAndDueDate(
+            List<LoanStatus> loanStatuses,
+            RepaymentStatus repaymentStatus,
+            LocalDate targetDate) {
+
+        return repaymentScheduleRepository.findByLoanAccount_LoanStatusInAndStatusAndDueDateLessThanEqual(
+                loanStatuses, repaymentStatus, targetDate
+        );
     }
 
     @Override

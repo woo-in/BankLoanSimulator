@@ -2,7 +2,7 @@ package bankapp.loan.servicing.service.core;
 
 import bankapp.loan.servicing.model.LoanAccount;
 import bankapp.loan.servicing.model.LoanStatus;
-import bankapp.account.repository.LoanAccountRepository;
+import bankapp.loan.servicing.repository.LoanAccountRepository;
 import bankapp.loan.exceptions.*;
 import bankapp.loan.servicing.model.LoanStatusHistory;
 import bankapp.loan.servicing.repository.LoanStatusHistoryRepository;
@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 @Service
 public class DefaultLoanAccountService implements LoanAccountService {
@@ -117,6 +119,28 @@ public class DefaultLoanAccountService implements LoanAccountService {
     }
 
 
+    /**
+     * 상태 변경 후보 계좌 조회 구현
+     * - Repository에 정의된 상태별 전용 쿼리 메서드를 매핑하여 호출합니다.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<LoanAccount> findCandidateAccountsForStatus(LoanStatus targetStatus) {
+        if (targetStatus == null) {
+            return Collections.emptyList();
+        }
+
+        return switch (targetStatus) {
+            case NORMAL -> loanAccountRepository.findCandidatesForNormalStatus();
+            case DELINQUENT -> loanAccountRepository.findCandidatesForDelinquentStatus();
+            case ACCELERATION_NOTICE -> loanAccountRepository.findCandidatesForAccelerationNoticeStatus();
+            case ACCELERATION -> loanAccountRepository.findCandidatesForAccelerationStatus();
+            case TERMINATED -> loanAccountRepository.findCandidatesForTerminatedStatus();
+            default ->
+                // 정의되지 않은 상태나, 자동 배치 처리가 불필요한 상태(예: WRITTEN_OFF 등)는 빈 리스트 반환
+                    Collections.emptyList();
+        };
+    }
 
 
 
